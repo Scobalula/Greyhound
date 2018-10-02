@@ -1,0 +1,312 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BFF7E83B-ACD0-447F-A4DE-A11D726ACAE1}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>WraithX</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\ExternalDeps\Flac1.3.2\include;..\ExternalDeps\DirectXTexApril17\DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\ExternalDeps\Flac1.3.2\include;..\ExternalDeps\DirectXTexApril17\DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\ExternalDeps\Flac1.3.2\include;..\ExternalDeps\DirectXTexApril17\DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\ExternalDeps\Flac1.3.2\include;..\ExternalDeps\DirectXTexApril17\DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="AsyncQueue.h" />
+    <ClInclude Include="Autherization.h" />
+    <ClInclude Include="BinaryReader.h" />
+    <ClInclude Include="BinaryWriter.h" />
+    <ClInclude Include="CommandLineManager.h" />
+    <ClInclude Include="Compression.h" />
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="CResizableDialog.h" />
+    <ClInclude Include="Encryption.h" />
+    <ClInclude Include="EndianSwap.h" />
+    <ClInclude Include="FileSystems.h" />
+    <ClInclude Include="HalfFloats.h" />
+    <ClInclude Include="Hashing.h" />
+    <ClInclude Include="Image.h" />
+    <ClInclude Include="InjectionReader.h" />
+    <ClInclude Include="Instance.h" />
+    <ClInclude Include="LZ4.h" />
+    <ClInclude Include="LZOConf.h" />
+    <ClInclude Include="LZODefs.h" />
+    <ClInclude Include="MayaExport.h" />
+    <ClInclude Include="MD5.h" />
+    <ClInclude Include="MemoryReader.h" />
+    <ClInclude Include="MemoryWriter.h" />
+    <ClInclude Include="MiniLZO.h" />
+    <ClInclude Include="MiniZ.h" />
+    <ClInclude Include="MiniZ_Common.h" />
+    <ClInclude Include="MiniZ_TDef.h" />
+    <ClInclude Include="MiniZ_TInfl.h" />
+    <ClInclude Include="MiniZ_Zip.h" />
+    <ClInclude Include="OBJExport.h" />
+    <ClInclude Include="Patterns.h" />
+    <ClInclude Include="ProcessReader.h" />
+    <ClInclude Include="Salsa20.h" />
+    <ClInclude Include="SEAnimExport.h" />
+    <ClInclude Include="SEModelExport.h" />
+    <ClInclude Include="SettingsManager.h" />
+    <ClInclude Include="SHA1.h" />
+    <ClInclude Include="Sound.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Strings.h" />
+    <ClInclude Include="Systems.h" />
+    <ClInclude Include="TextReader.h" />
+    <ClInclude Include="TextWriter.h" />
+    <ClInclude Include="ValveSMDExport.h" />
+    <ClInclude Include="VectorMath.h" />
+    <ClInclude Include="WebClient.h" />
+    <ClInclude Include="WraithAboutDialog.h" />
+    <ClInclude Include="WraithAnim.h" />
+    <ClInclude Include="WraithApp.h" />
+    <ClInclude Include="WraithAsset.h" />
+    <ClInclude Include="WraithButton.h" />
+    <ClInclude Include="WraithCheckbox.h" />
+    <ClInclude Include="WraithCombobox.h" />
+    <ClInclude Include="WraithCube.h" />
+    <ClInclude Include="WraithFileDialogs.h" />
+    <ClInclude Include="WraithGroupBox.h" />
+    <ClInclude Include="WraithListView.h" />
+    <ClInclude Include="WraithListViewHeader.h" />
+    <ClInclude Include="WraithMenu.h" />
+    <ClInclude Include="WraithModel.h" />
+    <ClInclude Include="WraithNameIndex.h" />
+    <ClInclude Include="WraithPopup.h" />
+    <ClInclude Include="WraithPreview.h" />
+    <ClInclude Include="WraithProgressBar.h" />
+    <ClInclude Include="WraithProgressDialog.h" />
+    <ClInclude Include="WraithRadio.h" />
+    <ClInclude Include="WraithSettingButton.h" />
+    <ClInclude Include="WraithSplitButton.h" />
+    <ClInclude Include="WraithTextbox.h" />
+    <ClInclude Include="WraithTheme.h" />
+    <ClInclude Include="WraithUpdate.h" />
+    <ClInclude Include="WraithWindow.h" />
+    <ClInclude Include="WraithX.h" />
+    <ClInclude Include="XAnimRawExport.h" />
+    <ClInclude Include="XMEExport.h" />
+    <ClInclude Include="XNALaraExport.h" />
+    <ClInclude Include="XXHash.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Autherization.cpp" />
+    <ClCompile Include="BinaryReader.cpp" />
+    <ClCompile Include="BinaryWriter.cpp" />
+    <ClCompile Include="CommandLineManager.cpp" />
+    <ClCompile Include="Compression.cpp" />
+    <ClCompile Include="Console.cpp" />
+    <ClCompile Include="CResizableDialog.cpp" />
+    <ClCompile Include="Encryption.cpp" />
+    <ClCompile Include="FileSystems.cpp" />
+    <ClCompile Include="HalfFloats.cpp" />
+    <ClCompile Include="Hashing.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="InjectionReader.cpp" />
+    <ClCompile Include="Instance.cpp" />
+    <ClCompile Include="LZ4.cpp" />
+    <ClCompile Include="MayaExport.cpp" />
+    <ClCompile Include="MD5.cpp" />
+    <ClCompile Include="MemoryReader.cpp" />
+    <ClCompile Include="MemoryWriter.cpp" />
+    <ClCompile Include="MiniLZO.cpp" />
+    <ClCompile Include="MiniZ.cpp" />
+    <ClCompile Include="MiniZ_TDef.cpp" />
+    <ClCompile Include="MiniZ_TInfl.cpp" />
+    <ClCompile Include="MiniZ_Zip.cpp" />
+    <ClCompile Include="OBJExport.cpp" />
+    <ClCompile Include="Patterns.cpp" />
+    <ClCompile Include="ProcessReader.cpp" />
+    <ClCompile Include="Salsa20.cpp" />
+    <ClCompile Include="SEAnimExport.cpp" />
+    <ClCompile Include="SEModelExport.cpp" />
+    <ClCompile Include="SettingsManager.cpp" />
+    <ClCompile Include="SHA1.cpp" />
+    <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Strings.cpp" />
+    <ClCompile Include="Systems.cpp" />
+    <ClCompile Include="TextReader.cpp" />
+    <ClCompile Include="TextWriter.cpp" />
+    <ClCompile Include="ValveSMDExport.cpp" />
+    <ClCompile Include="VectorMath.cpp" />
+    <ClCompile Include="WebClient.cpp" />
+    <ClCompile Include="WraithAboutDialog.cpp" />
+    <ClCompile Include="WraithAnim.cpp" />
+    <ClCompile Include="WraithApp.cpp" />
+    <ClCompile Include="WraithAsset.cpp" />
+    <ClCompile Include="WraithButton.cpp" />
+    <ClCompile Include="WraithCheckbox.cpp" />
+    <ClCompile Include="WraithCombobox.cpp" />
+    <ClCompile Include="WraithCube.cpp" />
+    <ClCompile Include="WraithFileDialogs.cpp" />
+    <ClCompile Include="WraithGroupBox.cpp" />
+    <ClCompile Include="WraithListView.cpp" />
+    <ClCompile Include="WraithListViewHeader.cpp" />
+    <ClCompile Include="WraithMenu.cpp" />
+    <ClCompile Include="WraithModel.cpp" />
+    <ClCompile Include="WraithNameIndex.cpp" />
+    <ClCompile Include="WraithPopup.cpp" />
+    <ClCompile Include="WraithPreview.cpp" />
+    <ClCompile Include="WraithProgressBar.cpp" />
+    <ClCompile Include="WraithProgressDialog.cpp" />
+    <ClCompile Include="WraithRadio.cpp" />
+    <ClCompile Include="WraithSettingButton.cpp" />
+    <ClCompile Include="WraithSplitButton.cpp" />
+    <ClCompile Include="WraithTextbox.cpp" />
+    <ClCompile Include="WraithTheme.cpp" />
+    <ClCompile Include="WraithUpdate.cpp" />
+    <ClCompile Include="WraithWindow.cpp" />
+    <ClCompile Include="WraithX.cpp" />
+    <ClCompile Include="XAnimRawExport.cpp" />
+    <ClCompile Include="XMEExport.cpp" />
+    <ClCompile Include="XNALaraExport.cpp" />
+    <ClCompile Include="XXHash.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ExternalDeps\DirectXTexApril17\DirectXTex\DirectXTex_Desktop_2013.vcxproj">
+      <Project>{371b9fa9-4c90-4ac6-a123-aced756d6c77}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ExternalDeps\Flac1.3.2\src\libFLAC\libFLAC_static.vcxproj">
+      <Project>{4cefbc84-c215-11db-8314-0800200c9a66}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

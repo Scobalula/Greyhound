@@ -1,0 +1,250 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{948F6C8F-B11C-4E84-AC0E-8A8B1E94D119}</ProjectGuid>
+    <RootNamespace>WraithXCOD</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>Greyhound</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>Greyhound</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>Greyhound</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\WraithX\ExternalDeps\DirectXTexApril17\DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\WraithX\ExternalDeps\DirectXTexApril17\DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\WraithX\ExternalDeps\DirectXTexApril17\DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\WraithX\ExternalDeps\DirectXTexApril17\DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\WraithX\WraithX\WraithX.vcxproj">
+      <Project>{bff7e83b-acd0-447f-a4de-a11d726acae1}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AnimSettings.cpp" />
+    <ClCompile Include="CoDAssets.cpp" />
+    <ClCompile Include="CoDAssetType.cpp" />
+    <ClCompile Include="CoDEffectTranslator.cpp" />
+    <ClCompile Include="CoDGDTProcessor.cpp" />
+    <ClCompile Include="CoDIWITranslator.cpp" />
+    <ClCompile Include="CoDPackageCache.cpp" />
+    <ClCompile Include="CoDRawfileTranslator.cpp" />
+    <ClCompile Include="CoDRawImageTranslator.cpp" />
+    <ClCompile Include="CoDXAnimTranslator.cpp" />
+    <ClCompile Include="CoDXModelTranslator.cpp" />
+    <ClCompile Include="DBGameAssets.cpp" />
+    <ClCompile Include="GameAdvancedWarfare.cpp" />
+    <ClCompile Include="GameBlackOps.cpp" />
+    <ClCompile Include="GameBlackOps2.cpp" />
+    <ClCompile Include="GameBlackOps3.cpp" />
+    <ClCompile Include="GameBlackOps4.cpp" />
+    <ClCompile Include="GameGhosts.cpp" />
+    <ClCompile Include="GameInfiniteWarfare.cpp" />
+    <ClCompile Include="GameModernWarfare.cpp" />
+    <ClCompile Include="GameModernWarfare2.cpp" />
+    <ClCompile Include="GameModernWarfare3.cpp" />
+    <ClCompile Include="GameModernWarfareRM.cpp" />
+    <ClCompile Include="GameWorldAtWar.cpp" />
+    <ClCompile Include="GameWorldWar2.cpp" />
+    <ClCompile Include="GDTSettings.cpp" />
+    <ClCompile Include="GeneralSettings.cpp" />
+    <ClCompile Include="ImageSettings.cpp" />
+    <ClCompile Include="IPAKCache.cpp" />
+    <ClCompile Include="IPAKSupport.cpp" />
+    <ClCompile Include="IWDCache.cpp" />
+    <ClCompile Include="IWDSupport.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="ModelSettings.cpp" />
+    <ClCompile Include="PAKCache.cpp" />
+    <ClCompile Include="PAKSupport.cpp" />
+    <ClCompile Include="SABCache.cpp" />
+    <ClCompile Include="SABSupport.cpp" />
+    <ClCompile Include="SettingsWindow.cpp" />
+    <ClCompile Include="Siren.cpp" />
+    <ClCompile Include="SoundSettings.cpp" />
+    <ClCompile Include="XPAKCache.cpp" />
+    <ClCompile Include="XPAKSupport.cpp" />
+    <ClCompile Include="XPTOCCache.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AboutWindow.h" />
+    <ClInclude Include="AnimSettings.h" />
+    <ClInclude Include="CoDAssets.h" />
+    <ClInclude Include="CoDAssetType.h" />
+    <ClInclude Include="CoDEffectTranslator.h" />
+    <ClInclude Include="CoDGDTProcessor.h" />
+    <ClInclude Include="CoDIWITranslator.h" />
+    <ClInclude Include="CoDPackageCache.h" />
+    <ClInclude Include="CoDRawfileTranslator.h" />
+    <ClInclude Include="CoDRawImageTranslator.h" />
+    <ClInclude Include="CoDXAnimTranslator.h" />
+    <ClInclude Include="CoDXConverter.h" />
+    <ClInclude Include="CoDXModelTranslator.h" />
+    <ClInclude Include="CoDXPoolParser.h" />
+    <ClInclude Include="DBGameAssets.h" />
+    <ClInclude Include="DBGameFiles.h" />
+    <ClInclude Include="DBGameGenerics.h" />
+    <ClInclude Include="GameAdvancedWarfare.h" />
+    <ClInclude Include="GameBlackOps.h" />
+    <ClInclude Include="GameBlackOps2.h" />
+    <ClInclude Include="GameBlackOps3.h" />
+    <ClInclude Include="GameBlackOps4.h" />
+    <ClInclude Include="GameGhosts.h" />
+    <ClInclude Include="GameInfiniteWarfare.h" />
+    <ClInclude Include="GameModernWarfare.h" />
+    <ClInclude Include="GameModernWarfare2.h" />
+    <ClInclude Include="GameModernWarfare3.h" />
+    <ClInclude Include="GameModernWarfareRM.h" />
+    <ClInclude Include="GameWorldAtWar.h" />
+    <ClInclude Include="GameWorldWar2.h" />
+    <ClInclude Include="GDTSettings.h" />
+    <ClInclude Include="GeneralSettings.h" />
+    <ClInclude Include="ImageSettings.h" />
+    <ClInclude Include="IPAKCache.h" />
+    <ClInclude Include="IPAKSupport.h" />
+    <ClInclude Include="IWDCache.h" />
+    <ClInclude Include="IWDSupport.h" />
+    <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="ModelSettings.h" />
+    <ClInclude Include="PAKCache.h" />
+    <ClInclude Include="PAKSupport.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SABCache.h" />
+    <ClInclude Include="SABSupport.h" />
+    <ClInclude Include="SettingsWindow.h" />
+    <ClInclude Include="Siren.h" />
+    <ClInclude Include="SoundSettings.h" />
+    <ClInclude Include="XPAKCache.h" />
+    <ClInclude Include="XPAKSupport.h" />
+    <ClInclude Include="XPTOCCache.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WraithXCOD.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\WraithX\Resources\CheckMarkIcon.ico" />
+    <Image Include="..\Resources\SettingHover.png" />
+    <Image Include="..\Resources\SettingNormal.png" />
+    <Image Include="..\Resources\SettingSelect.png" />
+    <Image Include="..\Resources\WraithArchon.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
