@@ -668,7 +668,7 @@ std::unique_ptr<XImageDDS> GameModernWarfareRM::LoadXImage(const XImage_t& Image
 	}
 
 	// Calculate table offset of the biggest mip
-	uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(MWRGfxImage)) * (sizeof(MWRPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[4] + (LargestMip * sizeof(MWRPAKImageEntry));
+	uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(MWRGfxImage)) * (sizeof(MWRPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[5] + (LargestMip * sizeof(MWRPAKImageEntry));
 
 	// Read info
 	auto ImageStreamInfo = CoDAssets::GameInstance->Read<MWRPAKImageEntry>(PAKTableOffset);

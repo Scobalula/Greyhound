@@ -660,7 +660,7 @@ std::unique_ptr<XImageDDS> GameAdvancedWarfare::LoadXImage(const XImage_t& Image
 	}
 
 	// Calculate table offset of the biggest mip
-	uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(AWGfxImage)) * (sizeof(AWPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[4] + (LargestMip * sizeof(AWPAKImageEntry));
+	uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(AWGfxImage)) * (sizeof(AWPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[5] + (LargestMip * sizeof(AWPAKImageEntry));
 
 	// Read info
 	auto ImageStreamInfo = CoDAssets::GameInstance->Read<AWPAKImageEntry>(PAKTableOffset);

@@ -626,7 +626,7 @@ void MainWindow::OnDestroy()
 void MainWindow::OnSupport()
 {
 	// Spawn wiki post
-	ShellExecuteA(NULL, "open", "https://github.com/Scobalula/Greyhound/Wiki", NULL, NULL, SW_SHOWNORMAL);
+	ShellExecuteA(NULL, "open", "https://github.com/Scobalula/Greyhound/wiki", NULL, NULL, SW_SHOWNORMAL);
 }
 
 void MainWindow::OnLoadFile()
