@@ -1,7 +1,7 @@
 # Greyhound
 [![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE)  [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/fGVpV39)
 
-Greyhound is a fork of [Wraith Archon](https://github.com/dtzxporter/WraithXArchon). Originally developed by the legend DTZxPorter, it is the Call of Duty Asset Extractor, supporting XModels, XAnims, and more depending, from Call of Duty 4: Modern Warfare all the way up to the latest releases. With Greyhound we hope to bring more features, etc. and ensure updates for game updates.
+Greyhound is a fork of [Wraith Archon](https://github.com/dtzxporter/WraithXArchon). Originally developed by the legend DTZxPorter, it is the Call of Duty Asset Extractor, supporting XModels, XAnims, and more, from Call of Duty 4: Modern Warfare all the way up to the latest releases. With Greyhound we hope to bring more features, etc. and ensure updates for game updates.
 
 For more information on Game Support, see the [General Information](https://github.com/Scobalula/Greyhound/wiki/General-Information) page.
 
