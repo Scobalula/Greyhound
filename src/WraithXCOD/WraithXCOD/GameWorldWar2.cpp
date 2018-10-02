@@ -26,9 +26,10 @@
 // -- Initialize built-in game offsets databases
 
 // World War 2 SP
-std::array<DBGameInfo, 7> GameWorldWar2::SinglePlayerOffsets =
+std::array<DBGameInfo, 8> GameWorldWar2::SinglePlayerOffsets =
 {{
-	{ 0x9483D0, 0xBCC5E0, 0x9D9E080, 0x6C60C00 },	// LATEST
+	{ 0x9483F0, 0xBCC5E0, 0x9E02080, 0x6CC4C00 },	// LATEST
+	{ 0x9483D0, 0xBCC5E0, 0x9D9E080, 0x6C60C00 },	
 	{ 0x947260, 0xBCB5D0, 0x9C62800, 0x6B49580 },
 	{ 0x947100, 0xBCB590, 0x9AAD000, 0x69CA080 },
 	{ 0x945FA0, 0xBCA580, 0x9FA8680, 0x6EE5180 },
@@ -38,9 +39,10 @@ std::array<DBGameInfo, 7> GameWorldWar2::SinglePlayerOffsets =
 }};
 
 // World War 2 MP
-std::array<DBGameInfo, 7> GameWorldWar2::MultiPlayerOffsets =
+std::array<DBGameInfo, 8> GameWorldWar2::MultiPlayerOffsets =
 {{
-	{ 0xC04360, 0xEABC40, 0xACD9100, 0x19E0D00 },	// LATEST
+	{ 0xC05370, 0xEACC40, 0xADF3E80, 0x19E9580 },	// LATEST
+	{ 0xC04360, 0xEABC40, 0xACD9100, 0x19E0D00 },
 	{ 0xC03420, 0xEA9C40, 0xAB2CB00, 0x19CF100 },
 	{ 0xC01330, 0xEA7C40, 0xA80FC00, 0x198B280 },
 	{ 0xBFF3D0, 0xEA4C40, 0xABD8800, 0x197B700 },
@@ -105,7 +107,7 @@ bool GameWorldWar2::LoadOffsets()
 			CoDAssets::GameOffsetInfos.clear();
 		}
 
-		// Attempt to locate via heuristic searching
+		// Attempt to locate via heuristic searching (tested on MP and SP across 2 updates)
 		auto DBAssetsScan = CoDAssets::GameInstance->Scan("4A 8B AC ?? ?? ?? ?? ?? 48 85 ED");
 		auto DBPoolSizesScan = CoDAssets::GameInstance->Scan("?? 83 BC ?? ?? ?? ?? ?? 01 7F 48");
 		auto StringTableScan = CoDAssets::GameInstance->Scan("48 C1 E0 04 48 03 C1 48 83 C4 28 C3");

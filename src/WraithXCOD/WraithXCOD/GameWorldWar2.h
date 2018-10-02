@@ -42,9 +42,9 @@ private:
 	// -- Game offsets databases
 
 	// A list of offsets for World War 2 single player
-	static std::array<DBGameInfo, 7> SinglePlayerOffsets;
+	static std::array<DBGameInfo, 8> SinglePlayerOffsets;
 	// A list of offsets for World War 2 multi player
-	static std::array<DBGameInfo, 7> MultiPlayerOffsets;
+	static std::array<DBGameInfo, 8> MultiPlayerOffsets;
 
 	// -- Game utilities
 
