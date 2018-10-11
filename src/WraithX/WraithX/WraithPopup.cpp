@@ -162,7 +162,7 @@ void WraithPopup::OnPaint()
 		Gdiplus::Font textFont(L"Arial", 9.0f, Gdiplus::FontStyle::FontStyleBold);
 
 		// Render the title
-		graphics.DrawString(L"Greyhound - Export complete", 24, &textFont, Gdiplus::PointF(9.0f, 9.0f), &textBrush);
+		graphics.DrawString(L"Greyhound - Export complete", 27, &textFont, Gdiplus::PointF(9.0f, 9.0f), &textBrush);
 	}
 
 	// Render the message

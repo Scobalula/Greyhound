@@ -162,7 +162,7 @@ void MainWindow::OnAssetListDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
 			// Prepare the dialog
 			ProgressDialog = std::make_unique<WraithProgressDialog>(IDD_PROGRESSDIALOG, this);
 			// Setup the dialog
-			ProgressDialog->SetupDialog("Wraith | Exporting...", "Exporting...", false, true);
+			ProgressDialog->SetupDialog("Greyhound | Exporting...", "Exporting...", false, true);
 			// Hook buttons
 			ProgressDialog->OnCancelClick = CancelProgress;
 			ProgressDialog->OnOkClick = FinishProgress;
@@ -401,7 +401,7 @@ void MainWindow::LoadGameAsync()
 		GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
 
 		// Notify the user about the issue
-		MessageBoxA(this->GetSafeHwnd(), "No instances of any supported game were found. Please make sure the game is running first.", "Wraith", MB_OK | MB_ICONWARNING);
+		MessageBoxA(this->GetSafeHwnd(), "No instances of any supported game were found. Please make sure the game is running first.", "Greyhound", MB_OK | MB_ICONWARNING);
 	}
 	else if (LoadGameResult == FindGameResult::FailedToLocateInfo)
 	{
@@ -415,7 +415,7 @@ void MainWindow::LoadGameAsync()
 		GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
 
 		// Notify the user about the issue
-		MessageBoxA(this->GetSafeHwnd(), "This game is supported, but the current update is not. Please wait for an upcoming patch for support.", "Wraith", MB_OK | MB_ICONWARNING);
+		MessageBoxA(this->GetSafeHwnd(), "This game is supported, but the current update is not. Please wait for an upcoming patch for support.", "Greyhound", MB_OK | MB_ICONWARNING);
 	}
 }
 
@@ -475,7 +475,7 @@ void MainWindow::OnExportAll()
 	// Prepare the dialog
 	ProgressDialog = std::make_unique<WraithProgressDialog>(IDD_PROGRESSDIALOG, this);
 	// Setup the dialog
-	ProgressDialog->SetupDialog("Wraith | Exporting...", "Exporting...", true, true);
+	ProgressDialog->SetupDialog("Greyhound | Exporting...", "Exporting...", true, true);
 	// Hook buttons
 	ProgressDialog->OnCancelClick = CancelProgress;
 	ProgressDialog->OnOkClick = FinishProgress;
@@ -533,7 +533,7 @@ void MainWindow::OnExportSelected()
 		// Prepare the dialog
 		ProgressDialog = std::make_unique<WraithProgressDialog>(IDD_PROGRESSDIALOG, this);
 		// Setup the dialog
-		ProgressDialog->SetupDialog("Wraith | Exporting...", "Exporting...", true, true);
+		ProgressDialog->SetupDialog("Greyhound | Exporting...", "Exporting...", true, true);
 		// Hook buttons
 		ProgressDialog->OnCancelClick = CancelProgress;
 		ProgressDialog->OnOkClick = FinishProgress;
@@ -710,7 +710,7 @@ void MainWindow::LoadGameFileAsync(const std::string& FilePath)
 		GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
 
 		// Notify the user about the issue
-		MessageBoxA(this->GetSafeHwnd(), "The file you have provided was invalid.", "Wraith", MB_OK | MB_ICONWARNING);
+		MessageBoxA(this->GetSafeHwnd(), "The file you have provided was invalid.", "Greyhound", MB_OK | MB_ICONWARNING);
 	}
 	else if (LoadFileResult == LoadGameFileResult::UnknownError)
 	{
@@ -724,7 +724,7 @@ void MainWindow::LoadGameFileAsync(const std::string& FilePath)
 		GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
 
 		// Notify the user about the issue
-		MessageBoxA(this->GetSafeHwnd(), "An unknown error has occured while loading the file.", "Wraith", MB_OK | MB_ICONWARNING);
+		MessageBoxA(this->GetSafeHwnd(), "An unknown error has occured while loading the file.", "Greyhound", MB_OK | MB_ICONWARNING);
 	}
 }
 

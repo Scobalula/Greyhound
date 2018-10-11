@@ -1,5 +1,5 @@
 ﻿// ------------------------------------------------------------------------------
-// Primitive Updater for apps released on Github - by Scobalula
+// Primitive Updater for apps released on Github - Made for Greyhound - by Scobalula
 // Copyright(c) 2018 Scobalula/Philip
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy

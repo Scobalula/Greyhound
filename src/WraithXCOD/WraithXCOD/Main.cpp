@@ -164,7 +164,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		if (!WraithX::InitializeAPI(true))
 		{
 			// Failed to initialize
-			MessageBoxA(NULL, "A fatal error occured while initializing Wraith", "Wraith", MB_OK | MB_ICONEXCLAMATION);
+			MessageBoxA(NULL, "A fatal error occured while initializing Greyhound", "Greyhound", MB_OK | MB_ICONEXCLAMATION);
 			// Failed
 			return -1;
 		}

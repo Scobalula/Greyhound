@@ -910,13 +910,14 @@ struct BO4XMaterialImage
 #pragma pack(push, 1)
 struct BO4XMaterial
 {
+	uint64_t UnknownZero;
 	uint64_t NamePtr;
 
-	uint8_t Padding[0x30];
+	uint8_t Padding[0x28];
 
 	uint64_t ImageTablePtr;
 
-	uint8_t Padding2[0x130];
+	uint8_t Padding2[0xF0];
 
 	uint8_t ImageCount;
 };
@@ -966,8 +967,8 @@ struct BO4GfxImage
 
 	uint64_t LoadedMipPtr;
 
-	uint64_t UnknownHash;
 	uint64_t UnknownZero2;
+	uint64_t UnknownHash;
 
 	BO4GfxMip MipLevels[4];
 
@@ -1030,10 +1031,8 @@ struct BO4XModelSurface
 #pragma pack(push, 1)
 struct BO4XModelLod
 {
-	uint64_t NameHash;
-
 	uint64_t UnknownZero;
-
+	uint64_t NameHash;
 	uint64_t XSurfacePtr;
 	uint64_t XModelMeshPtr;
 	uint64_t UnknownPtr;
@@ -1054,10 +1053,10 @@ struct BO4XModelLod
 #pragma pack(push, 1)
 struct BO4XModel
 {
-	uint64_t NamePtr;
 	uint64_t UnknownZero;
-
+	uint64_t NamePtr;
 	uint64_t BoneIDsPtr;
+	uint64_t UnknownPtr2;
 	uint64_t ParentListPtr;
 	uint64_t RotationsPtr;
 	uint64_t TranslationsPtr;
@@ -1069,25 +1068,21 @@ struct BO4XModel
 
 	uint64_t ModelLodPtrs[8];
 
-	uint8_t Padding2[0xC0];
-
 	uint64_t MaterialHandlesPtr;
 	uint64_t UnknownPtr4;
-	uint64_t UnknownOne;
-	uint64_t UnknownPtr5;
 
-	uint8_t NumLods;
+	uint32_t NumLods;
 
-	uint8_t Padding3[0x5B];
+	uint8_t Padding3[0x78];
 
 	uint16_t NumCosmeticBones;
 
-	uint8_t Padding5[5];
+	uint8_t Padding4[0x5];
 
 	uint8_t NumBones;
 	uint8_t NumRootBones;
 	uint16_t NumUnknown;
-	uint8_t Padding4;
+	uint8_t Padding5;
 };
 #pragma pack(pop)
 
@@ -1110,8 +1105,8 @@ struct BO4XAnim
 	uint64_t UnknownZero3;
 	uint64_t RandomDataBytePtr;
 
-	uint64_t UnknownHash;
 	uint64_t UnknownZero;
+	uint64_t UnknownHash;
 
 	uint64_t DataIntPtr;
 	uint64_t UnknownZero2;

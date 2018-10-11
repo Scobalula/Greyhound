@@ -75,7 +75,7 @@ void GDTSettings::OnWAWGDT()
 void GDTSettings::OnClearCache()
 {
 	// Ask to clear cache
-	if (MessageBoxA(this->GetSafeHwnd(), "Are you sure you want to clear the GDT cache?", "Wraith", MB_OKCANCEL | MB_ICONQUESTION) == IDOK)
+	if (MessageBoxA(this->GetSafeHwnd(), "Are you sure you want to clear the GDT cache?", "Greyhound", MB_OKCANCEL | MB_ICONQUESTION) == IDOK)
 	{
 		// Clear it, we must first close down the manager!
 		if (CoDAssets::GameGDTProcessor != nullptr)
@@ -96,7 +96,7 @@ void GDTSettings::OnClearCache()
 			CoDAssets::GameGDTProcessor->ReloadProcessor();
 		}
 		// Alert the user
-		MessageBoxA(this->GetSafeHwnd(), "The GDT cache has been cleared", "Wraith", MB_OK | MB_ICONINFORMATION);
+		MessageBoxA(this->GetSafeHwnd(), "The GDT cache has been cleared", "Greyhound", MB_OK | MB_ICONINFORMATION);
 	}
 }
 

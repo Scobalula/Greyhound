@@ -43,7 +43,7 @@ private:
 	// -- Game offsets databases
 
 	// A list of offsets for Black Ops 4 single player
-	static std::array<DBGameInfo, 2> SinglePlayerOffsets;
+	static std::array<DBGameInfo, 1> SinglePlayerOffsets;
 
 	// -- Game utilities
 

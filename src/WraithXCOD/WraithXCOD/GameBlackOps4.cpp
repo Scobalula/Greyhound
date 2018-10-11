@@ -18,10 +18,9 @@
 // -- Initialize built-in game offsets databases
 
 // Black Ops 4 SP
-std::array<DBGameInfo, 2> GameBlackOps4::SinglePlayerOffsets =
+std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0x7A70F20, 0x0, 0x686A6A0, 0x0 }, // LATEST
-	{ 0x7A6CAA0, 0x0, 0x6866220, 0x0 },
+	{ 0x917FBD0, 0x0, 0x7FE3620, 0x0 }
 }};
 
 // -- Finished with databases
@@ -111,18 +110,14 @@ bool GameBlackOps4::LoadOffsets()
 			auto AnimPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 3));
 			auto ModelPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 4));
 			auto ImagePoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x9));
-			auto LuaPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x67));
-			auto AtrData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x2A));
 
 			// Apply game offset info
 			CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
 			CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
 			CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-			CoDAssets::GameOffsetInfos.emplace_back(LuaPoolData.PoolPtr);
-			CoDAssets::GameOffsetInfos.emplace_back(AtrData.PoolPtr);
 
 			// Verify via first xmodel asset, right now, we're using a hash
-			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
+			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8);
 			// Check
 			if (FirstXModelHash == 0x04647533e968c910)
 			{
@@ -133,8 +128,6 @@ bool GameBlackOps4::LoadOffsets()
 				CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
 				CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
 				CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-				CoDAssets::GamePoolSizes.emplace_back(LuaPoolData.PoolSize);
-				CoDAssets::GamePoolSizes.emplace_back(AtrData.PoolSize);
 				// Return success
 				return true;
 			}
@@ -171,18 +164,14 @@ bool GameBlackOps4::LoadOffsets()
 			auto AnimPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 3));
 			auto ModelPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 4));
 			auto ImagePoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x9));
-			auto LuaPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x67));
-			auto AtrData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x2A));
 
 			// Apply game offset info
 			CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
 			CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
 			CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-			CoDAssets::GameOffsetInfos.emplace_back(LuaPoolData.PoolPtr);
-			CoDAssets::GameOffsetInfos.emplace_back(AtrData.PoolPtr);
 
 			// Verify via first xmodel asset, right now, we're using a hash
-			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
+			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8);
 			// Check
 			if (FirstXModelHash == 0x04647533e968c910)
 			{
@@ -193,8 +182,7 @@ bool GameBlackOps4::LoadOffsets()
 				CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
 				CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
 				CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-				CoDAssets::GamePoolSizes.emplace_back(LuaPoolData.PoolSize);
-				CoDAssets::GamePoolSizes.emplace_back(AtrData.PoolSize);
+
 				// Return success
 				return true;
 			}
@@ -202,7 +190,7 @@ bool GameBlackOps4::LoadOffsets()
 	}
 
 	// Failed
-	return false;
+	return true;
 }
 
 bool GameBlackOps4::LoadAssets()
@@ -238,7 +226,7 @@ bool GameBlackOps4::LoadAssets()
 			auto AnimResult = CoDAssets::GameInstance->Read<BO4XAnim>(AnimationOffset);
 
 			// Check whether or not to skip, if the handle not 0, or, if the handle is a pointer within the current pool
-			if ((AnimResult.NamePtr > MinimumPoolOffset && AnimResult.NamePtr < MaximumPoolOffset) || AnimResult.NamePtr != 0 || AnimResult.UnknownHash == 0)
+			if ((AnimResult.NamePtr > MinimumPoolOffset && AnimResult.NamePtr < MaximumPoolOffset) || AnimResult.UnknownHash == 0)
 			{
 				// Advance
 				AnimationOffset += sizeof(BO4XAnim);
@@ -685,7 +673,7 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
 		// Read the image info
 		auto ImageInfo = CoDAssets::GameInstance->Read<BO4XMaterialImage>(MaterialData.ImageTablePtr);
 		// Get the image name
-		auto ImageName = Strings::Format("ximage_%llx", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x20));
+		auto ImageName = Strings::Format("ximage_%llx", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x28));
 
 		// Default type
 		auto DefaultUsage = ImageUsageType::Unknown;
@@ -807,6 +795,8 @@ std::unique_ptr<XImageDDS> GameBlackOps4::LoadXImage(const XImage_t& Image)
 
 void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
+	// Check if we want Vertex Colors
+	bool ExportColors = (SettingsManager::GetSetting("exportvtxcolor", "true") == "true");
 	// Read the mesh information
 	auto MeshInfo = CoDAssets::GameInstance->Read<BO4XModelMeshInfo>(ModelLOD.LODStreamInfoPtr);
 
@@ -905,6 +895,11 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 				int32_t PackedX = (((VertexData.VertexNormal >> 0) & ((1 << 10) - 1)) - 512);
 				int32_t PackedY = (((VertexData.VertexNormal >> 10) & ((1 << 10) - 1)) - 512);
 				int32_t PackedZ = (((VertexData.VertexNormal >> 20) & ((1 << 10) - 1)) - 512);
+				// Add Colors
+				Vertex.Color[0] = ExportColors ? VertexData.Color[0] : 255;
+				Vertex.Color[1] = ExportColors ? VertexData.Color[1] : 255;
+				Vertex.Color[2] = ExportColors ? VertexData.Color[2] : 255;
+				Vertex.Color[3] = ExportColors ? VertexData.Color[3] : 255;
 				// Calculate
 				Vertex.Normal.X = ((float)PackedX / 511.0f);
 				Vertex.Normal.Y = ((float)PackedY / 511.0f);
@@ -1002,12 +997,58 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 	}
 }
 
-std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
+static byte Decrypt(uint8_t input, uint8_t key)
 {
-	// Read and return (Offsets[5] = StringTable)
-	return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[5] + 16);
+	// If our key equals the input we're not encrpyted
+	if (input == key)
+		return input;
+
+	// Result
+	uint8_t result = input ^ key;
+
+	// Redundancy check for valid character
+	if ((result > 64 && result < 91) || (result > 96 && result < 123) || (result > 47 && result < 58) || result == 95)
+		return result;
+
+	// Return default '_'
+	return 95;
 }
 
+std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
+{
+	// Check if we have an index to use
+	if (Index > 0)
+	{
+		// Read and return (Offsets[3] = StringTable)
+		uint64_t BytesRead = 0;
+		// XOR Key to decrypt the string if necessary
+		auto XORKey = CoDAssets::GameInstance->Read<uint8_t>((16 * Index) + CoDAssets::GameOffsetInfos[3] + 16);
+		// String Size (includes terminating null character, -1 for just the string)
+		auto StringSize = CoDAssets::GameInstance->Read<uint8_t>((16 * Index) + CoDAssets::GameOffsetInfos[3] + 17) - 1;
+		// Resulting String
+		auto Result = CoDAssets::GameInstance->Read((16 * Index) + CoDAssets::GameOffsetInfos[3] + 18, StringSize, BytesRead);
+		// Decrypt string, increment/decrement depending on key. If not these, assume not encrypted.
+		switch (XORKey)
+		{
+		case 165:
+			for (uint8_t x = 0; x < StringSize; x++, XORKey--) Result[x] = Decrypt(Result[x], XORKey);
+			break;
+		case 175:
+			for (uint8_t x = 0; x < StringSize; x++, XORKey++) Result[x] = Decrypt(Result[x], XORKey);
+			break;
+		case 185:
+			for (uint8_t x = 0; x < StringSize; x++, XORKey -= (x - 1 + 1)) Result[x] = Decrypt(Result[x], XORKey);
+			break;
+		case 189:
+			for (uint8_t x = 0; x < StringSize; x++, XORKey += (x - 1 + 1)) Result[x] = Decrypt(Result[x], XORKey);
+			break;
+		}
+		// Convert to string and return
+		return std::string(reinterpret_cast<char const*>(Result), StringSize);
+	}
+	// Return blank string
+	return "";
+}
 void GameBlackOps4::PerformInitialSetup()
 {
 	// Prepare to copy the oodle dll
