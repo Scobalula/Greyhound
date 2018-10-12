@@ -111,6 +111,7 @@ bool GameBlackOps4::LoadOffsets()
 			auto ModelPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 4));
 			auto ImagePoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x9));
 
+
 			// Apply game offset info
 			CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
 			CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
@@ -234,6 +235,9 @@ bool GameBlackOps4::LoadAssets()
 				continue;
 			}
 
+			// Mask the name (first character isn't used sometimes)
+			AnimResult.UnknownHash &= 0xFFFFFFFFFFFFFFF;
+
 			// Validate and load if need be
 			auto AnimName = Strings::Format("xanim_%llx", AnimResult.UnknownHash);
 			// Check for an override in the name DB
@@ -286,8 +290,12 @@ bool GameBlackOps4::LoadAssets()
 				continue;
 			}
 
+			// Mask the name (first character isn't used sometimes)
+			ModelResult.NamePtr &= 0xFFFFFFFFFFFFFFF;
+
 			// Validate and load if need be
 			auto ModelName = Strings::Format("xmodel_%llx", ModelResult.NamePtr);
+
 			// Check for an override in the name DB
 			if (NameDatabase.NameDatabase.find(ModelResult.NamePtr) != NameDatabase.NameDatabase.end())
 				ModelName = NameDatabase.NameDatabase[ModelResult.NamePtr];
@@ -338,6 +346,9 @@ bool GameBlackOps4::LoadAssets()
 				continue;
 			}
 
+			// Mask the name (first character isn't used sometimes)
+			ImageResult.UnknownHash &= 0xFFFFFFFFFFFFFFF;
+
 			// Validate and load if need be
 			auto ImageName = Strings::Format("ximage_%llx", ImageResult.UnknownHash);
 			// Check for an override in the name DB
@@ -363,97 +374,6 @@ bool GameBlackOps4::LoadAssets()
 
 			// Advance
 			ImageOffset += sizeof(BO4GfxImage);
-		}
-	}
-
-	if (NeedsRawFiles)
-	{
-		// Rawfiles (Lua) are the fourth offset and fourth pool
-		auto RawfileOffset = CoDAssets::GameOffsetInfos[3];
-		auto RawfileCount = CoDAssets::GamePoolSizes[3];
-
-		// Calculate maximum pool size
-		auto MaximumPoolOffset = (RawfileCount * sizeof(BO4XRawFile)) + RawfileOffset;
-		// Store original offset
-		auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
-
-		// Loop and read
-		for (uint32_t i = 0; i < RawfileCount; i++)
-		{
-			// Read
-			auto RawfileResult = CoDAssets::GameInstance->Read<BO4XRawFile>(RawfileOffset);
-
-			// Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-			if ((RawfileResult.NamePtr > MinimumPoolOffset && RawfileResult.NamePtr < MaximumPoolOffset) || RawfileResult.NamePtr == 0)
-			{
-				// Advance
-				RawfileOffset += sizeof(BO4XRawFile);
-				// Skip this asset
-				continue;
-			}
-
-			// Validate and load if need be
-			auto RawfileName = Strings::Format("rawfile_%llx.lua", RawfileResult.NamePtr);
-
-			// Make and add
-			auto LoadedRawfile = new CoDRawFile_t();
-			// Set
-			LoadedRawfile->AssetName = RawfileName;
-			LoadedRawfile->AssetPointer = RawfileOffset;
-			LoadedRawfile->RawDataPointer = RawfileResult.RawDataPtr;
-			LoadedRawfile->RawFilePath = "";
-			LoadedRawfile->AssetSize = RawfileResult.AssetSize;
-			LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
-
-			// Add
-			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
-
-			// Advance
-			RawfileOffset += sizeof(BO4XRawFile);
-		}
-
-		// AnimTrees are the fifth offset and fifth pool
-		RawfileOffset = CoDAssets::GameOffsetInfos[4];
-		RawfileCount = CoDAssets::GamePoolSizes[4];
-
-		// Calculate maximum pool size
-		MaximumPoolOffset = (RawfileCount * sizeof(BO4XAnimTree)) + RawfileOffset;
-		// Store original offset
-		MinimumPoolOffset = CoDAssets::GameOffsetInfos[4];
-
-		// Loop and read
-		for (uint32_t i = 0; i < RawfileCount; i++)
-		{
-			// Read
-			auto RawfileResult = CoDAssets::GameInstance->Read<BO4XAnimTree>(RawfileOffset);
-
-			// Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-			if ((RawfileResult.NamePtr > MinimumPoolOffset && RawfileResult.NamePtr < MaximumPoolOffset) || RawfileResult.NamePtr == 0)
-			{
-				// Advance
-				RawfileOffset += sizeof(BO4XAnimTree);
-				// Skip this asset
-				continue;
-			}
-
-			// Validate and load if need be
-			auto RawfileName = Strings::Format("rawfile_%llx.atr", RawfileResult.NamePtr);
-
-			// Make and add
-			auto LoadedRawfile = new CoDRawFile_t();
-			// Set
-			LoadedRawfile->AssetName = RawfileName;
-			LoadedRawfile->AssetPointer = RawfileOffset;
-			LoadedRawfile->RawDataPointer = RawfileResult.RawDataPtr;
-			LoadedRawfile->RawFilePath = "";
-			LoadedRawfile->AssetSize = RawfileResult.AssetSize;
-			LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
-
-			// Add
-			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
-
-			// Advance
-			RawfileOffset += sizeof(BO4XAnimTree);
 		}
 	}
 

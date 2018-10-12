@@ -936,28 +936,6 @@ struct BO4GfxMip
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct BO4XRawFile
-{
-	uint64_t NamePtr;
-	uint64_t Padding;
-	uint64_t AssetSize;
-	uint64_t RawDataPtr;
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct BO4XAnimTree
-{
-	uint64_t NamePtr;
-	uint64_t Padding;
-	uint64_t UnknownHash;
-	uint64_t Padding2;
-	uint64_t AssetSize;
-	uint64_t RawDataPtr;
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
 struct BO4GfxImage
 {
 	uint64_t NamePtr;
