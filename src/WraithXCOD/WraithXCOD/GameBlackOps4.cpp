@@ -805,8 +805,11 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 	// Resulting size
 	uint64_t MeshDataBufferSize = 0;
 
+	// Vertex has extended vertex information
+	bool HasExtendedVertexInfo = (MeshInfo.StatusFlag & 64) != 0;
+
 	// Determine if we need to load the mesh or not (Seems flag == 8 is loaded)
-	if (MeshInfo.StatusFlag == 8)
+	if ((MeshInfo.StatusFlag & 0x3F) == 8)
 	{
 		// Result size
 		uintptr_t ResultSize = 0;
@@ -876,8 +879,8 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 				Vertex.Position = MeshReader.Read<Vector3>();
 			}
 
-			// Jump to vertex info data, advance to this submeshes info
-			MeshReader.SetPosition(MeshInfo.UVOffset + (Submesh.VertexPtr * 16));
+			// Jump to vertex info data, advance to this submeshes info, seek further for extended vertex info
+			MeshReader.SetPosition(MeshInfo.UVOffset + (Submesh.VertexPtr * (HasExtendedVertexInfo ? 24 : 16)));
 
 			// Iterate over verticies
 			for (uint32_t i = 0; i < Submesh.VertexCount; i++)
@@ -904,6 +907,10 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 				Vertex.Normal.X = ((float)PackedX / 511.0f);
 				Vertex.Normal.Y = ((float)PackedY / 511.0f);
 				Vertex.Normal.Z = ((float)PackedZ / 511.0f);
+
+				// Skip extended vertex information
+				if (HasExtendedVertexInfo)
+					MeshReader.Advance(8);
 			}
 
 			// Jump to vertex weight data, advance to this submeshes info

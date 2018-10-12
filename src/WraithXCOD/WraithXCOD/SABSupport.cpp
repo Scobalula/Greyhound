@@ -53,30 +53,6 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
 	// Check if we have an offset, and the first entry is not blank
 	bool HasNames = (NameTableOffset > 0) && (Reader.Read<uint64_t>(NameTableOffset) != 0);
 
-	// If we have names, read them, but pre-allocate the names first
-	if (HasNames)
-	{
-		// Pre-allocate
-		SABFileNames.reserve(Header.EntriesCount);
-
-		// Jump to offset and read
-		Reader.SetPosition(NameTableOffset);
-
-		// Loop and read
-		for (uint32_t i = 0; i < Header.EntriesCount; i++)
-		{
-			// Read
-			auto Name = Reader.ReadNullTerminatedString();
-			// Calculate jump
-			auto PositionAdvance = (Header.SizeOfNameEntry * 2) - (Name.size() + 1);
-			// Emplace it back
-			SABFileNames.emplace_back(Name);
-
-			// Advance size of name entry * 2 - string size
-			Reader.Advance(PositionAdvance);
-		}
-	}
-
 	// If we don't have names, we can pre-load a name index here, depending on the game
 	WraithNameIndex SABNames;
 	// Check status, then load game specific file
@@ -86,6 +62,55 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
 		if (Header.Version == 0xE) { SABNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo2_sab.wni")); }
 		if (Header.Version == 0xF) { SABNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo3_sab.wni")); }
 	}
+
+	// If we have names, read them, but pre-allocate the names first
+	if (HasNames)
+	{
+		// Pre-allocate
+		SABFileNames.reserve(Header.EntriesCount);
+
+		// Jump to offset and read
+		Reader.SetPosition(NameTableOffset);
+
+		if (Header.Version == 0x15)
+		{
+			SABNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_sab.wni"));
+
+			// Loop and read
+			for (uint32_t i = 0; i < Header.EntriesCount; i++)
+			{
+				// Read
+				auto Hash = Reader.Read<uint64_t>();
+				// Format Hash
+				auto Name = Strings::Format("xsound_%llx", Hash);
+				// Check for an override in the name DB
+				if (SABNames.NameDatabase.find(Hash) != SABNames.NameDatabase.end())
+					Name = SABNames.NameDatabase[Hash];
+				// Calculate jump
+				auto PositionAdvance = (Header.SizeOfNameEntry * 2) - 8;
+				// Emplace it back
+				SABFileNames.emplace_back(Name);
+				// Advance size of name entry * 2 - string size
+				Reader.Advance(PositionAdvance);
+			}
+		}
+		else
+		{
+			// Loop and read
+			for (uint32_t i = 0; i < Header.EntriesCount; i++)
+			{
+				// Read
+				auto Name = Reader.ReadNullTerminatedString();
+				// Calculate jump
+				auto PositionAdvance = (Header.SizeOfNameEntry * 2) - (Name.size() + 1);
+				// Emplace it back
+				SABFileNames.emplace_back(Name);
+				// Advance size of name entry * 2 - string size
+				Reader.Advance(PositionAdvance);
+			}
+		}
+	}
+
 
 	// Next step will be reading the entry table, this differs per-game, but we have it's
 	// Size in the header, so it can be semi-generic

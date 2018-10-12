@@ -239,6 +239,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\WraithX\Resources\CheckMarkIcon.ico" />
+    <Image Include="..\Resources\Greyhound.ico" />
     <Image Include="..\Resources\SettingHover.png" />
     <Image Include="..\Resources\SettingNormal.png" />
     <Image Include="..\Resources\SettingSelect.png" />

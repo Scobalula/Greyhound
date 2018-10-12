@@ -158,7 +158,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		// Clean up files
 		CleanupFilesystem();
 		// Check for updates
-		WraithUpdate::CheckForUpdates("wraitharchon", "Wraith Archon");
+		WraithUpdate::CheckForUpdates("Scobalula", "Greyhound", "Greyhound", "greyhound.exe");
 
 		// Initialize the API (This must be done BEFORE running a WraithApp)
 		if (!WraithX::InitializeAPI(true))

@@ -241,7 +241,7 @@ namespace GreyhoundUpdater
                     {
                         foreach (var entry in archive.Entries)
                         {
-                            if (!String.IsNullOrWhiteSpace(entry.Name))
+                            if (!String.IsNullOrWhiteSpace(entry.Name) && entry.Name != Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName))
                             {
                                 string resultingFile = Path.Combine(ApplicationDirectory, entry.FullName);
 
