@@ -402,12 +402,12 @@ std::unique_ptr<XAnim_t> GameBlackOps4::ReadXAnim(const CoDAnim_t* Animation)
 		// TODO: Determine additive anims
 		// TODO: On first bo4 attach, copy oodle dll automatically
 
-		////// Check for viewmodel animations
-		////if ((_strnicmp(Animation->AssetName.c_str(), "viewmodel_", 10) == 0) || (_strnicmp(Animation->AssetName.c_str(), "vm_", 3) == 0))
-		////{
-		////	// This is a viewmodel animation
-		////	Anim->ViewModelAnimation = true;
-		////}
+		// Check for viewmodel animations
+		if ((_strnicmp(Animation->AssetName.c_str(), "viewmodel_", 10) == 0) || (_strnicmp(Animation->AssetName.c_str(), "vm_", 3) == 0))
+		{
+			// This is a viewmodel animation
+			Anim->ViewModelAnimation = true;
+		}
 		////// Check for additive animations
 		////if (AnimData.AssetType == 0x6)
 		////{

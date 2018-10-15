@@ -679,7 +679,7 @@ bool CoDAssets::LocateGameInfo()
 		auto ZoneFolder = FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "zone");
 		// Check if it exists
 		if (!FileSystems::DirectoryExists(ZoneFolder))
-			MessageBoxA(NULL, "Greyhound failed to find the Zone folder. Information on extracting the Zone folder is available on the Github Repo. Models and Images will not export correctly.", "Greyhound", MB_OK | MB_ICONWARNING);
+			MessageBoxA(NULL, "Greyhound failed to find the Zone folder. Information on extracting the Zone folder is available on the Github Repo. Models and Images will not export correctly until you do this.", "Greyhound", MB_OK | MB_ICONWARNING);
 		// Initial setup required for BO4
 		GameBlackOps4::PerformInitialSetup();
 		// Load game offset info
