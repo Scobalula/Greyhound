@@ -126,6 +126,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			{ "exportsnd", "WAV" },
 			{ "keepsndpath", "true" },
 			{ "keeprawpath", "true" },
+			{ "sortbydetails", "false" },
 			{ "exportmodelimg", "true" },
 			{ "exportalllods", "false" },
 			{ "exporthitbox", "false" },

@@ -79,8 +79,8 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
 			// Loop and read
 			for (uint32_t i = 0; i < Header.EntriesCount; i++)
 			{
-				// Read
-				auto Hash = Reader.Read<uint64_t>();
+				// Read and mask it
+				auto Hash = Reader.Read<uint64_t>() & 0xFFFFFFFFFFFFFFF;
 				// Format Hash
 				auto Name = Strings::Format("xsound_%llx", Hash);
 				// Check for an override in the name DB

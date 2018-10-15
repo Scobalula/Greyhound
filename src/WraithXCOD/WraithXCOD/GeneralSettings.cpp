@@ -17,6 +17,7 @@ BEGIN_MESSAGE_MAP(GeneralSettings, WraithWindow)
 	ON_COMMAND(IDC_SHOWEFFECTS, OnXEffects)
 	ON_COMMAND(IDC_SHOWXRAW, OnXRawFiles)
 	ON_COMMAND(IDC_SHOWXSOUNDS, OnXSounds)
+	ON_COMMAND(IDC_SORTBYDATA, OnSortByData)
 END_MESSAGE_MAP()
 
 void GeneralSettings::OnBeforeLoad()
@@ -51,6 +52,7 @@ void GeneralSettings::OnBeforeLoad()
 	((CButton*)GetDlgItem(IDC_SHOWEFFECTS))->SetCheck(SettingsManager::GetSetting("showefx", "false") == "true");
 	((CButton*)GetDlgItem(IDC_SHOWXRAW))->SetCheck(SettingsManager::GetSetting("showxrawfiles", "false") == "true");
 	((CButton*)GetDlgItem(IDC_SHOWXSOUNDS))->SetCheck(SettingsManager::GetSetting("showxsounds", "false") == "true");
+	((CButton*)GetDlgItem(IDC_SORTBYDATA))->SetCheck(SettingsManager::GetSetting("sortbydetails", "false") == "true");
 }
 
 void GeneralSettings::OnXModels()
@@ -99,4 +101,12 @@ void GeneralSettings::OnXSounds()
 	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_SHOWXSOUNDS))->GetState() & BST_CHECKED) == BST_CHECKED);
 	// Set it
 	SettingsManager::SetSetting("showxsounds", (CheckboxChecked) ? "true" : "false");
+}
+
+void GeneralSettings::OnSortByData()
+{
+	// Whether or not we are checked
+	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_SORTBYDATA))->GetState() & BST_CHECKED) == BST_CHECKED);
+	// Set it
+	SettingsManager::SetSetting("sortbydetails", (CheckboxChecked) ? "true" : "false");
 }

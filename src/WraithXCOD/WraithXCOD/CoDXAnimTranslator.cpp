@@ -792,13 +792,12 @@ void CoDXAnimTranslator::NotetracksBO4(const std::unique_ptr<WraithAnim>& Anim, 
 	// Loop over notetracks
 	for (uint32_t i = 0; i < Animation->NotificationCount; i++)
 	{
-		// Read the tag
-		auto NotificaionHash = CoDAssets::GameInstance->Read<uint64_t>(Animation->NotificationsPtr);
+		// Read the tag, offset to skip null padding
+		auto NotificaionHash = CoDAssets::GameInstance->Read<uint64_t>(Animation->NotificationsPtr + 0x8);
 		auto NotificationTag = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr + 0x10));
 		auto NotificationType = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr + 0x1C));
 		// Read the frame
 		uint32_t NotificationFrame = (uint32_t)((float)Animation->FrameCount * CoDAssets::GameInstance->Read<float>(Animation->NotificationsPtr + 0x20));
-
 
 		// Append the removed prefixes to the notetrack
 		if (NotificationType == "sound")
@@ -809,7 +808,7 @@ void CoDXAnimTranslator::NotetracksBO4(const std::unique_ptr<WraithAnim>& Anim, 
 			NotificationTag = "vox#" + NotificationTag;
 
 		// Add the notetrack, if the tag is not blank
-		// if (!Strings::IsNullOrWhiteSpace(NotificationTag))
+		if (!Strings::IsNullOrWhiteSpace(NotificationTag))
 		{
 			// Add
 			Anim->AddNoteTrack(NotificationTag, NotificationFrame);

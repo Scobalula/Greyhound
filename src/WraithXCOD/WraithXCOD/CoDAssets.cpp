@@ -446,6 +446,104 @@ bool CoDAssets::SortAssets(const CoDAsset_t* lhs, const CoDAsset_t* rhs)
 	if (lhs->AssetType < rhs->AssetType) return true;
 	if (rhs->AssetType < lhs->AssetType) return false;
 
+	// Check if we want to sort this by asset data and that they have same asset type
+	if (lhs->AssetType == rhs->AssetType && SettingsManager::GetSetting("sortbydetails", "true") == "true")
+	{
+		// Sory by specific counts
+		switch (lhs->AssetType)
+		{
+		case WraithAssetType::Model:
+		{
+			// Models
+			auto Compare1 = (CoDModel_t*)lhs;
+			auto Compare2 = (CoDModel_t*)rhs;
+
+			// Sort by Bone Counts
+			if (Compare1->BoneCount < Compare2->BoneCount) return false;
+			if (Compare2->BoneCount < Compare1->BoneCount) return true;
+
+			// Done
+			break;
+		}
+		case WraithAssetType::Animation:
+		{
+			// Animations
+			auto Compare1 = (CoDAnim_t*)lhs;
+			auto Compare2 = (CoDAnim_t*)rhs;
+
+			// Sort by Frame Counts
+			if (Compare1->FrameCount < Compare2->FrameCount) return false;
+			if (Compare2->FrameCount < Compare1->FrameCount) return true;
+
+			// Done
+			break;
+		}
+		case WraithAssetType::Image:
+		{
+			// Images
+			auto Compare1 = (CoDImage_t*)lhs;
+			auto Compare2 = (CoDImage_t*)rhs;
+
+			// Pixel Counts
+			auto PixelCount1 = Compare1->Width * Compare1->Height;
+			auto PixelCount2 = Compare2->Width * Compare2->Height;
+
+			// Sort by Pixel Counts
+			if (PixelCount1 < PixelCount2) return false;
+			if (PixelCount2 < PixelCount1) return true;
+
+			// Done
+			break;
+		}
+		case WraithAssetType::RawFile:
+		{
+			// Rawfiles
+			auto Compare1 = (CoDRawFile_t*)lhs;
+			auto Compare2 = (CoDRawFile_t*)rhs;
+
+			// Sort by pure Size
+			if (Compare1->AssetSize < Compare2->AssetSize) return false;
+			if (Compare2->AssetSize < Compare1->AssetSize) return true;
+
+			// Done
+			break;
+		}
+		case WraithAssetType::Sound:
+		{
+			// Sounds
+			auto Compare1 = (CoDSound_t*)lhs;
+			auto Compare2 = (CoDSound_t*)rhs;
+
+			// Get Time
+			auto Time1 = (float)Compare1->FrameCount / (float)Compare1->FrameRate;
+			auto Time2 = (float)Compare2->FrameCount / (float)Compare2->FrameRate;
+
+			// Sort by duration
+			if (Time1 < Time2) return false;
+			if (Time2 < Time1) return true;
+
+			// Done
+			break;
+		}
+		case WraithAssetType::Effect:
+		{
+			// Effects
+			auto Compare1 = (CoDEffect_t*)lhs;
+			auto Compare2 = (CoDEffect_t*)rhs;
+
+			// Sort by Elements
+			if (Compare1->ElementCount < Compare2->ElementCount) return false;
+			if (Compare2->ElementCount < Compare1->ElementCount) return true;
+
+			// Done
+			break;
+		}
+		default:
+			// Default, match by name
+			break;
+		}
+	}
+
 	// Sort by name
 	if (lhs->AssetName < rhs->AssetName) return true;
 	if (rhs->AssetName < lhs->AssetName) return false;
@@ -576,6 +674,12 @@ bool CoDAssets::LocateGameInfo()
 		GamePackageCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "zone"));
 		break;
 	case SupportedGames::BlackOps4:
+	{
+		// Get Zone Folder
+		auto ZoneFolder = FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "zone");
+		// Check if it exists
+		if (!FileSystems::DirectoryExists(ZoneFolder))
+			MessageBoxA(NULL, "Greyhound failed to find the Zone folder. Information on extracting the Zone folder is available on the Github Repo. Models and Images will not export correctly.", "Greyhound", MB_OK | MB_ICONWARNING);
 		// Initial setup required for BO4
 		GameBlackOps4::PerformInitialSetup();
 		// Load game offset info
@@ -589,8 +693,9 @@ bool CoDAssets::LocateGameInfo()
 		// Allocate a new XPAK Mega Cache
 		GamePackageCache = std::make_unique<XPAKCache>();
 		// Set the XPAK path
-		GamePackageCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "zone"));
+		GamePackageCache->LoadPackageCacheAsync(ZoneFolder);
 		break;
+	}
 	case SupportedGames::ModernWarfare:
 		// Load game offset info
 		Success = GameModernWarfare::LoadOffsets();
