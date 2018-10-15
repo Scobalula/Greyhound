@@ -11,6 +11,10 @@ Links:
 * Change Log: [https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md](https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md)
 * Latest Release: [ttps://github.com/Scobalula/Greyhound/releases](https://github.com/Scobalula/Greyhound/releases)
 
+## Black Ops IIII
+
+For BO4 you must run the [T8ZoneRipper](https://github.com/Scobalula/T8ZoneRipper) (and on each update) to extract the XPAK files as we require them.
+
 Click below to join Greyhound's Discord server for support, help, and tea:
 
 [![Discord](https://i.imgur.com/qsJhNJ1.png)](https://discord.gg/fGVpV39)
