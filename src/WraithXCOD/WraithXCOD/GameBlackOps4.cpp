@@ -20,7 +20,7 @@
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0x917FBD0, 0x0, 0x7FE3620, 0x0 }
+	{ 0x91AFCD0, 0x0, 0x8013720, 0x0 }
 }};
 
 // -- Finished with databases

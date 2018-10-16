@@ -351,18 +351,38 @@ intptr_t ProcessReader::Scan(const std::string& Pattern, uintptr_t Offset, uintp
 		// Total amount of data read
 		uintptr_t DataRead = 0;
 
-		// Scan the memory for it, read a chunk to scan
-		int8_t* ChunkToScan = Read(Offset, Length, DataRead);
+		// Result
+		intptr_t Result = -1;
 
-		// Scan the chunk
-		intptr_t Result = (intptr_t)Patterns::ScanBlock(PatternBytes, PatternMask, (uintptr_t)ChunkToScan, DataRead);
+		// Set base position
+		auto Position = Offset;
 
-		// Add the chunk offset itself (Since we're a process scanner)
-		if (Result > -1) { Result += Offset; }
+		// Read chunks, it seems ReadProcessMemory doesn't return the entire module/buffer (we get 0 on some addresses)
+		while (true)
+		{
+			// Scan the memory for it, read a chunk to scan
+			int8_t* ChunkToScan = Read(Position, 65536, DataRead);
 
-		// Clean up the memory block
-		delete[] ChunkToScan;
+			// Scan the chunk
+			Result = (intptr_t)Patterns::ScanBlock(PatternBytes, PatternMask, (uintptr_t)ChunkToScan, DataRead);
 
+			// Clean up the memory block
+			delete[] ChunkToScan;
+
+			// Add the chunk offset itself (Since we're a process scanner)
+			if (Result > -1) 
+			{ 
+				Result += Position;
+				break; 
+			}
+
+			// Increment chunk
+			Position += 65536;
+
+			// Check are we at the end of our region to scan
+			if (Position > Offset + Length)
+				break;
+		}
 		// Return it
 		return Result;
 	}
