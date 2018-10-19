@@ -35,7 +35,7 @@ bool GameModernWarfare::LoadOffsets()
 	//	Modern Warfare pools, DBAssetPools is an array of uint32 (ptrs) of each asset pool in the game
 	//	The index of the assets we use are as follows: xanim (2), xmodel (3)
 	//	Index * 4 = the offset of the pool pointer in this array of pools, we can verify it using the xmodel pool and checking for "void" or "defaultactor"
-	//	On Modern Warfare, "void" will be the first xmodel for SP and "defaultactor" will be the first xmodel for MP
+	//	On Modern Warfare, "void" will be the first xmodel for SP and "defaultactor" or "defaultweapon" will be the first xmodel for MP
 	//	Modern Warfare stringtable, check entries, results may vary
 	//	Reading is: (StringIndex * 12) + StringTablePtr + 4
 	// ----------------------------------------------------
@@ -52,7 +52,7 @@ bool GameModernWarfare::LoadOffsets()
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
 			// Check (Differs on SP/MP)
-			if (FirstXModelName == "void" || FirstXModelName == "defaultactor")
+			if (FirstXModelName == "void" || FirstXModelName == "defaultactor" || FirstXModelName == "defaultweapon")
 			{
 				// Verify string table, otherwise we are all set
 				CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
@@ -85,7 +85,7 @@ bool GameModernWarfare::LoadOffsets()
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
 			// Check (Differs on SP/MP)
-			if (FirstXModelName == "void" || FirstXModelName == "defaultactor")
+			if (FirstXModelName == "void" || FirstXModelName == "defaultactor" || FirstXModelName == "defaultweapon")
 			{
 				// Verify string table, otherwise we are all set
 				CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
