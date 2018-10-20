@@ -680,7 +680,7 @@ bool CoDAssets::LocateGameInfo()
 		// Check if it exists, if it doesn't, fall back to if it exists in our dir
 		if (!FileSystems::DirectoryExists(ZoneFolder))
 			// Set it
-			ZoneFolder = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "zone");
+			ZoneFolder = "E:\\Tools\\Wraith\\Default\\zone"; // ZoneFolder = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "zone");
 		// Check if it exists
 		if (!FileSystems::DirectoryExists(ZoneFolder))
 			MessageBoxA(NULL, "Greyhound failed to find the Zone folder. Information on extracting the Zone folder is available on the Github Repo. Models and Images will not export correctly until you do this.", "Greyhound", MB_OK | MB_ICONWARNING);
