@@ -841,10 +841,9 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 			{
 				// Grab the reference
 				auto& Vertex = Mesh.Verticies[i];
-
-				// Leaving this disabled for now, consider all models "complex", it seems to not work for heads, some zombies, etc.
+				
 				// Check if we're a complex weight, up to four weights
-				// if ((MeshInfo.WeightCount > TotalReadWeights) && ((uint8_t)Submesh.WeightCounts[0] & (1 << 1)) > 0)
+				if (((uint8_t)Submesh.WeightCounts[0] & 2) > 0)
 				{
 					// Read weight data
 					auto VertexWeight = MeshReader.Read<GfxStreamWeight>();
@@ -881,13 +880,11 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 					// Increase
 					TotalReadWeights++;
 				}
-				/*
 				else
 				{
 					// Simple weight
 					Vertex.AddVertexWeight(0, 1.0);
 				}
-				*/
 
 			}
 
