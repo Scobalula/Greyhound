@@ -9,11 +9,15 @@
 #include "DBGameAssets.h"
 #include "CoDAssetType.h"
 #include "WraithModel.h"
+#include "WraithNameIndex.h"
 
 // Handles reading from Black Ops 4
 class GameBlackOps4
 {
 public:
+	// -- Game Name Caches
+	static WraithNameIndex AssetNameCache;
+
 	// -- Game functions
 
 	// Loads offsets for Black Ops 4

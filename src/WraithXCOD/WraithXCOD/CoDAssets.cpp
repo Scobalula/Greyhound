@@ -680,7 +680,7 @@ bool CoDAssets::LocateGameInfo()
 		// Check if it exists, if it doesn't, fall back to if it exists in our dir
 		if (!FileSystems::DirectoryExists(ZoneFolder))
 			// Set it
-			ZoneFolder = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "zone");
+			ZoneFolder = "E:\\Tools\\Greyhound\\Default\\zone"; // FileSystems::CombinePath(FileSystems::GetApplicationPath(), "zone");
 
 		// Check if it exists
 		if (!FileSystems::DirectoryExists(ZoneFolder))
@@ -1433,6 +1433,9 @@ void CoDAssets::CleanUpGame()
 	// Clean up offsets
 	GameOffsetInfos.clear();
 	GamePoolSizes.clear();
+
+	// Clean up Bo4 Asset Cache
+	GameBlackOps4::AssetNameCache.NameDatabase.clear();
 
 	// Set load handler
 	GameXImageHandler = nullptr;

@@ -12,8 +12,11 @@
 #include "FileSystems.h"
 #include "MemoryReader.h"
 #include "SettingsManager.h"
-#include "WraithNameIndex.h"
 #include "HalfFloats.h"
+
+// -- Initialize Asset Name Cache
+
+WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 
 // -- Initialize built-in game offsets databases
 
@@ -202,18 +205,12 @@ bool GameBlackOps4::LoadAssets()
 	bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
 	bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
 
-	// Store the asset-specifc name-db
-	auto NameDatabase = WraithNameIndex();
-
 	// Check if we need assets
 	if (NeedsAnims)
 	{
 		// Animations are the first offset and first pool
 		auto AnimationOffset = CoDAssets::GameOffsetInfos[0];
 		auto AnimationCount = CoDAssets::GamePoolSizes[0];
-
-		// Load name database, if any
-		NameDatabase = WraithNameIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_xanim.wni"));
 
 		// Calculate maximum pool size
 		auto MaximumPoolOffset = (AnimationCount * sizeof(BO4XAnim)) + AnimationOffset;
@@ -235,14 +232,14 @@ bool GameBlackOps4::LoadAssets()
 				continue;
 			}
 
-			// Mask the name (first character isn't used sometimes)
+			// Mask the name (some bits are used for other stuffs)
 			AnimResult.UnknownHash &= 0xFFFFFFFFFFFFFFF;
 
 			// Validate and load if need be
 			auto AnimName = Strings::Format("xanim_%llx", AnimResult.UnknownHash);
 			// Check for an override in the name DB
-			if (NameDatabase.NameDatabase.find(AnimResult.UnknownHash) != NameDatabase.NameDatabase.end())
-				AnimName = NameDatabase.NameDatabase[AnimResult.UnknownHash];
+			if (AssetNameCache.NameDatabase.find(AnimResult.UnknownHash) != AssetNameCache.NameDatabase.end())
+				AnimName = AssetNameCache.NameDatabase[AnimResult.UnknownHash];
 
 			// Make and add
 			auto LoadedAnim = new CoDAnim_t();
@@ -267,9 +264,6 @@ bool GameBlackOps4::LoadAssets()
 		auto ModelOffset = CoDAssets::GameOffsetInfos[1];
 		auto ModelCount = CoDAssets::GamePoolSizes[1];
 
-		// Load name database, if any
-		NameDatabase = WraithNameIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_xmodel.wni"));
-
 		// Calculate maximum pool size
 		auto MaximumPoolOffset = (ModelCount * sizeof(BO4XModel)) + ModelOffset;
 		// Store original offset
@@ -290,15 +284,15 @@ bool GameBlackOps4::LoadAssets()
 				continue;
 			}
 
-			// Mask the name (first character isn't used sometimes)
+			// Mask the name (some bits are used for other stuffs)
 			ModelResult.NamePtr &= 0xFFFFFFFFFFFFFFF;
 
 			// Validate and load if need be
 			auto ModelName = Strings::Format("xmodel_%llx", ModelResult.NamePtr);
 
 			// Check for an override in the name DB
-			if (NameDatabase.NameDatabase.find(ModelResult.NamePtr) != NameDatabase.NameDatabase.end())
-				ModelName = NameDatabase.NameDatabase[ModelResult.NamePtr];
+			if (AssetNameCache.NameDatabase.find(ModelResult.NamePtr) != AssetNameCache.NameDatabase.end())
+				ModelName = AssetNameCache.NameDatabase[ModelResult.NamePtr];
 
 			// Make and add
 			auto LoadedModel = new CoDModel_t();
@@ -323,9 +317,6 @@ bool GameBlackOps4::LoadAssets()
 		auto ImageOffset = CoDAssets::GameOffsetInfos[2];
 		auto ImageCount = CoDAssets::GamePoolSizes[2];
 
-		// Load name database, if any
-		NameDatabase = WraithNameIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_ximage.wni"));
-
 		// Calculate maximum pool size
 		auto MaximumPoolOffset = (ImageCount * sizeof(BO4GfxImage)) + ImageOffset;
 		// Store original offset
@@ -346,17 +337,17 @@ bool GameBlackOps4::LoadAssets()
 				continue;
 			}
 
-			// Mask the name (first character isn't used sometimes)
+			// Mask the name (some bits are used for other stuffs)
 			ImageResult.UnknownHash &= 0xFFFFFFFFFFFFFFF;
 
 			// Validate and load if need be
 			auto ImageName = Strings::Format("ximage_%llx", ImageResult.UnknownHash);
 			// Check for an override in the name DB
-			if (NameDatabase.NameDatabase.find(ImageResult.UnknownHash) != NameDatabase.NameDatabase.end())
-				ImageName = NameDatabase.NameDatabase[ImageResult.UnknownHash];
+			if (AssetNameCache.NameDatabase.find(ImageResult.UnknownHash) != AssetNameCache.NameDatabase.end())
+				ImageName = AssetNameCache.NameDatabase[ImageResult.UnknownHash];
 
 			// Check for loaded images
-			if (ImageResult.LoadedMipPtr != 0 && ImageResult.MipLevels[0].HashID == 0)
+			// if (ImageResult.LoadedMipPtr != 0 && ImageResult.MipLevels[0].HashID == 0)
 			{
 				// Make and add
 				auto LoadedImage = new CoDImage_t();
@@ -582,18 +573,33 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
 	// Prepare to parse the material
 	auto MaterialData = CoDAssets::GameInstance->Read<BO4XMaterial>(MaterialPointer);
 
+	// Mask the name (some bits are used for other stuffs)
+	MaterialData.NamePtr &= 0xFFFFFFFFFFFFFFF;
+
 	// Allocate a new material with the given image count
 	XMaterial_t Result(MaterialData.ImageCount);
 	// Clean the name, then apply it
 	Result.MaterialName = Strings::Format("xmaterial_%llx", MaterialData.NamePtr);
+
+	// Check for an override in the name DB
+	if (AssetNameCache.NameDatabase.find(MaterialData.NamePtr) != AssetNameCache.NameDatabase.end())
+		Result.MaterialName = AssetNameCache.NameDatabase[MaterialData.NamePtr];
 
 	// Iterate over material images, assign proper references if available
 	for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
 	{
 		// Read the image info
 		auto ImageInfo = CoDAssets::GameInstance->Read<BO4XMaterialImage>(MaterialData.ImageTablePtr);
+
+		// Get Hash and mask it (some bits are used for other stuffs)
+		auto ImageHash = CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x28) & 0xFFFFFFFFFFFFFFF;
+
 		// Get the image name
-		auto ImageName = Strings::Format("ximage_%llx", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x28));
+		auto ImageName = Strings::Format("ximage_%llx", ImageHash);
+
+		// Check for an override in the name DB
+		if (AssetNameCache.NameDatabase.find(ImageHash) != AssetNameCache.NameDatabase.end())
+			ImageName = AssetNameCache.NameDatabase[ImageHash];
 
 		// Default type
 		auto DefaultUsage = ImageUsageType::Unknown;
@@ -979,6 +985,12 @@ std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 }
 void GameBlackOps4::PerformInitialSetup()
 {
+	// Load Caches
+	AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_xanim.wni"));
+	AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_ximage.wni"));
+	AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_xmaterial.wni"));
+	AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_xmodel.wni"));
+
 	// Prepare to copy the oodle dll
 	auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_6_win64.dll");
 
