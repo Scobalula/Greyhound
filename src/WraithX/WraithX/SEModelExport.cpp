@@ -99,7 +99,7 @@ void SEModel::ExportSEModel(const WraithModel& Model, const std::string& FileNam
 	{
 		// Buffer
 		uint8_t DataPresentFlags = 0x0;
-		// We store uvs, normals, and weights
+		// We store uvs, normals, colors, and weights
 		DataPresentFlags |= (uint8_t)SEModelMeshPresenceFlags::SEMODEL_PRESENCE_UVSET;
 		DataPresentFlags |= (uint8_t)SEModelMeshPresenceFlags::SEMODEL_PRESENCE_NORMALS;
 		DataPresentFlags |= (uint8_t)SEModelMeshPresenceFlags::SEMODEL_PRESENCE_COLOR;

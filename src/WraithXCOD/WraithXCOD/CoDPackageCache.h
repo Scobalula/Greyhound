@@ -62,7 +62,7 @@ protected:
 	// Loads the package cache (This should be called from LoadPackageCacheAsync only!)
 	virtual void LoadPackageCache(const std::string& BasePath);
 	// Loads the package file
-	virtual void LoadPackage(const std::string& FilePath);	
+	virtual bool LoadPackage(const std::string& FilePath);	
 
 	// -- Cache data
 

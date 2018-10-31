@@ -50,11 +50,12 @@ void CoDPackageCache::LoadPackageCache(const std::string& BasePath)
 	CacheLoading = true;
 }
 
-void CoDPackageCache::LoadPackage(const std::string& FilePath)
+bool CoDPackageCache::LoadPackage(const std::string& FilePath)
 {
 	// Nothing, default, but ensure status is loading
 	CacheLoading = true;
 	HasLoaded = false;
+	return true;
 }
 
 void CoDPackageCache::SetLoadedState()

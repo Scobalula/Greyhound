@@ -40,7 +40,7 @@ void IWDCache::LoadPackageCache(const std::string& BasePath)
 	this->SetLoadedState();
 }
 
-void IWDCache::LoadPackage(const std::string& FilePath)
+bool IWDCache::LoadPackage(const std::string& FilePath)
 {
 	// Call Base function first
 	CoDPackageCache::LoadPackage(FilePath);
@@ -57,7 +57,7 @@ void IWDCache::LoadPackage(const std::string& FilePath)
 	if (!mz_zip_reader_init_file(&ZipArchive, FilePath.c_str(), 0))
 	{
 		// Failed, move on
-		return;
+		return false;
 	}
 	else
 	{
@@ -101,6 +101,9 @@ void IWDCache::LoadPackage(const std::string& FilePath)
 
 	// Clean up
 	mz_zip_reader_end(&ZipArchive);
+
+	// Done 
+	return true;
 }
 
 std::unique_ptr<uint8_t[]> IWDCache::ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize)

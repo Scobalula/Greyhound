@@ -37,15 +37,19 @@ void XPAKCache::LoadPackageCache(const std::string& BasePath)
 	// Iterate over file paths
 	for (auto& XPAKFile : PathXPAKFiles)
 	{
-		// Load it
-		this->LoadPackage(XPAKFile);
+		// Load it, if we failed, we have a serious issue that needs alerting
+		if (!this->LoadPackage(XPAKFile))
+		{
+			MessageBoxA(NULL, Strings::Format("Greyhound failed to load %s. The XPAK files are required to export assets that are not loaded. If you're attempting to load Black Ops 4, please re-run the Zone Tool, otherwise, verify your game.", FileSystems::GetFileName(XPAKFile).c_str()).c_str(), "Greyhound", MB_OK | MB_ICONWARNING);
+			break;
+		}
 	}
 
 	// We've finished loading, set status
 	this->SetLoadedState();
 }
 
-void XPAKCache::LoadPackage(const std::string& FilePath)
+bool XPAKCache::LoadPackage(const std::string& FilePath)
 {
 	// Call Base function first
 	CoDPackageCache::LoadPackage(FilePath);
@@ -61,8 +65,8 @@ void XPAKCache::LoadPackage(const std::string& FilePath)
 	// Read the header
 	auto Header = Reader.Read<BO3XPakHeader>();
 
-	// Verify the magic
-	if (Header.Magic == 0x4950414b)
+	// Verify the magic and offset
+	if (Header.Magic == 0x4950414b && Header.HashOffset < Reader.GetLength())
 	{
 		// Jump to hash offset
 		Reader.SetPosition(Header.HashOffset);
@@ -92,7 +96,13 @@ void XPAKCache::LoadPackage(const std::string& FilePath)
 
 		// Append the file path
 		PackageFilePaths.push_back(FilePath);
+
+		// No issues
+		return true;
 	}
+
+	// Failed 
+	return false;
 }
 
 std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize)

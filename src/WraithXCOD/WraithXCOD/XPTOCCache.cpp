@@ -40,7 +40,7 @@ void XPTOCCache::LoadPackageCache(const std::string& BasePath)
 	this->SetLoadedState();
 }
 
-void XPTOCCache::LoadPackage(const std::string& FilePath)
+bool XPTOCCache::LoadPackage(const std::string& FilePath)
 {
 	// Call Base function first
 	CoDPackageCache::LoadPackage(FilePath);
@@ -88,6 +88,9 @@ void XPTOCCache::LoadPackage(const std::string& FilePath)
 			CacheObjects.insert(std::make_pair(Key, NewObject));
 		}
 	}
+
+	// Done 
+	return true;
 }
 
 std::unique_ptr<uint8_t[]> XPTOCCache::ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize)

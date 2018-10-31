@@ -41,7 +41,7 @@ void IPAKCache::LoadPackageCache(const std::string& BasePath)
 	this->SetLoadedState();
 }
 
-void IPAKCache::LoadPackage(const std::string& FilePath)
+bool IPAKCache::LoadPackage(const std::string& FilePath)
 {
 	// Call Base function first
 	CoDPackageCache::LoadPackage(FilePath);
@@ -103,6 +103,9 @@ void IPAKCache::LoadPackage(const std::string& FilePath)
 		// Append the file path
 		PackageFilePaths.push_back(FilePath);
 	}
+
+	// Done 
+	return true;
 }
 
 std::unique_ptr<uint8_t[]> IPAKCache::ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize)

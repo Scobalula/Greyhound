@@ -23,7 +23,7 @@ WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0x91AFCD0, 0x0, 0x8013720, 0x0 }
+	{ 0x9224A50, 0x0, 0x8085D20, 0x0 }
 }};
 
 // -- Finished with databases
@@ -113,7 +113,6 @@ bool GameBlackOps4::LoadOffsets()
 			auto AnimPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 3));
 			auto ModelPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 4));
 			auto ImagePoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x9));
-
 
 			// Apply game offset info
 			CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
@@ -347,7 +346,7 @@ bool GameBlackOps4::LoadAssets()
 				ImageName = AssetNameCache.NameDatabase[ImageResult.UnknownHash];
 
 			// Check for loaded images
-			// if (ImageResult.LoadedMipPtr != 0 && ImageResult.MipLevels[0].HashID == 0)
+			if (ImageResult.LoadedMipPtr != 0 && ImageResult.MipLevels[0].HashID == 0)
 			{
 				// Make and add
 				auto LoadedImage = new CoDImage_t();

@@ -680,7 +680,11 @@ bool CoDAssets::LocateGameInfo()
 		// Check if it exists, if it doesn't, fall back to if it exists in our dir
 		if (!FileSystems::DirectoryExists(ZoneFolder))
 			// Set it
-			ZoneFolder = "E:\\Tools\\Greyhound\\Default\\zone"; // FileSystems::CombinePath(FileSystems::GetApplicationPath(), "zone");
+#if _DEBUG
+			ZoneFolder = "E:\\Tools\\Greyhound\\Default\\zone";
+#else
+			ZoneFolder = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "zone");
+#endif
 
 		// Check if it exists
 		if (!FileSystems::DirectoryExists(ZoneFolder))
@@ -946,7 +950,6 @@ ExportGameResult CoDAssets::ExportAnimationAsset(const CoDAnim_t* Animation, con
 			// Check for SEAnim format
 			if (SettingsManager::GetSetting("export_seanim") == "true")
 			{
-
 				// Export a SEAnim
 				SEAnim::ExportSEAnim(*Result.get(), FileSystems::CombinePath(ExportPath, Result->AssetName + ".seanim"));
 			}
@@ -1458,14 +1461,16 @@ void CoDAssets::ExportMaterialImageNames(const XMaterial_t& Material, const std:
 	{
 		// Image Names Output
 		TextWriter ImageNames;
+
 		// Get File Name
 		auto ImageNamesPath = FileSystems::CombinePath(ExportPath, Material.MaterialName + "_images.txt");
+
 		// Create File
 		ImageNames.Create(ImageNamesPath);
+
+		// Write each name
 		for (auto& Image : Material.Images)
-		{
 			ImageNames.WriteLine(Image.ImageName);
-		}
 	}
 	catch (...)
 	{
