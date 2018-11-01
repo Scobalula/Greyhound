@@ -157,6 +157,7 @@ bool GameBlackOps4::LoadOffsets()
 				0
 			);
 
+
 			// In debug, print the info for easy additions later!
 #if _DEBUG
 			// Format the output
@@ -174,7 +175,8 @@ bool GameBlackOps4::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
 
 			// Verify via first xmodel asset, right now, we're using a hash
-			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8);
+			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
+
 			// Check
 			if (FirstXModelHash == 0x04647533e968c910)
 			{
@@ -591,7 +593,7 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
 		auto ImageInfo = CoDAssets::GameInstance->Read<BO4XMaterialImage>(MaterialData.ImageTablePtr);
 
 		// Get Hash and mask it (some bits are used for other stuffs)
-		auto ImageHash = CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x28) & 0xFFFFFFFFFFFFFFF;
+		auto ImageHash = CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x20) & 0xFFFFFFFFFFFFFFF;
 
 		// Get the image name
 		auto ImageName = Strings::Format("ximage_%llx", ImageHash);
@@ -961,21 +963,81 @@ std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 		// Resulting String
 		auto Result = CoDAssets::GameInstance->Read((16 * Index) + CoDAssets::GameOffsetInfos[3] + 18, StringSize, BytesRead);
 		// Decrypt string, increment/decrement depending on key. If not these, assume not encrypted.
+		// TODO: Clean up, especially 2 new 165/175 ones, we could handle these a little better than this
 		switch (XORKey)
 		{
 		case 165:
-			for (uint8_t x = 0; x < StringSize; x++, XORKey--) Result[x] = Decrypt(Result[x], XORKey);
+			// Loop bytes
+			for (uint8_t x = 0, q = 1, i = 1, key = XORKey - 1; x < StringSize; x++)
+			{
+				// Check index is multiple of 2
+				if (x % 2 == 0)
+				{
+					// Decrypt it
+					Result[x] = Decrypt(Result[x], key);
+					// Edit Key
+					key -= 1 + (2 * i);
+					// Flip our value
+					i = 1 - i;
+				}
+				else
+				{
+					// Decrypt it
+					Result[x] = Decrypt(Result[x], (XORKey + q));
+					// Flip our value
+					q = 1 - q;
+				}
+			}
 			break;
 		case 175:
-			for (uint8_t x = 0; x < StringSize; x++, XORKey++) Result[x] = Decrypt(Result[x], XORKey);
+			// Loop bytes
+			for (uint8_t x = 0, q = 1, i = 1, key = XORKey; x < StringSize; x++)
+			{
+				// Check index is multiple of 2
+				if (x % 2 == 0)
+				{
+					// Decrypt it
+					Result[x] = Decrypt(Result[x], key);
+					// Edit Key
+					key -= 1 + (2 * i);
+					// Flip our value
+					i = 1 - i;
+				}
+				else
+				{
+					// Decrypt it
+					Result[x] = Decrypt(Result[x], (XORKey - q));
+					// Flip our value
+					q = 1 - q;
+				}
+			}
 			break;
 		case 185:
-			for (uint8_t x = 0; x < StringSize; x++, XORKey -= (x - 1 + 1)) Result[x] = Decrypt(Result[x], XORKey);
+			// Loop bytes
+			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, XORKey += (x - 1 + 1)) 
+				// Decrypt it
+				Result[x] = Decrypt(Result[x], XORKey);
 			break;
 		case 189:
-			for (uint8_t x = 0; x < StringSize; x++, XORKey += (x - 1 + 1)) Result[x] = Decrypt(Result[x], XORKey);
+			// Loop bytes
+			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, XORKey -= (x - 1 + 1)) 
+				// Decrypt it
+				Result[x] = Decrypt(Result[x], XORKey);
+			break;
+		case 191:
+			// Loop bytes
+			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, XORKey++) 
+				// Decrypt it
+				Result[x] = Decrypt(Result[x], XORKey);
+			break;
+		case 171:
+			// Loop bytes
+			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, XORKey--) 
+				// Decrypt it
+				Result[x] = Decrypt(Result[x], XORKey);
 			break;
 		}
+
 		// Convert to string and return
 		return std::string(reinterpret_cast<char const*>(Result), StringSize);
 	}

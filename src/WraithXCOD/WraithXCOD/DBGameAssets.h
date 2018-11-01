@@ -910,8 +910,8 @@ struct BO4XMaterialImage
 #pragma pack(push, 1)
 struct BO4XMaterial
 {
-	uint64_t UnknownZero;
 	uint64_t NamePtr;
+	uint64_t UnknownZero;
 
 	uint8_t Padding[0x28];
 
@@ -945,8 +945,8 @@ struct BO4GfxImage
 
 	uint64_t LoadedMipPtr;
 
-	uint64_t UnknownZero2;
 	uint64_t UnknownHash;
+	uint64_t UnknownZero2;
 
 	BO4GfxMip MipLevels[4];
 
@@ -1031,8 +1031,8 @@ struct BO4XModelLod
 #pragma pack(push, 1)
 struct BO4XModel
 {
-	uint64_t UnknownZero;
 	uint64_t NamePtr;
+	uint64_t UnknownZero;
 	uint64_t BoneIDsPtr;
 	uint64_t UnknownPtr2;
 	uint64_t ParentListPtr;
@@ -1083,8 +1083,8 @@ struct BO4XAnim
 	uint64_t UnknownZero3;
 	uint64_t RandomDataBytePtr;
 
-	uint64_t UnknownZero;
 	uint64_t UnknownHash;
+	uint64_t UnknownZero;
 
 	uint64_t DataIntPtr;
 	uint64_t UnknownZero2;
