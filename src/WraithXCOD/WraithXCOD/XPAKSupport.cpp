@@ -6,8 +6,10 @@
 // We need the following WraithX classes
 #include "MemoryReader.h"
 #include "BinaryReader.h"
+#include "FileSystems.h"
 #include "Strings.h"
 #include "SettingsManager.h"
+#include "WraithNameIndex.h"
 
 // We need the file classes
 #include "CoDAssets.h"
@@ -58,6 +60,9 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
 	// Read the header
 	auto Header = Reader.Read<BO3XPakHeader>();
 
+	// Load Package Files
+	WraithNameIndex XPAKNames;
+
 	// Verify the magic
 	if (Header.Magic == 0x4950414b)
 	{
@@ -66,6 +71,12 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
 		{
 			// Just succeed, don't load
 			return true;
+		}
+
+		// Load Bo4's Index
+		if (Header.Version == 11)
+		{
+			XPAKNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_ximage.wni"));
 		}
 
 		// Jump to hash offset
@@ -150,6 +161,25 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
 					else if (_strnicmp(KeyValue.c_str(), "name:", 5) == 0)
 					{
 						Name = KeyValue.substr(6);
+
+						// Check for Bo4
+						if (Header.Version == 11)
+						{
+							// COnvert the hex value and mask to 60bit
+							int64_t Result = std::strtoull(Name.c_str(), 0, 16) & 0xFFFFFFFFFFFFFFF;
+
+							// Check for success
+							if (Result != 0)
+							{
+								// Set new name
+								Name = Strings::Format("ximage_%llx", Result);
+
+								// Check for an override in the name DB
+								if (XPAKNames.NameDatabase.find(Result) != XPAKNames.NameDatabase.end())
+									Name = XPAKNames.NameDatabase[Result];
+							}
+
+						}
 					}
 					else if (_strnicmp(KeyValue.c_str(), "format:", 7) == 0)
 					{
