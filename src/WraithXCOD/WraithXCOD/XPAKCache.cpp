@@ -37,12 +37,8 @@ void XPAKCache::LoadPackageCache(const std::string& BasePath)
 	// Iterate over file paths
 	for (auto& XPAKFile : PathXPAKFiles)
 	{
-		// Load it, if we failed, we have a serious issue that needs alerting
-		if (!this->LoadPackage(XPAKFile))
-		{
-			MessageBoxA(NULL, Strings::Format("Greyhound failed to load %s. The XPAK files are required to export assets that are not loaded. If you're attempting to load Black Ops 4, please re-run the Zone Tool, otherwise, verify your game.", FileSystems::GetFileName(XPAKFile).c_str()).c_str(), "Greyhound", MB_OK | MB_ICONWARNING);
-			break;
-		}
+		// Some of the smaller blank XPAKs are causing this to return false, since the bigger XPAKs are fine now from what I can tell, just skip the bad ones
+		this->LoadPackage(XPAKFile);
 	}
 
 	// We've finished loading, set status

@@ -1658,7 +1658,6 @@ void CoDAssets::ExportSelectedAssets(void* Caller, const std::unique_ptr<std::ve
 
 			// Get the asset we need
 			auto& Asset = Assets->at(AssetToConvert);
-
 			// Make sure it's not a placeholder
 			if (Asset->AssetStatus != WraithAssetStatus::Placeholder)
 			{
