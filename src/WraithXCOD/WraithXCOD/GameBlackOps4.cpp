@@ -23,7 +23,7 @@ WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0x9224A50, 0x0, 0x8085D20, 0x0 }
+	{ 0x9F18C30, 0x0, 0x8C76050, 0x0 }
 }};
 
 // -- Finished with databases
@@ -120,7 +120,7 @@ bool GameBlackOps4::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
 
 			// Verify via first xmodel asset, right now, we're using a hash
-			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8);
+			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
 			// Check
 			if (FirstXModelHash == 0x04647533e968c910)
 			{
@@ -140,7 +140,7 @@ bool GameBlackOps4::LoadOffsets()
 
 		// Attempt to locate via heuristic searching
 		auto DBAssetsScan = CoDAssets::GameInstance->Scan("48 89 5C 24 ?? 57 48 83 EC ?? 0F B6 F9 48 8D 05 ?? ?? ?? ??");
-		auto StringTableScan = CoDAssets::GameInstance->Scan("48 8B 53 ?? 48 85 D2 74 ?? 48 8B 03 48 89 02 4C 8D 1D ?? ?? ?? ??");
+		auto StringTableScan = CoDAssets::GameInstance->Scan("48 8B 53 ?? 48 85 D2 74 ?? 48 8B 03 48 89 02");
 
 		// Check that we had hits
 		if (DBAssetsScan > 0 && StringTableScan > 0)
@@ -156,7 +156,6 @@ bool GameBlackOps4::LoadOffsets()
 				// We don't use package offsets
 				0
 			);
-
 
 			// In debug, print the info for easy additions later!
 #if _DEBUG
@@ -954,14 +953,16 @@ std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 	// Check if we have an index to use
 	if (Index > 0)
 	{
+		// Calculate Offset to String
+		auto Offset = CoDAssets::GameOffsetInfos[3] + ((Index * 16) >> 2) + (Index * 16);
 		// Read and return (Offsets[3] = StringTable)
 		uint64_t BytesRead = 0;
 		// XOR Key to decrypt the string if necessary
-		auto XORKey = CoDAssets::GameInstance->Read<uint8_t>((16 * Index) + CoDAssets::GameOffsetInfos[3] + 16);
+		auto XORKey = CoDAssets::GameInstance->Read<uint8_t>(Offset + 16);
 		// String Size (includes terminating null character, -1 for just the string)
-		auto StringSize = CoDAssets::GameInstance->Read<uint8_t>((16 * Index) + CoDAssets::GameOffsetInfos[3] + 17) - 1;
+		auto StringSize = CoDAssets::GameInstance->Read<uint8_t>(Offset + 17) - 1;
 		// Resulting String
-		auto Result = CoDAssets::GameInstance->Read((16 * Index) + CoDAssets::GameOffsetInfos[3] + 18, StringSize, BytesRead);
+		auto Result = CoDAssets::GameInstance->Read(Offset + 18, StringSize, BytesRead);
 		// Decrypt string, increment/decrement depending on key. If not these, assume not encrypted.
 		// TODO: Clean up, especially 2 new 165/175 ones, we could handle these a little better than this
 		switch (XORKey)
@@ -1037,7 +1038,6 @@ std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 				Result[x] = Decrypt(Result[x], XORKey);
 			break;
 		}
-
 		// Convert to string and return
 		return std::string(reinterpret_cast<char const*>(Result), StringSize);
 	}
