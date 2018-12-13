@@ -398,6 +398,7 @@ bool GameGhosts::LoadAssets()
 			LoadedSound->FullPath = FileSystems::GetDirectoryName(SoundName);
 			LoadedSound->DataType = SoundDataTypes::WAV_NeedsHeader;
 			LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+			LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
 
 			// Add
 			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);

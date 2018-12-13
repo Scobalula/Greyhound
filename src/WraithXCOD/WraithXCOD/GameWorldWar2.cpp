@@ -372,6 +372,7 @@ bool GameWorldWar2::LoadAssets()
 					LoadedSound->DataType = (LoadedSoundHeader.Format == 6) ? SoundDataTypes::FLAC_WithHeader : SoundDataTypes::WAV_NeedsHeader;
 					LoadedSound->IsFileEntry = false;
 					LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+					LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
 
 					// Add
 					CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
@@ -404,6 +405,7 @@ bool GameWorldWar2::LoadAssets()
 					LoadedSound->IsLocalized = (LoadedSoundHeader.IsLocalized > 0);
 					LoadedSound->PackageIndex = LoadedSoundHeader.PackFileIndex;
 					LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+					LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
 
 					// Add
 					CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
@@ -437,6 +439,7 @@ bool GameWorldWar2::LoadAssets()
 					LoadedSound->IsLocalized = (LoadedSoundHeader.IsLocalized > 0);
 					LoadedSound->PackageIndex = LoadedSoundHeader.PackFileIndex;
 					LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+					LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
 
 					// Add
 					CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);

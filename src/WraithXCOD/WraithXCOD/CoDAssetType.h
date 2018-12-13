@@ -132,7 +132,8 @@ public:
 	uint32_t FrameCount;
 	// Channels count
 	uint8_t ChannelsCount;
-
+	// Channels count
+	uint32_t Length;
 	// The index of the sound package for this entry
 	uint16_t PackageIndex;
 	// Whether or not this is a localized entry

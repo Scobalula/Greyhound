@@ -258,7 +258,7 @@ void SABSupport::HandleSABv4(BinaryReader& Reader, const SABFileHeader& Header, 
 		LoadedSound->AssetSize = Entry.Size;
 		LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
 		LoadedSound->IsFileEntry = true;
-
+		LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
 		// All Infinite Warfare (v4) entries are FLAC's with no header
 		LoadedSound->DataType = SoundDataTypes::FLAC_NeedsHeader;
 
@@ -321,6 +321,7 @@ void SABSupport::HandleSABv14(BinaryReader& Reader, const SABFileHeader& Header,
 		LoadedSound->AssetSize = Entry.Size;
 		LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
 		LoadedSound->IsFileEntry = true;
+		LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
 
 		// Check the format byte and set the format
 		switch (Entry.Format)
@@ -388,6 +389,7 @@ void SABSupport::HandleSABv15(BinaryReader& Reader, const SABFileHeader& Header,
 		LoadedSound->AssetSize = Entry.Size;
 		LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
 		LoadedSound->IsFileEntry = true;
+		LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
 
 		// All Black Ops 3 (v15) entries are FLAC's with a header
 		LoadedSound->DataType = SoundDataTypes::FLAC_WithHeader;
@@ -451,6 +453,7 @@ void SABSupport::HandleSABv21(BinaryReader& Reader, const SABFileHeader& Header,
 		LoadedSound->AssetSize = Entry.Size;
 		LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
 		LoadedSound->IsFileEntry = true;
+		LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
 
 		// All Black Ops 4 (v21) entries are FLAC's with a header
 		LoadedSound->DataType = SoundDataTypes::FLAC_WithHeader;

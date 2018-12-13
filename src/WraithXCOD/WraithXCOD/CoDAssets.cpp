@@ -514,13 +514,9 @@ bool CoDAssets::SortAssets(const CoDAsset_t* lhs, const CoDAsset_t* rhs)
 			auto Compare1 = (CoDSound_t*)lhs;
 			auto Compare2 = (CoDSound_t*)rhs;
 
-			// Get Time
-			auto Time1 = (float)Compare1->FrameCount / (float)Compare1->FrameRate;
-			auto Time2 = (float)Compare2->FrameCount / (float)Compare2->FrameRate;
-
 			// Sort by duration
-			if (Time1 < Time2) return false;
-			if (Time2 < Time1) return true;
+			if (Compare1->Length < Compare2->Length) return false;
+			if (Compare2->Length < Compare1->Length) return true;
 
 			// Done
 			break;

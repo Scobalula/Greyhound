@@ -62,7 +62,7 @@ bool GameModernWarfareRM::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 5)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 7)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0x10)));
-			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0x17)));
+			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0x11)));
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8));
 			// Check
@@ -79,7 +79,7 @@ bool GameModernWarfareRM::LoadOffsets()
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 5)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 7)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0x10)));
-					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0x17)));
+					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0x11)));
 					// Return success
 					return true;
 				}
@@ -111,7 +111,7 @@ bool GameModernWarfareRM::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 5)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 7)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0x10)));
-			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0x17)));
+			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0x11)));
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8));
 			// Check
@@ -128,7 +128,7 @@ bool GameModernWarfareRM::LoadOffsets()
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 5)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 7)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x10)));
-					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x17)));
+					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x11)));
 					// Return success
 					return true;
 				}
@@ -314,6 +314,8 @@ bool GameModernWarfareRM::LoadAssets()
 			// Validate and load if need be
 			auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
 
+
+
 			// Check if it's streamed
 			if (ImageResult.Streamed > 0)
 			{
@@ -355,12 +357,15 @@ bool GameModernWarfareRM::LoadAssets()
 
 	if (NeedsSounds)
 	{
+		// A temporary table for duplicates, since we are tracing from alias entries...
+		std::set<uint64_t> UniqueEntries;
+
 		// Sounds are the fourth offset and fourth pool, skip 8 byte pointer to free head
 		auto LoadedSoundOffset = CoDAssets::GameOffsetInfos[3] + 8;
 		auto LoadedSoundCount = CoDAssets::GamePoolSizes[3];
 
 		// Calculate maximum pool size
-		auto MaximumPoolOffset = (LoadedSoundCount * sizeof(AWLoadedSound)) + LoadedSoundOffset;
+		auto MaximumPoolOffset = (LoadedSoundCount * sizeof(MWRSoundAlias)) + LoadedSoundOffset;
 		// Store original offset
 		auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
 
@@ -368,13 +373,13 @@ bool GameModernWarfareRM::LoadAssets()
 		for (uint32_t i = 0; i < LoadedSoundCount; i++)
 		{
 			// Read
-			auto SoundResult = CoDAssets::GameInstance->Read<AWLoadedSound>(LoadedSoundOffset);
+			auto SoundResult = CoDAssets::GameInstance->Read<MWRSoundAlias>(LoadedSoundOffset);
 
 			// Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
 			if ((SoundResult.NamePtr > MinimumPoolOffset && SoundResult.NamePtr < MaximumPoolOffset) || SoundResult.NamePtr == 0)
 			{
 				// Advance
-				LoadedSoundOffset += sizeof(AWLoadedSound);
+				LoadedSoundOffset += sizeof(MWRSoundAlias);
 				// Skip this asset
 				continue;
 			}
@@ -382,26 +387,76 @@ bool GameModernWarfareRM::LoadAssets()
 			// Validate and load if need be
 			auto SoundName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr);
 
+			for (uint32_t j = 0; j < SoundResult.EntryCount; j++)
+			{
+				// Load Alias
+				auto SoundAliasEntry = CoDAssets::GameInstance->Read<MWRSoundAliasEntry>(SoundResult.EntriesPtr + (j * sizeof(MWRSoundAliasEntry)));
+				// Load File Spec
+				auto SoundFileSpec = CoDAssets::GameInstance->Read<MWRSoundAliasFileSpec>(SoundAliasEntry.FileSpecPtr);
+				// Check type
+				if (SoundFileSpec.Type == 12)
+				{
+					// Read Pointer to Sound
+					auto LoadedSoundPtr = CoDAssets::GameInstance->Read<uint64_t>(SoundAliasEntry.FileSpecPtr + 8);
+					// Validate uniqueness
+					if (UniqueEntries.insert(LoadedSoundPtr).second == false)
+						continue;
+					// Read Sound
+					auto LoadedSoundInfo = CoDAssets::GameInstance->Read<AWLoadedSound>(LoadedSoundPtr);
 
-			// Make and add
-			auto LoadedSound = new CoDSound_t();
-			// Set
-			LoadedSound->AssetName = FileSystems::GetFileName(SoundName);
-			LoadedSound->AssetPointer = SoundResult.SoundDataPtr;
-			LoadedSound->FrameRate = SoundResult.FrameRate;
-			LoadedSound->FrameCount = SoundResult.FrameCount;
-			LoadedSound->AssetSize = SoundResult.SoundDataSize;
-			LoadedSound->ChannelsCount = SoundResult.Channels;
-			LoadedSound->IsFileEntry = false;
-			LoadedSound->FullPath = FileSystems::GetDirectoryName(SoundName);
-			LoadedSound->DataType = (SoundResult.Format == 7 || SoundResult.Format == 6) ? SoundDataTypes::FLAC_WithHeader : SoundDataTypes::WAV_NeedsHeader;
-			LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+					// Validate and load if need be
+					auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
 
-			// Add
-			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
-
+					// Make and add
+					auto LoadedSound = new CoDSound_t();
+					// Set
+					LoadedSound->AssetName = FileSystems::GetFileName(LoadedSoundName);
+					LoadedSound->AssetPointer = LoadedSoundInfo.SoundDataPtr;
+					LoadedSound->FrameRate = LoadedSoundInfo.FrameRate;
+					LoadedSound->FrameCount = LoadedSoundInfo.FrameCount;
+					LoadedSound->AssetSize = LoadedSoundInfo.SoundDataSize;
+					LoadedSound->ChannelsCount = LoadedSoundInfo.Channels;
+					LoadedSound->IsFileEntry = false;
+					LoadedSound->FullPath = FileSystems::GetDirectoryName(LoadedSoundName);
+					LoadedSound->DataType = (LoadedSoundInfo.Format == 7 || LoadedSoundInfo.Format == 6) ? SoundDataTypes::FLAC_WithHeader : SoundDataTypes::WAV_NeedsHeader;
+					LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+					LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+					// Add
+					CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+				}
+				else if (SoundFileSpec.Type == 2)
+				{
+					// Read Data
+					auto StreamedSoundInfo = CoDAssets::GameInstance->Read<MWRStreamedSound>(SoundAliasEntry.FileSpecPtr + 8);
+					// Check does it exist
+					if (StreamedSoundInfo.Exists > 0)
+					{
+						// Make and add
+						auto LoadedSound = new CoDSound_t();
+						// Set (we'll use the alias names since streamed audio is nameless)
+						LoadedSound->AssetName = Strings::Format("%s_%i", Strings::ToLower(SoundName).c_str(), j);
+						LoadedSound->IsFileEntry = true;
+						LoadedSound->DataType = SoundDataTypes::FLAC_WithHeader;
+						LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+						LoadedSound->PackageIndex = StreamedSoundInfo.PackageIndex;
+						LoadedSound->AssetPointer = StreamedSoundInfo.Offset;
+						LoadedSound->AssetSize = StreamedSoundInfo.Size;
+						LoadedSound->Length = StreamedSoundInfo.Length;
+						LoadedSound->IsLocalized = StreamedSoundInfo.Exists > 1;
+						// Add
+						CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+					}
+				}
+				else
+				{
+#if _DEBUG
+					// Log on debug
+					printf("Unknown sound type: %d\n", SoundFileSpec.Type);
+#endif
+				}
+			}
 			// Advance
-			LoadedSoundOffset += sizeof(AWLoadedSound);
+			LoadedSoundOffset += sizeof(MWRSoundAlias);
 		}
 	}
 

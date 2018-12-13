@@ -154,6 +154,7 @@ CoDSound_t::CoDSound_t()
 	FrameCount = 0;
 	ChannelsCount = 0;
 	PackageIndex = 0;
+	Length = 0;
 	IsLocalized = false;
 	DataType = SoundDataTypes::WAV_WithHeader;
 	// Set type

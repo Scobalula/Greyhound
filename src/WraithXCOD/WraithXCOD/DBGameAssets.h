@@ -2093,6 +2093,49 @@ struct AWLoadedSound
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct AWSoundAlias
+{
+	uint64_t NamePtr;
+	uint64_t EntriesPtr;
+	uint64_t Unknown1;
+	uint8_t EntryCount;
+	uint8_t Padding[0x7];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct AWSoundAliasEntry
+{
+	uint64_t NamePtr;
+	uint8_t Padding[0x18];
+	uint64_t FileSpecPtr;
+	uint8_t Padding2[0xC8];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct AWSoundAliasFileSpec
+{
+	uint8_t Type;
+	uint8_t Padding[0x7];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct AWStreamedSound
+{
+	uint8_t Padding[2];
+	uint16_t PackageIndex;
+	uint32_t Exists;
+	uint64_t Offset;
+	uint64_t Size;
+	uint32_t Length;
+	uint32_t Padding3;
+	uint64_t Padding4;
+};
+#pragma pack(pop)
+
 #pragma endregion
 
 #pragma region Modern Warfare RM
@@ -2296,6 +2339,49 @@ struct MWRXAnimDeltaParts
 	uint64_t DeltaTranslationsPtr;
 	uint64_t Delta2DRotationsPtr;
 	uint64_t Delta3DRotationsPtr;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct MWRSoundAlias
+{
+	uint64_t NamePtr;
+	uint64_t EntriesPtr;
+	uint64_t Unknown1;
+	uint8_t EntryCount;
+	uint8_t Padding[0x7];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct MWRSoundAliasEntry
+{
+	uint64_t NamePtr;
+	uint8_t Padding[0x18];
+	uint64_t FileSpecPtr;
+	uint8_t Padding2[0xD0];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct MWRSoundAliasFileSpec
+{
+	uint8_t Type;
+	uint8_t Padding[0x7];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct MWRStreamedSound
+{
+	uint8_t Padding[2];
+	uint16_t PackageIndex;
+	uint32_t Exists;
+	uint64_t Offset;
+	uint64_t Size;
+	uint32_t Length;
+	uint32_t Padding3;
+	uint64_t Padding4;
 };
 #pragma pack(pop)
 

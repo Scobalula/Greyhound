@@ -298,7 +298,7 @@ void MainWindow::GetListViewInfo(LV_ITEM* ListItem, CWnd* Owner)
 				case WraithAssetType::Sound:
 				{
 					// Sound info
-					auto Time = Strings::ToUnicodeString(Strings::DurationToReadableTime(std::chrono::milliseconds((uint32_t)(1000.0f * (float)(((CoDSound_t*)Asset)->FrameCount / (float)((CoDSound_t*)Asset)->FrameRate)))));
+					auto Time = Strings::ToUnicodeString(Strings::DurationToReadableTime(std::chrono::milliseconds(((CoDSound_t*)Asset)->Length)));
 					// Formatted time
 					DetailsFmt.Format(L"%s", Time.c_str());
 				}
