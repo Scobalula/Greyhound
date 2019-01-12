@@ -385,6 +385,16 @@ struct BOXAnim
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct BOXRawFile
+{
+	uint32_t NamePtr;
+
+	uint32_t AssetSize;
+	uint32_t RawDataPtr;
+};
+#pragma pack(pop)
+
 #pragma endregion
 
 #pragma region Black Ops 2

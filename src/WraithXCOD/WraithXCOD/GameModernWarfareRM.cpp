@@ -394,7 +394,7 @@ bool GameModernWarfareRM::LoadAssets()
 				// Load File Spec
 				auto SoundFileSpec = CoDAssets::GameInstance->Read<MWRSoundAliasFileSpec>(SoundAliasEntry.FileSpecPtr);
 				// Check type
-				if (SoundFileSpec.Type == 12)
+				if (SoundFileSpec.Type == 1)
 				{
 					// Read Pointer to Sound
 					auto LoadedSoundPtr = CoDAssets::GameInstance->Read<uint64_t>(SoundAliasEntry.FileSpecPtr + 8);

@@ -12,7 +12,7 @@
 #include "SettingsManager.h"
 #include "Compression.h"
 
-void CoDRawfileTranslator::TranslateRawfile(const CoDRawFile_t* Rawfile, const std::string& ExportPath)
+void CoDRawfileTranslator::TranslateRawfile(const CoDRawFile_t* Rawfile, const std::string& ExportPath, const bool ATRCompressed, const bool GSCCompressed)
 {
 	// If the asset size is > 0, continue...
 	if (Rawfile->AssetSize > 0)
@@ -31,7 +31,7 @@ void CoDRawfileTranslator::TranslateRawfile(const CoDRawFile_t* Rawfile, const s
 		FileSystems::CreateDirectory(ExportFolder);
 
 		// Prepare the export
-		if (Strings::EndsWith(Rawfile->AssetName, ".atr"))
+		if (Strings::EndsWith(Rawfile->AssetName, ".atr") && ATRCompressed)
 		{
 			// Compressed write
 			uintptr_t ResultSize = 0;
@@ -52,6 +52,41 @@ void CoDRawfileTranslator::TranslateRawfile(const CoDRawFile_t* Rawfile, const s
 
 					// Decompress the block
 					Compression::DecompressDeflateBlock(MemReader.GetCurrentStream() + sizeof(uint32_t), DecompressionBuffer, (int32_t)ResultSize, (int32_t)DecompressedSize);
+
+					// New writer instance
+					auto Writer = BinaryWriter();
+					// Create the file
+					Writer.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName));
+					// Write the raw data
+					Writer.Write(DecompressionBuffer, (uint32_t)DecompressedSize);
+
+					// Clean up
+					delete[] DecompressionBuffer;
+				}
+			}
+		}
+		else if ((Strings::EndsWith(Rawfile->AssetName, ".gsc") || Strings::EndsWith(Rawfile->AssetName, ".csc")) && GSCCompressed)
+		{
+			// Compressed write
+			uintptr_t ResultSize = 0;
+			// Reader
+			auto MemReader = MemoryReader(CoDAssets::GameInstance->Read((uintptr_t)Rawfile->RawDataPointer, (uintptr_t)Rawfile->AssetSize, ResultSize), (uint64_t)ResultSize);
+
+			// Decompress on success
+			if (MemReader.GetCurrentStream() != nullptr)
+			{
+				// Read Sizes
+				auto DecompressedSize = MemReader.Read<uint32_t>();
+				auto CompressedSize = MemReader.Read<uint32_t>();
+
+				// Ensure success
+				if (DecompressedSize > 0)
+				{
+					// Decompression buffer
+					auto DecompressionBuffer = new int8_t[DecompressedSize];
+
+					// Decompress the block
+					Compression::DecompressZLibBlock(MemReader.GetCurrentStream() + sizeof(uint64_t), DecompressionBuffer, (int32_t)ResultSize, (int32_t)DecompressedSize);
 
 					// New writer instance
 					auto Writer = BinaryWriter();

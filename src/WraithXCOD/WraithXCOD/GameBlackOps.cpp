@@ -48,6 +48,7 @@ bool GameBlackOps::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 4)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 5)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 0x1C)));
+			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 0x24)));
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
 			// Check
@@ -62,6 +63,7 @@ bool GameBlackOps::LoadOffsets()
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 5)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x1C)));
+					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x24)));
 					// Return success
 					return true;
 				}
@@ -83,6 +85,7 @@ bool GameBlackOps::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 4)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 5)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 0x1C)));
+			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 0x24)));
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
 			// Check
@@ -97,6 +100,7 @@ bool GameBlackOps::LoadOffsets()
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 5)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x1C)));
+					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x24)));
 					// Return success
 					return true;
 				}
@@ -114,6 +118,7 @@ bool GameBlackOps::LoadAssets()
 	bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
 	bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
 	bool NeedsFX = (SettingsManager::GetSetting("showefx", "false") == "true");
+	bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
 
 	// Check if we need assets
 	if (NeedsAnims)
@@ -296,6 +301,53 @@ bool GameBlackOps::LoadAssets()
 			// Advance
 			FXOffset += sizeof(BOFxEffectDef);
 		}
+	}
+
+	if (NeedsRawFiles)
+	{
+		// RawFiles are the fourth offset and fourth pool, skip 4 byte pointer to free head
+		auto RawFileOffset = CoDAssets::GameOffsetInfos[3] + 4;
+		auto RawFileCount = CoDAssets::GamePoolSizes[3];
+
+		// Calculate maximum pool size
+		auto MaximumPoolOffset = (RawFileCount * sizeof(BOXRawFile)) + RawFileOffset;
+		// Store original offset
+		auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
+
+		// Loop and read
+		for (uint32_t i = 0; i < RawFileCount; i++)
+		{
+			// Read
+			auto RawFileResult = CoDAssets::GameInstance->Read<BOXRawFile>(RawFileOffset);
+
+			// Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
+			if ((RawFileResult.NamePtr > MinimumPoolOffset && RawFileResult.NamePtr < MaximumPoolOffset) || RawFileResult.NamePtr == 0)
+			{
+				// Advance
+				RawFileOffset += sizeof(BOXRawFile);
+				// Skip this asset
+				continue;
+			}
+
+			// Validate and load if need be
+			auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(RawFileResult.NamePtr);
+
+			// Make and add
+			auto LoadedRawfile = new CoDRawFile_t();
+			// Set
+			LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
+			LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
+			LoadedRawfile->AssetPointer = RawFileOffset;
+			LoadedRawfile->AssetSize = RawFileResult.AssetSize;
+			LoadedRawfile->RawDataPointer = RawFileResult.RawDataPtr;
+			LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
+
+			// Add
+			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
+
+			// Advance
+			RawFileOffset += sizeof(BOXRawFile);
+		};
 	}
 
 	// Success, error only on specific load
@@ -542,6 +594,6 @@ std::unique_ptr<XImageDDS> GameBlackOps::LoadXImage(const XImage_t& Image)
 
 std::string GameBlackOps::LoadStringEntry(uint64_t Index)
 {
-	// Read and return (Offsets[3] = StringTable)
-	return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[3] + 4);
+	// Read and return (Offsets[4] = StringTable)
+	return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[4] + 4);
 }

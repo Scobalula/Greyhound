@@ -406,7 +406,7 @@ void Maya::ExportMaya(const WraithModel& Model, const std::string& FileName)
 			}
 			// Prepare the cluster
 			Writer.WriteLineFmt(
-				"   newSkinCluster \"-toSelectedBones -mi 30 -omi true -dr 5.0 -rui false\";"
+				"   newSkinCluster \"-toSelectedBones -mi 15 -omi true -dr 5.0 -rui false\";"
 				"   string $clu = findRelatedSkinCluster(\"WraithMesh_%s_%02d\");\n",
 				HashName.c_str(), SubmeshIndex
 				);

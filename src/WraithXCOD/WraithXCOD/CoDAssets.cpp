@@ -1341,11 +1341,15 @@ ExportGameResult CoDAssets::ExportRawfileAsset(const CoDRawFile_t* Rawfile, cons
 	// Read from specific handler (By game)
 	switch (CoDAssets::GameID)
 	{
+	case SupportedGames::BlackOps:
+		// Send to generic translator, Black Ops does not compress the anim trees, but does compress the GSCs
+		CoDRawfileTranslator::TranslateRawfile(Rawfile, ExportPath, false, true);
+		break;
 	case SupportedGames::BlackOps2:
 	case SupportedGames::BlackOps3:
 	case SupportedGames::BlackOps4:
-		// Send to generic translator
-		CoDRawfileTranslator::TranslateRawfile(Rawfile, ExportPath);
+		// Send to generic translator, these games compress the anim trees
+		CoDRawfileTranslator::TranslateRawfile(Rawfile, ExportPath, true, false);
 		break;
 	}
 

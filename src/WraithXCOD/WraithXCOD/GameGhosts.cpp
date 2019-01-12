@@ -51,7 +51,6 @@ bool GameGhosts::LoadOffsets()
 	//	MP: (StringIndex * 12) + StringTablePtr + 4
 	//	SP: (StringIndex * 16) + StringTablePtr + 4
 	// ----------------------------------------------------
-
 	// Attempt to load the game offsets
 	if (CoDAssets::GameInstance != nullptr)
 	{
@@ -66,7 +65,7 @@ bool GameGhosts::LoadOffsets()
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8));
 			// Check
-			if (FirstXModelName == "void")
+			if (FirstXModelName == "void" || FirstXModelName == "empty_model")
 			{
 				// Verify string table, otherwise we are all set
 				CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
@@ -118,7 +117,7 @@ bool GameGhosts::LoadOffsets()
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8));
 			// Check
-			if (FirstXModelName == "void")
+			if (FirstXModelName == "void" || FirstXModelName == "empty_model")
 			{
 				// Verify string table, otherwise we are all set
 				CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
@@ -138,7 +137,6 @@ bool GameGhosts::LoadOffsets()
 			}
 		}
 	}
-
 	// Failed
 	return false;
 }

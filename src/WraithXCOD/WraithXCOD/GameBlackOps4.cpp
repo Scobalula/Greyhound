@@ -23,7 +23,7 @@ WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0x9F18C30, 0x0, 0x8C76050, 0x0 }
+	{ 0xA075860, 0x0, 0x8DC8FF0, 0x0 }
 }};
 
 // -- Finished with databases
@@ -205,6 +205,15 @@ bool GameBlackOps4::LoadAssets()
 	bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
 	bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
 
+	/*
+		This was implemented as a fix for a specific user who requested it, as the search box is capped at 32767 by Windows
+		and this is a workaround, if you're interested in using it, any hashes in this filters file will be ignored on load,
+		essentially acting as an excluder, consider it a hidden feature with no support as it was made for a specific use
+		case. If you cannot get it to work, do not ask me.
+	*/
+	auto Filters = WraithNameIndex();
+	Filters.LoadIndex("package_index\\bo4_filters.wni");
+
 	// Check if we need assets
 	if (NeedsAnims)
 	{
@@ -234,6 +243,19 @@ bool GameBlackOps4::LoadAssets()
 
 			// Mask the name (some bits are used for other stuffs)
 			AnimResult.UnknownHash &= 0xFFFFFFFFFFFFFFF;
+
+			// Check for filters
+			if (Filters.NameDatabase.size() > 0)
+			{
+				// Check for this asset in DB
+				if (Filters.NameDatabase.find(AnimResult.UnknownHash) != Filters.NameDatabase.end())
+				{
+					// Advance
+					AnimationOffset += sizeof(BO4XAnim);
+					// Skip this asset
+					continue;
+				}
+			}
 
 			// Validate and load if need be
 			auto AnimName = Strings::Format("xanim_%llx", AnimResult.UnknownHash);
@@ -287,6 +309,19 @@ bool GameBlackOps4::LoadAssets()
 			// Mask the name (some bits are used for other stuffs)
 			ModelResult.NamePtr &= 0xFFFFFFFFFFFFFFF;
 
+			// Check for filters
+			if (Filters.NameDatabase.size() > 0)
+			{
+				// Check for this asset in DB
+				if (Filters.NameDatabase.find(ModelResult.NamePtr) != Filters.NameDatabase.end())
+				{
+					// Advance
+					ModelOffset += sizeof(BO4XModel);
+					// Skip this asset
+					continue;
+				}
+			}
+
 			// Validate and load if need be
 			auto ModelName = Strings::Format("xmodel_%llx", ModelResult.NamePtr);
 
@@ -339,6 +374,19 @@ bool GameBlackOps4::LoadAssets()
 
 			// Mask the name (some bits are used for other stuffs)
 			ImageResult.UnknownHash &= 0xFFFFFFFFFFFFFFF;
+
+			// Check for filters
+			if (Filters.NameDatabase.size() > 0)
+			{
+				// Check for this asset in DB
+				if (Filters.NameDatabase.find(ImageResult.UnknownHash) != Filters.NameDatabase.end())
+				{
+					// Advance
+					ImageOffset += sizeof(BO4GfxImage);
+					// Skip this asset
+					continue;
+				}
+			}
 
 			// Validate and load if need be
 			auto ImageName = Strings::Format("ximage_%llx", ImageResult.UnknownHash);
