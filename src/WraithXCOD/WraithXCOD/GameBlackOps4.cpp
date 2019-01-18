@@ -23,7 +23,7 @@ WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0xA075860, 0x0, 0x8DC8FF0, 0x0 }
+	{ 0xA1684D0, 0x0, 0x8E030F0, 0x0 }
 }};
 
 // -- Finished with databases
@@ -395,7 +395,7 @@ bool GameBlackOps4::LoadAssets()
 				ImageName = AssetNameCache.NameDatabase[ImageResult.UnknownHash];
 
 			// Check for loaded images
-			if (ImageResult.LoadedMipPtr != 0 && ImageResult.MipLevels[0].HashID == 0)
+			if (ImageResult.GfxMipsPtr != 0)
 			{
 				// Make and add
 				auto LoadedImage = new CoDImage_t();
@@ -622,16 +622,15 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
 	auto MaterialData = CoDAssets::GameInstance->Read<BO4XMaterial>(MaterialPointer);
 
 	// Mask the name (some bits are used for other stuffs)
-	MaterialData.NamePtr &= 0xFFFFFFFFFFFFFFF;
-
+	MaterialData.Hash &= 0xFFFFFFFFFFFFFFF;
 	// Allocate a new material with the given image count
 	XMaterial_t Result(MaterialData.ImageCount);
 	// Clean the name, then apply it
-	Result.MaterialName = Strings::Format("xmaterial_%llx", MaterialData.NamePtr);
+	Result.MaterialName = Strings::Format("xmaterial_%llx", MaterialData.Hash);
 
 	// Check for an override in the name DB
-	if (AssetNameCache.NameDatabase.find(MaterialData.NamePtr) != AssetNameCache.NameDatabase.end())
-		Result.MaterialName = AssetNameCache.NameDatabase[MaterialData.NamePtr];
+	if (AssetNameCache.NameDatabase.find(MaterialData.Hash) != AssetNameCache.NameDatabase.end())
+		Result.MaterialName = AssetNameCache.NameDatabase[MaterialData.Hash];
 
 	// Iterate over material images, assign proper references if available
 	for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
@@ -685,16 +684,20 @@ std::unique_ptr<XImageDDS> GameBlackOps4::LoadXImage(const XImage_t& Image)
 	uint64_t LargestHash = 0;
 
 	// Loop and calculate
-	for (uint32_t i = 0; i < 4; i++)
+	for (uint32_t i = 0; i < ImageInfo.GfxMipMaps; i++)
 	{
+		// Load Mip Map
+		auto MipMap = CoDAssets::GameInstance->Read<BO4GfxMip>(ImageInfo.GfxMipsPtr);
 		// Compare widths
-		if (ImageInfo.MipLevels[i].Width > LargestWidth)
+		if (MipMap.Width > LargestWidth)
 		{
 			LargestMip = i;
-			LargestWidth = ImageInfo.MipLevels[i].Width;
-			LargestHeight = ImageInfo.MipLevels[i].Height;
-			LargestHash = ImageInfo.MipLevels[i].HashID;
+			LargestWidth = MipMap.Width;
+			LargestHeight = MipMap.Height;
+			LargestHash = MipMap.HashID;
 		}
+		// Advance Mip Map Pointer
+		ImageInfo.GfxMipsPtr += sizeof(BO4GfxMip);
 	}
 
 	// Calculate proper image format (Convert signed to unsigned)
@@ -1017,73 +1020,78 @@ std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 		{
 		case 165:
 			// Loop bytes
-			for (uint8_t x = 0, q = 1, i = 1, key = XORKey - 1; x < StringSize; x++)
-			{
-				// Check index is multiple of 2
-				if (x % 2 == 0)
-				{
-					// Decrypt it
-					Result[x] = Decrypt(Result[x], key);
-					// Edit Key
-					key -= 1 + (2 * i);
-					// Flip our value
-					i = 1 - i;
-				}
-				else
-				{
-					// Decrypt it
-					Result[x] = Decrypt(Result[x], (XORKey + q));
-					// Flip our value
-					q = 1 - q;
-				}
-			}
-			break;
-		case 175:
-			// Loop bytes
-			for (uint8_t x = 0, q = 1, i = 1, key = XORKey; x < StringSize; x++)
-			{
-				// Check index is multiple of 2
-				if (x % 2 == 0)
-				{
-					// Decrypt it
-					Result[x] = Decrypt(Result[x], key);
-					// Edit Key
-					key -= 1 + (2 * i);
-					// Flip our value
-					i = 1 - i;
-				}
-				else
-				{
-					// Decrypt it
-					Result[x] = Decrypt(Result[x], (XORKey - q));
-					// Flip our value
-					q = 1 - q;
-				}
-			}
+			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, key++)
+				// Decrypt it
+				Result[x] = Decrypt(Result[x], key);
 			break;
 		case 185:
 			// Loop bytes
-			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, XORKey += (x - 1 + 1)) 
+			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, key--)
 				// Decrypt it
-				Result[x] = Decrypt(Result[x], XORKey);
+				Result[x] = Decrypt(Result[x], key);
 			break;
 		case 189:
 			// Loop bytes
-			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, XORKey -= (x - 1 + 1)) 
-				// Decrypt it
-				Result[x] = Decrypt(Result[x], XORKey);
+			for (uint8_t x = 0, y = 0, evenKey = XORKey - 1, oddKey = XORKey; x < StringSize; x++)
+			{
+				// Check index is multiple of 2
+				if (((x + 1) % 2) == 0)
+				{
+					// Decrypt it
+					Result[x] = Decrypt(Result[x], evenKey + (((x + 1) % 4) == 0));
+				}
+				else
+				{
+					// Decrypt it
+					Result[x] = Decrypt(Result[x], oddKey);
+					// Update Key
+					oddKey -= 1 + 2 * ((y % 2) == 0);
+					// Increment Odd Index
+					y++;
+				}
+			}
 			break;
 		case 191:
 			// Loop bytes
-			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, XORKey++) 
+			for (uint8_t x = 0, key = XORKey; x < StringSize; XORKey -= x + 1, x++)
 				// Decrypt it
 				Result[x] = Decrypt(Result[x], XORKey);
 			break;
+		case 175:
+		case 139:
+			// Loop bytes
+			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, key += x)
+				// Decrypt it
+				Result[x] = Decrypt(Result[x], key);
+			// Done
+			break;
 		case 171:
 			// Loop bytes
-			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, XORKey--) 
+			for (uint8_t x = 0, y = 0, evenKey = XORKey + 1, oddKey = XORKey - 1; x < StringSize; x++)
+			{
+				// Check index is multiple of 2
+				if (((x + 1) % 2) == 0)
+				{
+					// Decrypt it
+					Result[x] = Decrypt(Result[x], evenKey - (((x + 1) % 4) == 0));
+				}
+				else
+				{
+					// Decrypt it
+					Result[x] = Decrypt(Result[x], oddKey);
+					// Update Key
+					oddKey -= 1 + 2 * ((y % 2) == 0);
+					// Increment Odd Index
+					y++;
+				}
+			}
+			break;
+		case 152:
+			// Loop bytes
+			for (uint8_t x = 0, key = XORKey + 1; x < StringSize; x++, key += x + 1)
 				// Decrypt it
-				Result[x] = Decrypt(Result[x], XORKey);
+				Result[x] = Decrypt(Result[x], key);
+			// Done
 			break;
 		}
 		// Convert to string and return

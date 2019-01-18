@@ -920,10 +920,9 @@ struct BO4XMaterialImage
 #pragma pack(push, 1)
 struct BO4XMaterial
 {
-	uint64_t NamePtr;
-	uint64_t UnknownZero;
+	uint64_t Hash;
 
-	uint8_t Padding[0x28];
+	uint8_t Padding[0x30];
 
 	uint64_t ImageTablePtr;
 
@@ -946,7 +945,7 @@ struct BO4GfxMip
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct BO4GfxImage
+struct BO4GfxImageOriginal // Leaving this here in case they switch it back
 {
 	uint64_t NamePtr;
 
@@ -970,6 +969,40 @@ struct BO4GfxImage
 	uint8_t LoadedMipLevels;
 
 	uint8_t Padding2[0x1B];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct BO4GfxImage
+{
+	uint64_t NamePtr;
+
+	uint64_t UnknownPtr1;
+	uint64_t UnknownZero;
+
+	uint64_t LoadedMipPtr;
+
+	uint64_t UnknownHash;
+	uint64_t UnknownZero2;
+
+	uint64_t GfxMipsPtr;
+
+	uint8_t Padding[0x28];
+
+	uint32_t LoadedMipSize;
+	uint32_t ImageFormat;
+
+	uint16_t LoadedMipWidth;
+	uint16_t LoadedMipHeight;
+	uint8_t LoadedMipLevels;
+
+	uint8_t Padding2[0x10];
+
+	uint8_t GfxMipMaps;
+
+	uint8_t Padding3[0xA];
+
+
 };
 #pragma pack(pop)
 
