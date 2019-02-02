@@ -793,14 +793,14 @@ void CoDXAnimTranslator::NotetracksBO4(const std::unique_ptr<WraithAnim>& Anim, 
 	for (uint32_t i = 0; i < Animation->NotificationCount; i++)
 	{
 		// Read the tag
-		auto NotificaionHash = CoDAssets::GameInstance->Read<uint64_t>(Animation->NotificationsPtr);
+		auto NotificaionHash = CoDAssets::GameInstance->Read<uint64_t>(Animation->NotificationsPtr + 8);
 		auto NotificationTag = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr + 0x10));
 		auto NotificationType = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr + 0x1C));
 		// Read the frame
 		uint32_t NotificationFrame = (uint32_t)((float)Animation->FrameCount * CoDAssets::GameInstance->Read<float>(Animation->NotificationsPtr + 0x20));
 
 		// Append the removed prefixes to the notetrack
-		if (NotificationType == "sound")
+		if (NotificationType == "sound" || NotificationType == "xstring_e13a32253e1bbfc")
 			NotificationTag = Strings::Format("sndnt#%llx", NotificaionHash);
 		else if (NotificationType == "rumble")
 			NotificationTag = Strings::Format("rmbnt#%llx", NotificaionHash);

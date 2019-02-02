@@ -26,6 +26,202 @@ std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 	{ 0xA1684D0, 0x0, 0x8E030F0, 0x0 }
 }};
 
+// Encryption Map
+struct EncryptionMap
+{
+	uint8_t Keys[255];
+};
+
+// Precalculated Encryption Keys
+std::map<uint8_t, EncryptionMap> EncryptionKeys =
+{
+	{
+		139,
+		{
+			165, 164, 162, 165, 161, 164, 158, 165,
+			157, 164, 154, 165, 153, 164, 150, 165,
+			149, 164, 146, 165, 145, 164, 142, 165,
+			141, 164, 138, 165, 137, 164, 134, 165,
+			133, 164, 130, 165, 129, 164, 126, 165,
+			125, 164, 122, 165, 121, 164, 118, 165,
+			117, 164, 114, 165, 113, 164, 110, 165,
+			109, 164, 106, 165, 105, 164, 102, 165,
+			101, 164,  98, 165,  97, 164,  94, 165,
+			 93, 164,  90, 165,  89, 164,  86, 165,
+			 85, 164,  82, 165,  81, 164,  78, 165,
+			 77, 164,  74, 165,  73, 164,  70, 165,
+			 69, 164,  66, 165,  65, 164,  62, 165,
+			 61, 164,  58, 165,  57, 164,  54, 165,
+			 53, 164,  50, 165,  49, 164,  46, 165,
+			 45, 164,  42, 165,  41, 164,  38, 165,
+			 37, 164,  34, 165,  33, 164,  30, 165,
+			 29, 164,  26, 165,  25, 164,  22, 165,
+			 21, 164,  18, 165,  17, 164,  14, 165,
+			 13, 164,  10, 165,   9, 164,   6, 165,
+			  5, 164,   2, 165,   1, 164, 254, 165,
+			253, 164, 250, 165, 249, 164, 246, 165,
+			245, 164, 242, 165, 241, 164, 238, 165,
+			237, 164, 234, 165, 233, 164, 230, 165,
+			229, 164, 226, 165, 225, 164, 222, 165,
+			221, 164, 218, 165, 217, 164, 214, 165,
+			213, 164, 210, 165, 209, 164, 206, 165,
+			205, 164, 202, 165, 201, 164, 198, 165,
+			197, 164, 194, 165, 193, 164, 190, 165,
+			189, 164, 186, 165, 185, 164, 182, 165,
+			181, 164, 178, 165, 177, 164, 174, 165,
+			173, 164, 170, 165, 169, 164, 166,
+		}
+	},
+	{ 
+		152, 
+		{
+			189, 190, 192, 195, 199, 204, 210, 217,
+			225, 234, 244, 255,  11,  24,  38,  53,
+			 69,  86, 104, 123, 143, 164, 186, 209,
+			233,   2,  28,  55,  83, 112, 142, 173,
+			205, 238,  16,  51,  87, 124, 162, 201,
+			241,  26,  68, 111, 155, 200, 246,  37,
+			 85, 134, 184, 235,  31,  84, 138, 193,
+			249,  50, 108, 167, 227,  32,  94, 157,
+			221,  30,  96, 163, 231,  44, 114, 185,
+			  1,  74, 148, 223,  43, 120, 198,  21,
+			101, 182,   8,  91, 175,   4,  90, 177,
+			  9,  98, 188,  23, 115, 208,  46, 141,
+			237,  78, 176,  19, 119, 220,  66, 169,
+			 17, 122, 228,  79, 187,  40, 150,   5,
+			117, 230,  88, 203,  63, 180,  42, 161,
+			 25, 146,  12, 135,   3, 128, 254, 125,
+			253, 126,   0, 131,   7, 140,  18, 153,
+			 33, 170,  52, 191,  75, 216, 102, 245,
+			133,  22, 168,  59, 207, 100, 250, 145,
+			 41, 194,  92, 247, 147,  48, 206, 109,
+			 13, 174,  80, 243, 151,  60, 226, 137,
+			 49, 218, 132,  47, 219, 136,  54, 229,
+			149,  70, 248, 171,  95,  20, 202, 129,
+			 57, 242, 172, 103,  35, 224, 158,  93,
+			 29, 222, 160,  99,  39, 236, 178, 121,
+			 65,  10, 212, 159, 107,  56,   6, 213,
+			165, 118,  72,  27, 239, 196, 154, 113,
+			 73,  34, 252, 215, 179, 144, 110,  77,
+			 45,  14, 240, 211, 183, 156, 130, 105,
+			 81,  58,  36,  15, 251, 232, 214, 197,
+			181, 166, 152, 139, 127, 116, 106,  97,
+			 89,  82,  76,  71,  67,  64,  62,
+		}
+	},
+	{
+		171,
+		{
+			143, 144, 145, 146, 147, 148, 149, 150,
+			151, 152, 153, 154, 155, 156, 157, 158,
+			159, 160, 161, 162, 163, 164, 165, 166,
+			167, 168, 169, 170, 171, 172, 173, 174,
+			175, 176, 177, 178, 179, 180, 181, 182,
+			183, 184, 185, 186, 187, 188, 189, 190,
+			191, 192, 193, 194, 195, 196, 197, 198,
+			199, 200, 201, 202, 203, 204, 205, 206,
+			207, 208, 209, 210, 211, 212, 213, 214,
+			215, 216, 217, 218, 219, 220, 221, 222,
+			223, 224, 225, 226, 227, 228, 229, 230,
+			231, 232, 233, 234, 235, 236, 237, 238,
+			239, 240, 241, 242, 243, 244, 245, 246,
+			247, 248, 249, 250, 251, 252, 253, 254,
+			255,   0,   1,   2,   3,   4,   5,   6,
+			  7,   8,   9,  10,  11,  12,  13,  14,
+			 15,  16,  17,  18,  19,  20,  21,  22,
+			 23,  24,  25,  26,  27,  28,  29,  30,
+			 31,  32,  33,  34,  35,  36,  37,  38,
+			 39,  40,  41,  42,  43,  44,  45,  46,
+			 47,  48,  49,  50,  51,  52,  53,  54,
+			 55,  56,  57,  58,  59,  60,  61,  62,
+			 63,  64,  65,  66,  67,  68,  69,  70,
+			 71,  72,  73,  74,  75,  76,  77,  78,
+			 79,  80,  81,  82,  83,  84,  85,  86,
+			 87,  88,  89,  90,  91,  92,  93,  94,
+			 95,  96,  97,  98,  99, 100, 101, 102,
+			103, 104, 105, 106, 107, 108, 109, 110,
+			111, 112, 113, 114, 115, 116, 117, 118,
+			119, 120, 121, 122, 123, 124, 125, 126,
+			127, 128, 129, 130, 131, 132, 133, 134,
+			135, 136, 137, 138, 139, 140, 141,
+		}
+	},
+	{
+		189,
+		{
+			170, 172, 167, 171, 166, 172, 163, 171,
+			162, 172, 159, 171, 158, 172, 155, 171,
+			154, 172, 151, 171, 150, 172, 147, 171,
+			146, 172, 143, 171, 142, 172, 139, 171,
+			138, 172, 135, 171, 134, 172, 131, 171,
+			130, 172, 127, 171, 126, 172, 123, 171,
+			122, 172, 119, 171, 118, 172, 115, 171,
+			114, 172, 111, 171, 110, 172, 107, 171,
+			106, 172, 103, 171, 102, 172,  99, 171,
+			 98, 172,  95, 171,  94, 172,  91, 171,
+			 90, 172,  87, 171,  86, 172,  83, 171,
+			 82, 172,  79, 171,  78, 172,  75, 171,
+			 74, 172,  71, 171,  70, 172,  67, 171,
+			 66, 172,  63, 171,  62, 172,  59, 171,
+			 58, 172,  55, 171,  54, 172,  51, 171,
+			 50, 172,  47, 171,  46, 172,  43, 171,
+			 42, 172,  39, 171,  38, 172,  35, 171,
+			 34, 172,  31, 171,  30, 172,  27, 171,
+			 26, 172,  23, 171,  22, 172,  19, 171,
+			 18, 172,  15, 171,  14, 172,  11, 171,
+			 10, 172,   7, 171,   6, 172,   3, 171,
+			  2, 172, 255, 171, 254, 172, 251, 171,
+			250, 172, 247, 171, 246, 172, 243, 171,
+			242, 172, 239, 171, 238, 172, 235, 171,
+			234, 172, 231, 171, 230, 172, 227, 171,
+			226, 172, 223, 171, 222, 172, 219, 171,
+			218, 172, 215, 171, 214, 172, 211, 171,
+			210, 172, 207, 171, 206, 172, 203, 171,
+			202, 172, 199, 171, 198, 172, 195, 171,
+			194, 172, 191, 171, 190, 172, 187, 171,
+			186, 172, 183, 171, 182, 172, 179, 171,
+			178, 172, 175, 171, 174, 172, 171,
+		}
+	},
+	{
+		191,
+		{
+			153, 154, 156, 159, 163, 168, 174, 181,
+			189, 198, 208, 219, 231, 244,   2,  17,
+			 33,  50,  68,  87, 107, 128, 150, 173,
+			197, 222, 248,  19,  47,  76, 106, 137,
+			169, 202, 236,  15,  51,  88, 126, 165,
+			205, 246,  32,  75, 119, 164, 210,   1,
+			 49,  98, 148, 199, 251,  48, 102, 157,
+			213,  14,  72, 131, 191, 252,  58, 121,
+			185, 250,  60, 127, 195,   8,  78, 149,
+			221,  38, 112, 187,   7,  84, 162, 241,
+			 65, 146, 228,  55, 139, 224,  54, 141,
+			229,  62, 152, 243,  79, 172,  10, 105,
+			201,  42, 140, 239,  83, 184,  30, 133,
+			237,  86, 192,  43, 151,   4, 114, 225,
+			 81, 194,  52, 167,  27, 144,   6, 125,
+			245, 110, 232,  99, 223,  92, 218,  89,
+			217,  90, 220,  95, 227, 104, 238, 117,
+			253, 134,  16, 155,  39, 180,  66, 209,
+			 97, 242, 132,  23, 171,  64, 214, 109,
+			  5, 158,  56, 211, 111,  12, 170,  73,
+			233, 138,  44, 207, 115,  24, 190, 101,
+			 13, 182,  96,  11, 183, 100,  18, 193,
+			113,  34, 212, 135,  59, 240, 166,  93,
+			 21, 206, 136,  67, 255, 188, 122,  57,
+			249, 186, 124,  63,   3, 200, 142,  85,
+			 29, 230, 176, 123,  71,  20, 226, 177,
+			129,  82,  36, 247, 203, 160, 118,  77,
+			 37, 254, 216, 179, 143, 108,  74,  41,
+			  9, 234, 204, 175, 147, 120,  94,  69,
+			 45,  22,   0, 235, 215, 196, 178, 161,
+			145, 130, 116, 103,  91,  80,  70,  61,
+			 53,  46,  40,  35,  31,  28,  26,
+		}
+	}
+};
+
 // -- Finished with databases
 
 // -- Begin XModelStream structures
@@ -174,7 +370,7 @@ bool GameBlackOps4::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
 
 			// Verify via first xmodel asset, right now, we're using a hash
-			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
+			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8);
 
 			// Check
 			if (FirstXModelHash == 0x04647533e968c910)
@@ -639,7 +835,7 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
 		auto ImageInfo = CoDAssets::GameInstance->Read<BO4XMaterialImage>(MaterialData.ImageTablePtr);
 
 		// Get Hash and mask it (some bits are used for other stuffs)
-		auto ImageHash = CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x20) & 0xFFFFFFFFFFFFFFF;
+		auto ImageHash = CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x28) & 0xFFFFFFFFFFFFFFF;
 
 		// Get the image name
 		auto ImageName = Strings::Format("ximage_%llx", ImageHash);
@@ -982,23 +1178,6 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 	}
 }
 
-static byte Decrypt(uint8_t input, uint8_t key)
-{
-	// If our key equals the input we're not encrpyted
-	if (input == key)
-		return input;
-
-	// Result
-	uint8_t result = input ^ key;
-
-	// Redundancy check for valid character
-	if ((result > 64 && result < 91) || (result > 96 && result < 123) || (result > 47 && result < 58) || result == 95)
-		return result;
-
-	// Return default '_'
-	return 95;
-}
-
 std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 {
 	// Check if we have an index to use
@@ -1014,85 +1193,31 @@ std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 		auto StringSize = CoDAssets::GameInstance->Read<uint8_t>(Offset + 17) - 1;
 		// Resulting String
 		auto Result = CoDAssets::GameInstance->Read(Offset + 18, StringSize, BytesRead);
-		// Decrypt string, increment/decrement depending on key. If not these, assume not encrypted.
-		// TODO: Clean up, especially 2 new 165/175 ones, we could handle these a little better than this
-		switch (XORKey)
+		// Check for key in encryption map
+		if (EncryptionKeys.find(XORKey) != EncryptionKeys.end())
 		{
-		case 165:
-			// Loop bytes
-			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, key++)
-				// Decrypt it
-				Result[x] = Decrypt(Result[x], key);
-			break;
-		case 185:
-			// Loop bytes
-			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, key--)
-				// Decrypt it
-				Result[x] = Decrypt(Result[x], key);
-			break;
-		case 189:
-			// Loop bytes
-			for (uint8_t x = 0, y = 0, evenKey = XORKey - 1, oddKey = XORKey; x < StringSize; x++)
+			// Get map
+			auto Map = EncryptionKeys[XORKey];
+			// Loop through string
+			for (uint8_t i = 0; i < StringSize; i++)
 			{
-				// Check index is multiple of 2
-				if (((x + 1) % 2) == 0)
-				{
-					// Decrypt it
-					Result[x] = Decrypt(Result[x], evenKey + (((x + 1) % 4) == 0));
-				}
-				else
-				{
-					// Decrypt it
-					Result[x] = Decrypt(Result[x], oddKey);
-					// Update Key
-					oddKey -= 1 + 2 * ((y % 2) == 0);
-					// Increment Odd Index
-					y++;
-				}
+				// Decrpyt it if the key and input differ
+				Result[i] = Result[i] != Map.Keys[i] ? Result[i] ^ Map.Keys[i] : Result[i];
 			}
-			break;
-		case 191:
-			// Loop bytes
-			for (uint8_t x = 0, key = XORKey; x < StringSize; XORKey -= x + 1, x++)
-				// Decrypt it
-				Result[x] = Decrypt(Result[x], XORKey);
-			break;
-		case 175:
-		case 139:
-			// Loop bytes
-			for (uint8_t x = 0, key = XORKey; x < StringSize; x++, key += x)
-				// Decrypt it
-				Result[x] = Decrypt(Result[x], key);
-			// Done
-			break;
-		case 171:
-			// Loop bytes
-			for (uint8_t x = 0, y = 0, evenKey = XORKey + 1, oddKey = XORKey - 1; x < StringSize; x++)
+		}
+		else
+		{
+			// These are weird, results change, some patterns can be seen, need more time to analyze the exe...
+			// We appear to "reset" in some way every 8 bytes, there might be shifting by index up to 8 or some shit
+			switch (XORKey)
 			{
-				// Check index is multiple of 2
-				if (((x + 1) % 2) == 0)
-				{
-					// Decrypt it
-					Result[x] = Decrypt(Result[x], evenKey - (((x + 1) % 4) == 0));
-				}
-				else
-				{
-					// Decrypt it
-					Result[x] = Decrypt(Result[x], oddKey);
-					// Update Key
-					oddKey -= 1 + 2 * ((y % 2) == 0);
-					// Increment Odd Index
-					y++;
-				}
+			// For now, read their hash
+			case 185:
+			case 165:
+			case 153:
+			case 143:
+				return Strings::Format("xstring_%llx", CoDAssets::GameInstance->Read<uint64_t>(Offset + 8));
 			}
-			break;
-		case 152:
-			// Loop bytes
-			for (uint8_t x = 0, key = XORKey + 1; x < StringSize; x++, key += x + 1)
-				// Decrypt it
-				Result[x] = Decrypt(Result[x], key);
-			// Done
-			break;
 		}
 		// Convert to string and return
 		return std::string(reinterpret_cast<char const*>(Result), StringSize);
