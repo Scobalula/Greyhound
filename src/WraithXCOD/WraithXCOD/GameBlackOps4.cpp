@@ -18,12 +18,19 @@
 
 WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 
+// -- Rotate Function for Decrypting
+
+uint8_t RotateRight(uint8_t value, uint8_t shift)
+{
+	return value >> shift | value << (8 - shift);
+}
+
 // -- Initialize built-in game offsets databases
 
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0xA1684D0, 0x0, 0x8E030F0, 0x0 }
+	{ 0xA1A3860, 0x0, 0x8E3E2B0, 0x0 }
 }};
 
 // Encryption Map
@@ -316,7 +323,7 @@ bool GameBlackOps4::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
 
 			// Verify via first xmodel asset, right now, we're using a hash
-			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
+			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8);
 			// Check
 			if (FirstXModelHash == 0x04647533e968c910)
 			{
@@ -632,10 +639,6 @@ std::unique_ptr<XAnim_t> GameBlackOps4::ReadXAnim(const CoDAnim_t* Animation)
 		// Frames and Rate
 		Anim->FrameCount = AnimData.NumFrames;
 		Anim->FrameRate = AnimData.Framerate;
-
-		// TODO: Determine viewmodel anims
-		// TODO: Determine additive anims
-		// TODO: On first bo4 attach, copy oodle dll automatically
 
 		// Check for viewmodel animations
 		if ((_strnicmp(Animation->AssetName.c_str(), "viewmodel_", 10) == 0) || (_strnicmp(Animation->AssetName.c_str(), "vm_", 3) == 0))
@@ -1193,7 +1196,7 @@ std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 		auto StringSize = CoDAssets::GameInstance->Read<uint8_t>(Offset + 17) - 1;
 		// Resulting String
 		auto Result = CoDAssets::GameInstance->Read(Offset + 18, StringSize, BytesRead);
-		// Check for key in encryption map
+		// Check for key in encryption map, we can just decrypt these directly
 		if (EncryptionKeys.find(XORKey) != EncryptionKeys.end())
 		{
 			// Get map
@@ -1207,20 +1210,90 @@ std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 		}
 		else
 		{
-			// These are weird, results change, some patterns can be seen, need more time to analyze the exe...
-			// We appear to "reset" in some way every 8 bytes, there might be shifting by index up to 8 or some shit
+			// These require some more work..
 			switch (XORKey)
 			{
-			// For now, read their hash
 			case 185:
+			{
+				// Fix up key
+				XORKey = 152;
+				// Loop through bytes
+				for (uint8_t i = 0; i < StringSize; i++, XORKey -= i)
+				{
+					// Decrpyt it if the key and input differ
+					Result[i] = Result[i] != XORKey ? Result[i] ^ XORKey : Result[i];
+					// Rotate it
+					Result[i] = RotateLeft8(Result[i], i % 8);
+				}
+				// Done
+				break;
+			}
 			case 165:
+			{
+				// Fix up key
+				XORKey = 139;
+				// Loop through bytes
+				for (uint8_t i = 0; i < StringSize; i++, XORKey--)
+				{
+					// Decrpyt it if the key and input differ
+					Result[i] = Result[i] != XORKey ? Result[i] ^ XORKey : Result[i];
+					// Rotate it
+					Result[i] = RotateRight8(Result[i], i % 8);
+				}
+				// Done
+				break;
+			}
 			case 153:
+			{
+				// Start values
+				uint32_t j = 0;
+				uint8_t k = 0;
+				// Loop through bytes
+				for (uint8_t i = 0; i < StringSize; i++)
+				{
+					// Increment/Decrement
+					j += ~i;
+					k = 191 - j;
+					// Decrpyt it if the key and input differ
+					Result[i] = Result[i] != k ? Result[i] ^ k : Result[i];
+					// Rotate it
+					Result[i] = RotateLeft8(Result[i], i % 8);
+				}
+				// Done
+				break;
+			}
 			case 143:
-				return Strings::Format("xstring_%llx", CoDAssets::GameInstance->Read<uint64_t>(Offset + 8));
+			{
+				// Start values
+				uint32_t j = 0;
+				uint8_t k = 0;
+				// Loop through bytes
+				for (uint8_t i = 0; i < StringSize; i++)
+				{
+					// Increment/Decrement
+					j += i;
+					k = j - 81;
+					// Decrpyt it if the key and input differ
+					Result[i] = Result[i] != k ? Result[i] ^ k : Result[i];
+					// Rotate it
+					Result[i] = RotateRight8(Result[i], i % 8);
+				}
+				// Done
+				break;
+			}
+			default:
+			{
+				// Everything else assume not encrypted (174 usually)
+				return CoDAssets::GameInstance->ReadNullTerminatedString(Offset + 18);
+			}
 			}
 		}
-		// Convert to string and return
-		return std::string(reinterpret_cast<char const*>(Result), StringSize);
+		// Convert to string
+		auto StringResult = std::string(reinterpret_cast<char const*>(Result), StringSize);
+		// Clean up buffer
+		delete[] Result;
+		// Done
+		return StringResult;
 	}
 	// Return blank string
 	return "";

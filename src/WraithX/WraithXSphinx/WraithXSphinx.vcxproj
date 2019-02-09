@@ -106,7 +106,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WRAITHXSPHINX_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\HD Documents\Visual Studio Projects\WraithX\WraithX;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\WraithX;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -160,6 +160,11 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WraithXSphinx.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WraithX\WraithX.vcxproj">
+      <Project>{bff7e83b-acd0-447f-a4de-a11d726acae1}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
