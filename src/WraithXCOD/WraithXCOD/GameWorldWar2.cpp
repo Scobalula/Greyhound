@@ -772,19 +772,16 @@ const XMaterial_t GameWorldWar2::ReadXMaterial(uint64_t MaterialPointer)
 
 		// Default type
 		auto DefaultUsage = ImageUsageType::Unknown;
-		// Check
-		switch (ImageInfo.Usage)
+		// Check 
+		switch (ImageInfo.Hash)
 		{
-		case 2:
-			if (_strnicmp(ImageName.c_str(), "~&-c", 4) == 0)
-			{
-				DefaultUsage = ImageUsageType::DiffuseMap;
-			}
+		case 0xA0AB1041:
+			DefaultUsage = ImageUsageType::DiffuseMap;
 			break;
-		case 5:
+		case 0x59D30D0F:
 			DefaultUsage = ImageUsageType::NormalMap;
 			break;
-		case 8:
+		case 0x34ECCCB3:
 			DefaultUsage = ImageUsageType::SpecularMap;
 			break;
 		}

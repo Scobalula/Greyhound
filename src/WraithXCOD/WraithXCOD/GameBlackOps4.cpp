@@ -6,6 +6,7 @@
 // We need the CoDAssets class
 #include "CoDAssets.h"
 #include "CoDRawImageTranslator.h"
+#include "CoDXPoolParser.h"
 
 // We need the following WraithX classes
 #include "Strings.h"
@@ -18,216 +19,14 @@
 
 WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 
-// -- Rotate Function for Decrypting
-
-uint8_t RotateRight(uint8_t value, uint8_t shift)
-{
-	return value >> shift | value << (8 - shift);
-}
 
 // -- Initialize built-in game offsets databases
 
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0xA1A3860, 0x0, 0x8E3E2B0, 0x0 }
+	{ 0xA2DC9F0, 0x0, 0x8F77430, 0x0 }
 }};
-
-// Encryption Map
-struct EncryptionMap
-{
-	uint8_t Keys[255];
-};
-
-// Precalculated Encryption Keys
-std::map<uint8_t, EncryptionMap> EncryptionKeys =
-{
-	{
-		139,
-		{
-			165, 164, 162, 165, 161, 164, 158, 165,
-			157, 164, 154, 165, 153, 164, 150, 165,
-			149, 164, 146, 165, 145, 164, 142, 165,
-			141, 164, 138, 165, 137, 164, 134, 165,
-			133, 164, 130, 165, 129, 164, 126, 165,
-			125, 164, 122, 165, 121, 164, 118, 165,
-			117, 164, 114, 165, 113, 164, 110, 165,
-			109, 164, 106, 165, 105, 164, 102, 165,
-			101, 164,  98, 165,  97, 164,  94, 165,
-			 93, 164,  90, 165,  89, 164,  86, 165,
-			 85, 164,  82, 165,  81, 164,  78, 165,
-			 77, 164,  74, 165,  73, 164,  70, 165,
-			 69, 164,  66, 165,  65, 164,  62, 165,
-			 61, 164,  58, 165,  57, 164,  54, 165,
-			 53, 164,  50, 165,  49, 164,  46, 165,
-			 45, 164,  42, 165,  41, 164,  38, 165,
-			 37, 164,  34, 165,  33, 164,  30, 165,
-			 29, 164,  26, 165,  25, 164,  22, 165,
-			 21, 164,  18, 165,  17, 164,  14, 165,
-			 13, 164,  10, 165,   9, 164,   6, 165,
-			  5, 164,   2, 165,   1, 164, 254, 165,
-			253, 164, 250, 165, 249, 164, 246, 165,
-			245, 164, 242, 165, 241, 164, 238, 165,
-			237, 164, 234, 165, 233, 164, 230, 165,
-			229, 164, 226, 165, 225, 164, 222, 165,
-			221, 164, 218, 165, 217, 164, 214, 165,
-			213, 164, 210, 165, 209, 164, 206, 165,
-			205, 164, 202, 165, 201, 164, 198, 165,
-			197, 164, 194, 165, 193, 164, 190, 165,
-			189, 164, 186, 165, 185, 164, 182, 165,
-			181, 164, 178, 165, 177, 164, 174, 165,
-			173, 164, 170, 165, 169, 164, 166,
-		}
-	},
-	{ 
-		152, 
-		{
-			189, 190, 192, 195, 199, 204, 210, 217,
-			225, 234, 244, 255,  11,  24,  38,  53,
-			 69,  86, 104, 123, 143, 164, 186, 209,
-			233,   2,  28,  55,  83, 112, 142, 173,
-			205, 238,  16,  51,  87, 124, 162, 201,
-			241,  26,  68, 111, 155, 200, 246,  37,
-			 85, 134, 184, 235,  31,  84, 138, 193,
-			249,  50, 108, 167, 227,  32,  94, 157,
-			221,  30,  96, 163, 231,  44, 114, 185,
-			  1,  74, 148, 223,  43, 120, 198,  21,
-			101, 182,   8,  91, 175,   4,  90, 177,
-			  9,  98, 188,  23, 115, 208,  46, 141,
-			237,  78, 176,  19, 119, 220,  66, 169,
-			 17, 122, 228,  79, 187,  40, 150,   5,
-			117, 230,  88, 203,  63, 180,  42, 161,
-			 25, 146,  12, 135,   3, 128, 254, 125,
-			253, 126,   0, 131,   7, 140,  18, 153,
-			 33, 170,  52, 191,  75, 216, 102, 245,
-			133,  22, 168,  59, 207, 100, 250, 145,
-			 41, 194,  92, 247, 147,  48, 206, 109,
-			 13, 174,  80, 243, 151,  60, 226, 137,
-			 49, 218, 132,  47, 219, 136,  54, 229,
-			149,  70, 248, 171,  95,  20, 202, 129,
-			 57, 242, 172, 103,  35, 224, 158,  93,
-			 29, 222, 160,  99,  39, 236, 178, 121,
-			 65,  10, 212, 159, 107,  56,   6, 213,
-			165, 118,  72,  27, 239, 196, 154, 113,
-			 73,  34, 252, 215, 179, 144, 110,  77,
-			 45,  14, 240, 211, 183, 156, 130, 105,
-			 81,  58,  36,  15, 251, 232, 214, 197,
-			181, 166, 152, 139, 127, 116, 106,  97,
-			 89,  82,  76,  71,  67,  64,  62,
-		}
-	},
-	{
-		171,
-		{
-			143, 144, 145, 146, 147, 148, 149, 150,
-			151, 152, 153, 154, 155, 156, 157, 158,
-			159, 160, 161, 162, 163, 164, 165, 166,
-			167, 168, 169, 170, 171, 172, 173, 174,
-			175, 176, 177, 178, 179, 180, 181, 182,
-			183, 184, 185, 186, 187, 188, 189, 190,
-			191, 192, 193, 194, 195, 196, 197, 198,
-			199, 200, 201, 202, 203, 204, 205, 206,
-			207, 208, 209, 210, 211, 212, 213, 214,
-			215, 216, 217, 218, 219, 220, 221, 222,
-			223, 224, 225, 226, 227, 228, 229, 230,
-			231, 232, 233, 234, 235, 236, 237, 238,
-			239, 240, 241, 242, 243, 244, 245, 246,
-			247, 248, 249, 250, 251, 252, 253, 254,
-			255,   0,   1,   2,   3,   4,   5,   6,
-			  7,   8,   9,  10,  11,  12,  13,  14,
-			 15,  16,  17,  18,  19,  20,  21,  22,
-			 23,  24,  25,  26,  27,  28,  29,  30,
-			 31,  32,  33,  34,  35,  36,  37,  38,
-			 39,  40,  41,  42,  43,  44,  45,  46,
-			 47,  48,  49,  50,  51,  52,  53,  54,
-			 55,  56,  57,  58,  59,  60,  61,  62,
-			 63,  64,  65,  66,  67,  68,  69,  70,
-			 71,  72,  73,  74,  75,  76,  77,  78,
-			 79,  80,  81,  82,  83,  84,  85,  86,
-			 87,  88,  89,  90,  91,  92,  93,  94,
-			 95,  96,  97,  98,  99, 100, 101, 102,
-			103, 104, 105, 106, 107, 108, 109, 110,
-			111, 112, 113, 114, 115, 116, 117, 118,
-			119, 120, 121, 122, 123, 124, 125, 126,
-			127, 128, 129, 130, 131, 132, 133, 134,
-			135, 136, 137, 138, 139, 140, 141,
-		}
-	},
-	{
-		189,
-		{
-			170, 172, 167, 171, 166, 172, 163, 171,
-			162, 172, 159, 171, 158, 172, 155, 171,
-			154, 172, 151, 171, 150, 172, 147, 171,
-			146, 172, 143, 171, 142, 172, 139, 171,
-			138, 172, 135, 171, 134, 172, 131, 171,
-			130, 172, 127, 171, 126, 172, 123, 171,
-			122, 172, 119, 171, 118, 172, 115, 171,
-			114, 172, 111, 171, 110, 172, 107, 171,
-			106, 172, 103, 171, 102, 172,  99, 171,
-			 98, 172,  95, 171,  94, 172,  91, 171,
-			 90, 172,  87, 171,  86, 172,  83, 171,
-			 82, 172,  79, 171,  78, 172,  75, 171,
-			 74, 172,  71, 171,  70, 172,  67, 171,
-			 66, 172,  63, 171,  62, 172,  59, 171,
-			 58, 172,  55, 171,  54, 172,  51, 171,
-			 50, 172,  47, 171,  46, 172,  43, 171,
-			 42, 172,  39, 171,  38, 172,  35, 171,
-			 34, 172,  31, 171,  30, 172,  27, 171,
-			 26, 172,  23, 171,  22, 172,  19, 171,
-			 18, 172,  15, 171,  14, 172,  11, 171,
-			 10, 172,   7, 171,   6, 172,   3, 171,
-			  2, 172, 255, 171, 254, 172, 251, 171,
-			250, 172, 247, 171, 246, 172, 243, 171,
-			242, 172, 239, 171, 238, 172, 235, 171,
-			234, 172, 231, 171, 230, 172, 227, 171,
-			226, 172, 223, 171, 222, 172, 219, 171,
-			218, 172, 215, 171, 214, 172, 211, 171,
-			210, 172, 207, 171, 206, 172, 203, 171,
-			202, 172, 199, 171, 198, 172, 195, 171,
-			194, 172, 191, 171, 190, 172, 187, 171,
-			186, 172, 183, 171, 182, 172, 179, 171,
-			178, 172, 175, 171, 174, 172, 171,
-		}
-	},
-	{
-		191,
-		{
-			153, 154, 156, 159, 163, 168, 174, 181,
-			189, 198, 208, 219, 231, 244,   2,  17,
-			 33,  50,  68,  87, 107, 128, 150, 173,
-			197, 222, 248,  19,  47,  76, 106, 137,
-			169, 202, 236,  15,  51,  88, 126, 165,
-			205, 246,  32,  75, 119, 164, 210,   1,
-			 49,  98, 148, 199, 251,  48, 102, 157,
-			213,  14,  72, 131, 191, 252,  58, 121,
-			185, 250,  60, 127, 195,   8,  78, 149,
-			221,  38, 112, 187,   7,  84, 162, 241,
-			 65, 146, 228,  55, 139, 224,  54, 141,
-			229,  62, 152, 243,  79, 172,  10, 105,
-			201,  42, 140, 239,  83, 184,  30, 133,
-			237,  86, 192,  43, 151,   4, 114, 225,
-			 81, 194,  52, 167,  27, 144,   6, 125,
-			245, 110, 232,  99, 223,  92, 218,  89,
-			217,  90, 220,  95, 227, 104, 238, 117,
-			253, 134,  16, 155,  39, 180,  66, 209,
-			 97, 242, 132,  23, 171,  64, 214, 109,
-			  5, 158,  56, 211, 111,  12, 170,  73,
-			233, 138,  44, 207, 115,  24, 190, 101,
-			 13, 182,  96,  11, 183, 100,  18, 193,
-			113,  34, 212, 135,  59, 240, 166,  93,
-			 21, 206, 136,  67, 255, 188, 122,  57,
-			249, 186, 124,  63,   3, 200, 142,  85,
-			 29, 230, 176, 123,  71,  20, 226, 177,
-			129,  82,  36, 247, 203, 160, 118,  77,
-			 37, 254, 216, 179, 143, 108,  74,  41,
-			  9, 234, 204, 175, 147, 120,  94,  69,
-			 45,  22,   0, 235, 215, 196, 178, 161,
-			145, 130, 116, 103,  91,  80,  70,  61,
-			 53,  46,  40,  35,  31,  28,  26,
-		}
-	}
-};
 
 // -- Finished with databases
 
@@ -323,7 +122,7 @@ bool GameBlackOps4::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
 
 			// Verify via first xmodel asset, right now, we're using a hash
-			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8);
+			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
 			// Check
 			if (FirstXModelHash == 0x04647533e968c910)
 			{
@@ -377,21 +176,28 @@ bool GameBlackOps4::LoadOffsets()
 			CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
 
 			// Verify via first xmodel asset, right now, we're using a hash
-			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8);
+			auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
 
 			// Check
 			if (FirstXModelHash == 0x04647533e968c910)
 			{
-				// Verify string table, otherwise we are all set
-				CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
+				// Validate sizes
+				if (
+					AnimPoolData.AssetSize  == sizeof(BO4XAnim) && 
+					ModelPoolData.AssetSize == sizeof(BO4XModel) && 
+					ImagePoolData.AssetSize == sizeof(BO4GfxImage))
+				{
+					// Verify string table, otherwise we are all set
+					CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
 
-				// Read and apply sizes
-				CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
-				CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
-				CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
+					// Read and apply sizes
+					CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
+					CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
+					CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
 
-				// Return success
-				return true;
+					// Return success
+					return true;
+				}
 			}
 		}
 	}
@@ -420,203 +226,124 @@ bool GameBlackOps4::LoadAssets()
 	// Check if we need assets
 	if (NeedsAnims)
 	{
-		// Animations are the first offset and first pool
-		auto AnimationOffset = CoDAssets::GameOffsetInfos[0];
-		auto AnimationCount = CoDAssets::GamePoolSizes[0];
-
-		// Calculate maximum pool size
-		auto MaximumPoolOffset = (AnimationCount * sizeof(BO4XAnim)) + AnimationOffset;
-		// Store original offset
-		auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[0];
-
-		// Loop and read
-		for (uint32_t i = 0; i < AnimationCount; i++)
+		// Parse the XAnim pool
+		CoDXPoolParser<uint64_t, BO4XAnim>((CoDAssets::GameOffsetInfos[0]), CoDAssets::GamePoolSizes[0], [Filters](BO4XAnim& Asset, uint64_t& AssetOffset)
 		{
-			// Read
-			auto AnimResult = CoDAssets::GameInstance->Read<BO4XAnim>(AnimationOffset);
-
-			// Check whether or not to skip, if the handle not 0, or, if the handle is a pointer within the current pool
-			if ((AnimResult.NamePtr > MinimumPoolOffset && AnimResult.NamePtr < MaximumPoolOffset) || AnimResult.UnknownHash == 0)
-			{
-				// Advance
-				AnimationOffset += sizeof(BO4XAnim);
-				// Skip this asset
-				continue;
-			}
-
-			// Mask the name (some bits are used for other stuffs)
-			AnimResult.UnknownHash &= 0xFFFFFFFFFFFFFFF;
+			// Mask the name as hashes are 60Bit
+			Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
 
 			// Check for filters
 			if (Filters.NameDatabase.size() > 0)
 			{
 				// Check for this asset in DB
-				if (Filters.NameDatabase.find(AnimResult.UnknownHash) != Filters.NameDatabase.end())
+				if (Filters.NameDatabase.find(Asset.NamePtr) != Filters.NameDatabase.end())
 				{
-					// Advance
-					AnimationOffset += sizeof(BO4XAnim);
 					// Skip this asset
-					continue;
+					return;
 				}
 			}
 
 			// Validate and load if need be
-			auto AnimName = Strings::Format("xanim_%llx", AnimResult.UnknownHash);
+			auto AnimName = Strings::Format("xanim_%llx", Asset.NamePtr);
+
 			// Check for an override in the name DB
-			if (AssetNameCache.NameDatabase.find(AnimResult.UnknownHash) != AssetNameCache.NameDatabase.end())
-				AnimName = AssetNameCache.NameDatabase[AnimResult.UnknownHash];
+			if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
+				AnimName = AssetNameCache.NameDatabase[Asset.NamePtr];
 
 			// Make and add
 			auto LoadedAnim = new CoDAnim_t();
 			// Set
 			LoadedAnim->AssetName = AnimName;
-			LoadedAnim->AssetPointer = AnimationOffset;
-			LoadedAnim->Framerate = AnimResult.Framerate;
-			LoadedAnim->FrameCount = AnimResult.NumFrames;
+			LoadedAnim->AssetPointer = AssetOffset;
+			LoadedAnim->Framerate = Asset.Framerate;
+			LoadedAnim->FrameCount = Asset.NumFrames;
 			LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-
 			// Add
 			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
-
-			// Advance
-			AnimationOffset += sizeof(BO4XAnim);
-		}
+		});
 	}
 
 	if (NeedsModels)
 	{
-		// Models are the second offset and second pool
-		auto ModelOffset = CoDAssets::GameOffsetInfos[1];
-		auto ModelCount = CoDAssets::GamePoolSizes[1];
-
-		// Calculate maximum pool size
-		auto MaximumPoolOffset = (ModelCount * sizeof(BO4XModel)) + ModelOffset;
-		// Store original offset
-		auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[1];
-
-		// Loop and read
-		for (uint32_t i = 0; i < ModelCount; i++)
+		// Parse the XModel pool
+		CoDXPoolParser<uint64_t, BO4XModel>((CoDAssets::GameOffsetInfos[1]), CoDAssets::GamePoolSizes[1], [Filters](BO4XModel& Asset, uint64_t& AssetOffset)
 		{
-			// Read
-			auto ModelResult = CoDAssets::GameInstance->Read<BO4XModel>(ModelOffset);
-
-			// Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-			if ((ModelResult.NamePtr > MinimumPoolOffset && ModelResult.NamePtr < MaximumPoolOffset) || ModelResult.NamePtr == 0)
-			{
-				// Advance
-				ModelOffset += sizeof(BO4XModel);
-				// Skip this asset
-				continue;
-			}
-
-			// Mask the name (some bits are used for other stuffs)
-			ModelResult.NamePtr &= 0xFFFFFFFFFFFFFFF;
+			// Mask the name as hashes are 60Bit
+			Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
 
 			// Check for filters
 			if (Filters.NameDatabase.size() > 0)
 			{
 				// Check for this asset in DB
-				if (Filters.NameDatabase.find(ModelResult.NamePtr) != Filters.NameDatabase.end())
+				if (Filters.NameDatabase.find(Asset.NamePtr) != Filters.NameDatabase.end())
 				{
-					// Advance
-					ModelOffset += sizeof(BO4XModel);
 					// Skip this asset
-					continue;
+					return;
 				}
 			}
 
 			// Validate and load if need be
-			auto ModelName = Strings::Format("xmodel_%llx", ModelResult.NamePtr);
+			auto ModelName = Strings::Format("xmodel_%llx", Asset.NamePtr);
 
 			// Check for an override in the name DB
-			if (AssetNameCache.NameDatabase.find(ModelResult.NamePtr) != AssetNameCache.NameDatabase.end())
-				ModelName = AssetNameCache.NameDatabase[ModelResult.NamePtr];
+			if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
+				ModelName = AssetNameCache.NameDatabase[Asset.NamePtr];
 
 			// Make and add
 			auto LoadedModel = new CoDModel_t();
 			// Set
 			LoadedModel->AssetName = ModelName;
-			LoadedModel->AssetPointer = ModelOffset;
-			LoadedModel->BoneCount = (ModelResult.NumBones + ModelResult.NumCosmeticBones);
-			LoadedModel->LodCount = ModelResult.NumLods;
+			LoadedModel->AssetPointer = AssetOffset;
+			LoadedModel->BoneCount = (Asset.NumBones + Asset.NumCosmeticBones);
+			LoadedModel->LodCount = Asset.NumLods;
 			LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
-
 			// Add
 			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
-
-			// Advance
-			ModelOffset += sizeof(BO4XModel);
-		}
+		});
 	}
 
 	if (NeedsImages)
 	{
-		// Images are the third offset and third pool
-		auto ImageOffset = CoDAssets::GameOffsetInfos[2];
-		auto ImageCount = CoDAssets::GamePoolSizes[2];
-
-		// Calculate maximum pool size
-		auto MaximumPoolOffset = (ImageCount * sizeof(BO4GfxImage)) + ImageOffset;
-		// Store original offset
-		auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
-
-		// Loop and read
-		for (uint32_t i = 0; i < ImageCount; i++)
+		// Parse the XModel pool
+		CoDXPoolParser<uint64_t, BO4GfxImage>((CoDAssets::GameOffsetInfos[2]), CoDAssets::GamePoolSizes[2], [Filters](BO4GfxImage& Asset, uint64_t& AssetOffset)
 		{
-			// Read
-			auto ImageResult = CoDAssets::GameInstance->Read<BO4GfxImage>(ImageOffset);
-
-			// Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-			if ((ImageResult.NamePtr > MinimumPoolOffset && ImageResult.NamePtr < MaximumPoolOffset) || ImageResult.UnknownHash == 0)
-			{
-				// Advance
-				ImageOffset += sizeof(BO4GfxImage);
-				// Skip this asset
-				continue;
-			}
-
-			// Mask the name (some bits are used for other stuffs)
-			ImageResult.UnknownHash &= 0xFFFFFFFFFFFFFFF;
+			// Mask the name as hashes are 60Bit
+			Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
 
 			// Check for filters
 			if (Filters.NameDatabase.size() > 0)
 			{
 				// Check for this asset in DB
-				if (Filters.NameDatabase.find(ImageResult.UnknownHash) != Filters.NameDatabase.end())
+				if (Filters.NameDatabase.find(Asset.NamePtr) != Filters.NameDatabase.end())
 				{
-					// Advance
-					ImageOffset += sizeof(BO4GfxImage);
 					// Skip this asset
-					continue;
+					return;
 				}
 			}
 
 			// Validate and load if need be
-			auto ImageName = Strings::Format("ximage_%llx", ImageResult.UnknownHash);
+			auto ImageName = Strings::Format("ximage_%llx", Asset.NamePtr);
+
 			// Check for an override in the name DB
-			if (AssetNameCache.NameDatabase.find(ImageResult.UnknownHash) != AssetNameCache.NameDatabase.end())
-				ImageName = AssetNameCache.NameDatabase[ImageResult.UnknownHash];
+			if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
+				ImageName = AssetNameCache.NameDatabase[Asset.NamePtr];
 
 			// Check for loaded images
-			if (ImageResult.GfxMipsPtr != 0)
+			// if (Asset.GfxMipsPtr != 0)
 			{
 				// Make and add
 				auto LoadedImage = new CoDImage_t();
 				// Set
 				LoadedImage->AssetName = ImageName;
-				LoadedImage->AssetPointer = ImageOffset;
-				LoadedImage->Width = (uint16_t)ImageResult.LoadedMipWidth;
-				LoadedImage->Height = (uint16_t)ImageResult.LoadedMipHeight;
-				LoadedImage->Format = (uint16_t)ImageResult.ImageFormat;
+				LoadedImage->AssetPointer = AssetOffset;
+				LoadedImage->Width = (uint16_t)Asset.LoadedMipWidth;
+				LoadedImage->Height = (uint16_t)Asset.LoadedMipHeight;
+				LoadedImage->Format = (uint16_t)Asset.ImageFormat;
 				LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
-
 				// Add
 				CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
 			}
-
-			// Advance
-			ImageOffset += sizeof(BO4GfxImage);
-		}
+		});
 	}
 
 	// Success, error only on specific load
@@ -766,7 +493,7 @@ std::unique_ptr<XModel_t> GameBlackOps4::ReadXModel(const CoDModel_t* Model)
 			// Read material handles ptr
 			auto MaterialHandlesPtr = CoDAssets::GameInstance->Read<uint64_t>(ModelData.MaterialHandlesPtr);
 			// Advance 8 and skip 16 bytes
-			ModelData.MaterialHandlesPtr += 0x18;
+			ModelData.MaterialHandlesPtr += 0x10;
 
 			// Load surfaces
 			for (uint32_t s = 0; s < LODInfo.NumSurfs; s++)
@@ -838,7 +565,7 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
 		auto ImageInfo = CoDAssets::GameInstance->Read<BO4XMaterialImage>(MaterialData.ImageTablePtr);
 
 		// Get Hash and mask it (some bits are used for other stuffs)
-		auto ImageHash = CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x28) & 0xFFFFFFFFFFFFFFF;
+		auto ImageHash = CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 0x20) & 0xFFFFFFFFFFFFFFF;
 
 		// Get the image name
 		auto ImageName = Strings::Format("ximage_%llx", ImageHash);
@@ -1074,11 +801,23 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 				int32_t PackedX = (((VertexData.VertexNormal >> 0) & ((1 << 10) - 1)) - 512);
 				int32_t PackedY = (((VertexData.VertexNormal >> 10) & ((1 << 10) - 1)) - 512);
 				int32_t PackedZ = (((VertexData.VertexNormal >> 20) & ((1 << 10) - 1)) - 512);
-				// Add Colors
-				Vertex.Color[0] = ExportColors ? VertexData.Color[0] : 255;
-				Vertex.Color[1] = ExportColors ? VertexData.Color[1] : 255;
-				Vertex.Color[2] = ExportColors ? VertexData.Color[2] : 255;
-				Vertex.Color[3] = ExportColors ? VertexData.Color[3] : 255;
+
+				// Add Colors if we want them
+				if (ExportColors)
+				{
+					Vertex.Color[0] = VertexData.Color[0];
+					Vertex.Color[1] = VertexData.Color[1];
+					Vertex.Color[2] = VertexData.Color[2];
+					Vertex.Color[3] = VertexData.Color[3];
+				}
+				else
+				{
+					Vertex.Color[0] = 0xFF;
+					Vertex.Color[1] = 0xFF;
+					Vertex.Color[2] = 0xFF;
+					Vertex.Color[3] = 0xFF;
+				}
+
 				// Calculate
 				Vertex.Normal.X = ((float)PackedX / 511.0f);
 				Vertex.Normal.Y = ((float)PackedY / 511.0f);
@@ -1181,122 +920,506 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 	}
 }
 
+std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLength, uint8_t EncryptionID, uint64_t StringHash)
+{
+	// Switch method based off ID
+	switch (EncryptionID)
+	{
+	case 129:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i + 1;
+			j = k * -89;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 132:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += ~i;
+			j = k ^ 139;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 133:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i + 1;
+			j = -107 * k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 135:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= ~i;
+			j = -111 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 136:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= i;
+			j = -102 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 138:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= ~i;
+			j = k - 118;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 139:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i;
+			j = k ^ 132;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 140:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k -= i;
+			j = -71 * k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 143:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= i;
+			j = -104 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 145:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= i;
+			j = k - 100;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 146:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= i;
+			j = k - 98;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 149:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += ~i;
+			j = k ^ 143;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 150:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= i;
+			j = k - 123;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 152:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i + 1;
+			j = -110 * k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 153:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= ~i;
+			j = -106 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 154:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i;
+			j = k ^ 135;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 156:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= ~i;
+			j = k - 103;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 158:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= i;
+			j = -95 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 161:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k -= i;
+			j = -127 * k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 167:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= ~i;
+			j = -120 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 169:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= ~i;
+			j = k - 116;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 179:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k -= i;
+			j = -67 * k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 185:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += ~i;
+			j = k ^ 179;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+
+	case 189:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i;
+			j = k ^ 169;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	// Everything else assume not encrypted
+	default:
+		break;
+	}
+#if _DEBUG
+	// Validate strings in debug to check for encryption changes
+	uint64_t Hash = 0xCBF29CE484222325;
+	// Loop through string
+	for (uint8_t i = 0; i < InputLength; i++)
+		Hash = 0x100000001B3 * (InputBuffer[i] ^ Hash);
+	// Check it against input
+	if (Hash != StringHash)
+		printf("Hash check failed: ID %#X - Input Hash 0x%llX - Hash Result 0x%llX - %s - Size %i\n", EncryptionID, StringHash, Hash, InputBuffer, InputLength);
+#endif
+	// Done
+	return std::string(reinterpret_cast<char const*>(InputBuffer), InputLength - 1);
+}
+
 std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 {
-	// Check if we have an index to use
-	if (Index > 0)
-	{
-		// Calculate Offset to String
-		auto Offset = CoDAssets::GameOffsetInfos[3] + ((Index * 16) >> 2) + (Index * 16);
-		// Read and return (Offsets[3] = StringTable)
-		uint64_t BytesRead = 0;
-		// XOR Key to decrypt the string if necessary
-		auto XORKey = CoDAssets::GameInstance->Read<uint8_t>(Offset + 16);
-		// String Size (includes terminating null character, -1 for just the string)
-		auto StringSize = CoDAssets::GameInstance->Read<uint8_t>(Offset + 17) - 1;
-		// Resulting String
-		auto Result = CoDAssets::GameInstance->Read(Offset + 18, StringSize, BytesRead);
-		// Check for key in encryption map, we can just decrypt these directly
-		if (EncryptionKeys.find(XORKey) != EncryptionKeys.end())
-		{
-			// Get map
-			auto Map = EncryptionKeys[XORKey];
-			// Loop through string
-			for (uint8_t i = 0; i < StringSize; i++)
-			{
-				// Decrpyt it if the key and input differ
-				Result[i] = Result[i] != Map.Keys[i] ? Result[i] ^ Map.Keys[i] : Result[i];
-			}
-		}
-		else
-		{
-			// These require some more work..
-			switch (XORKey)
-			{
-			case 185:
-			{
-				// Fix up key
-				XORKey = 152;
-				// Loop through bytes
-				for (uint8_t i = 0; i < StringSize; i++, XORKey -= i)
-				{
-					// Decrpyt it if the key and input differ
-					Result[i] = Result[i] != XORKey ? Result[i] ^ XORKey : Result[i];
-					// Rotate it
-					Result[i] = RotateLeft8(Result[i], i % 8);
-				}
-				// Done
-				break;
-			}
-			case 165:
-			{
-				// Fix up key
-				XORKey = 139;
-				// Loop through bytes
-				for (uint8_t i = 0; i < StringSize; i++, XORKey--)
-				{
-					// Decrpyt it if the key and input differ
-					Result[i] = Result[i] != XORKey ? Result[i] ^ XORKey : Result[i];
-					// Rotate it
-					Result[i] = RotateRight8(Result[i], i % 8);
-				}
-				// Done
-				break;
-			}
-			case 153:
-			{
-				// Start values
-				uint32_t j = 0;
-				uint8_t k = 0;
-				// Loop through bytes
-				for (uint8_t i = 0; i < StringSize; i++)
-				{
-					// Increment/Decrement
-					j += ~i;
-					k = 191 - j;
-					// Decrpyt it if the key and input differ
-					Result[i] = Result[i] != k ? Result[i] ^ k : Result[i];
-					// Rotate it
-					Result[i] = RotateLeft8(Result[i], i % 8);
-				}
-				// Done
-				break;
-			}
-			case 143:
-			{
-				// Start values
-				uint32_t j = 0;
-				uint8_t k = 0;
-				// Loop through bytes
-				for (uint8_t i = 0; i < StringSize; i++)
-				{
-					// Increment/Decrement
-					j += i;
-					k = j - 81;
-					// Decrpyt it if the key and input differ
-					Result[i] = Result[i] != k ? Result[i] ^ k : Result[i];
-					// Rotate it
-					Result[i] = RotateRight8(Result[i], i % 8);
-				}
-				// Done
-				break;
-			}
-			default:
-			{
-				// Everything else assume not encrypted (174 usually)
-				return CoDAssets::GameInstance->ReadNullTerminatedString(Offset + 18);
-			}
-			}
-		}
-		// Convert to string
-		auto StringResult = std::string(reinterpret_cast<char const*>(Result), StringSize);
-		// Clean up buffer
-		delete[] Result;
-		// Done
-		return StringResult;
-	}
-	// Return blank string
-	return "";
+	// Calculate Offset to String (Offsets[3] = StringTable)
+	auto Offset = CoDAssets::GameOffsetInfos[3] + (Index * 20);
+	// Read Result
+	uint64_t BytesRead = 0;
+	// Read Info
+	auto StringHash      = CoDAssets::GameInstance->Read<uint64_t>(Offset + 8);
+	auto EncryptionID    = CoDAssets::GameInstance->Read<uint8_t>(Offset + 16);
+	auto StringSize      = CoDAssets::GameInstance->Read<uint8_t>(Offset + 17);
+	// Check 0 length
+	if (StringSize == 0)
+		return "";
+	auto EncryptedString = (uint8_t*)CoDAssets::GameInstance->Read(Offset + 18, StringSize, BytesRead);
+	// Pass to decryptor
+	auto Result = DecryptString(EncryptedString, StringSize, EncryptionID, StringHash);
+	// Clean up
+	delete[] EncryptedString;
+	// Done
+	return Result;
 }
 void GameBlackOps4::PerformInitialSetup()
 {

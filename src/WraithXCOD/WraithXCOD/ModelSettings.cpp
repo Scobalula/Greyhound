@@ -17,6 +17,7 @@ BEGIN_MESSAGE_MAP(ModelSettings, WraithWindow)
 	ON_COMMAND(IDC_EXPORTHITBOX, OnExportHitbox)
 	ON_COMMAND(IDC_EXPORTVTXCOLOR, OnExportVTXColor)
 	ON_COMMAND(IDC_EXPORTIMGNAMES, OnExportIMGNames)
+	ON_COMMAND(IDC_SKIPPREVMODEL, OnSkipPrevModels)
 	ON_COMMAND(IDC_EXPORTMA, OnExportMA)
 	ON_COMMAND(IDC_EXPORTOBJ, OnExportOBJ)
 	ON_COMMAND(IDC_EXPORTXNA, OnExportXNA)
@@ -61,6 +62,7 @@ void ModelSettings::OnBeforeLoad()
 	((CButton*)GetDlgItem(IDC_EXPORTHITBOX))->SetCheck(SettingsManager::GetSetting("exporthitbox", "false") == "true");
 	((CButton*)GetDlgItem(IDC_EXPORTVTXCOLOR))->SetCheck(SettingsManager::GetSetting("exportvtxcolor", "false") == "true");
 	((CButton*)GetDlgItem(IDC_EXPORTIMGNAMES))->SetCheck(SettingsManager::GetSetting("exportimgnames", "false") == "true");
+	((CButton*)GetDlgItem(IDC_SKIPPREVMODEL))->SetCheck(SettingsManager::GetSetting("skipprevmodel", "true") == "true");
 
 	((CButton*)GetDlgItem(IDC_EXPORTMA))->SetCheck(SettingsManager::GetSetting("export_ma", "true") == "true");
 	((CButton*)GetDlgItem(IDC_EXPORTOBJ))->SetCheck(SettingsManager::GetSetting("export_obj", "false") == "true");
@@ -164,4 +166,12 @@ void ModelSettings::OnExportIMGNames()
 	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTIMGNAMES))->GetState() & BST_CHECKED) == BST_CHECKED);
 	// Set it
 	SettingsManager::SetSetting("exportimgnames", (CheckboxChecked) ? "true" : "false");
+}
+
+void ModelSettings::OnSkipPrevModels()
+{
+	// Whether or not we are checked
+	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_SKIPPREVMODEL))->GetState() & BST_CHECKED) == BST_CHECKED);
+	// Set it
+	SettingsManager::SetSetting("skipprevmodel", (CheckboxChecked) ? "true" : "false");
 }

@@ -12,6 +12,7 @@
 
 BEGIN_MESSAGE_MAP(SoundSettings, WraithWindow)
 	ON_COMMAND(IDC_KEEPPATHS, OnKeepPaths)
+	ON_COMMAND(IDC_SKIPPREVSND, OnSkipPrevSound)
 	ON_CBN_SELENDOK(IDC_SOUNDFORMAT, OnSoundFormat)
 END_MESSAGE_MAP()
 
@@ -46,6 +47,7 @@ void SoundSettings::OnBeforeLoad()
 
 	// Load up configuration
 	((CButton*)GetDlgItem(IDC_KEEPPATHS))->SetCheck(SettingsManager::GetSetting("keepsndpath", "true") == "true");
+	((CButton*)GetDlgItem(IDC_SKIPPREVSND))->SetCheck(SettingsManager::GetSetting("skipprevsound", "true") == "true");
 
 	// Add formats
 	auto ComboControl = (CComboBox*)GetDlgItem(IDC_SOUNDFORMAT);
@@ -66,6 +68,14 @@ void SoundSettings::OnKeepPaths()
 	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_KEEPPATHS))->GetState() & BST_CHECKED) == BST_CHECKED);
 	// Set it
 	SettingsManager::SetSetting("keepsndpath", (CheckboxChecked) ? "true" : "false");
+}
+
+void SoundSettings::OnSkipPrevSound()
+{
+	// Whether or not we are checked
+	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_SKIPPREVSND))->GetState() & BST_CHECKED) == BST_CHECKED);
+	// Set it
+	SettingsManager::SetSetting("skipprevsound", (CheckboxChecked) ? "true" : "false");
 }
 
 void SoundSettings::OnSoundFormat()

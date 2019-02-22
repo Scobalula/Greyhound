@@ -342,11 +342,21 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
 					break;
 				}
 
-				// Assign Color
-				Vertex.Color[0] = ExportColors ? (VertexInfo.ColorRGBA & 0xFF) : 255;
-				Vertex.Color[1] = ExportColors ? (VertexInfo.ColorRGBA & 0xFF00) >> 8 : 255;
-				Vertex.Color[2] = ExportColors ? (VertexInfo.ColorRGBA & 0xFF0000) >> 16 : 255;
-				Vertex.Color[3] = ExportColors ? (VertexInfo.ColorRGBA & 0xFF000000) >> 24 : 255;
+				// Add Colors if we want them
+				if (ExportColors)
+				{
+					Vertex.Color[0] = VertexInfo.Color[0];
+					Vertex.Color[1] = VertexInfo.Color[1];
+					Vertex.Color[2] = VertexInfo.Color[2];
+					Vertex.Color[3] = VertexInfo.Color[3];
+				}
+				else
+				{
+					Vertex.Color[0] = 0xFF;
+					Vertex.Color[1] = 0xFF;
+					Vertex.Color[2] = 0xFF;
+					Vertex.Color[3] = 0xFF;
+				}
 
 				// Assign weights
 				auto& WeightValue = VertexWeights[i];

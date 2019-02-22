@@ -793,7 +793,7 @@ void CoDXAnimTranslator::NotetracksBO4(const std::unique_ptr<WraithAnim>& Anim, 
 	for (uint32_t i = 0; i < Animation->NotificationCount; i++)
 	{
 		// Read the tag
-		auto NotificaionHash = CoDAssets::GameInstance->Read<uint64_t>(Animation->NotificationsPtr + 8);
+		auto NotificaionHash = CoDAssets::GameInstance->Read<uint64_t>(Animation->NotificationsPtr);
 		auto NotificationTag = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr + 0x10));
 		auto NotificationType = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr + 0x1C));
 		// Read the frame

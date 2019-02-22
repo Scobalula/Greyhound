@@ -65,6 +65,8 @@
 #include "OBJExport.h"
 #include "XAnimRawExport.h"
 
+// TODO: Use image usage/semantic hashes to determine image types instead when reading from XMaterials
+
 // -- Setup global variables
 
 // Set the default game instant pointer
@@ -917,6 +919,10 @@ std::unique_ptr<XAnim_t> CoDAssets::LoadGenericAnimAsset(const CoDAnim_t* Animat
 
 ExportGameResult CoDAssets::ExportAnimationAsset(const CoDAnim_t* Animation, const std::string& ExportPath)
 {
+	// Quit if we should not export this model (files already exist)
+	if (!ShouldExportAnim(FileSystems::CombinePath(ExportPath, Animation->AssetName)))
+		return ExportGameResult::Success;
+
 	// Prepare to export the animation
 	std::unique_ptr<XAnim_t> GenericAnimation = CoDAssets::LoadGenericAnimAsset(Animation);
 
@@ -990,6 +996,64 @@ std::unique_ptr<XModel_t> CoDAssets::LoadGenericModelAsset(const CoDModel_t* Mod
 	return nullptr;
 }
 
+bool CoDAssets::ShouldExportAnim(std::string ExportPath)
+{
+	// Check if we want to skip previous anims
+	auto SkipPrevAnims = SettingsManager::GetSetting("skipprevanim") == "true";
+
+	// If we don't want to skip previously exported anims, then we will continue
+	if (!SkipPrevAnims)
+		return true;
+
+	// Initialize result
+	bool Result = false;
+
+	// Check it
+	if (SettingsManager::GetSetting("export_directxanim") == "true" && !FileSystems::FileExists(ExportPath))
+		Result = true;
+	// Check it
+	if (SettingsManager::GetSetting("export_seanim") == "true" && !FileSystems::FileExists(ExportPath + ".seanim"))
+		Result = true;
+
+	// Done
+	return Result;
+}
+
+bool CoDAssets::ShouldExportModel(std::string ExportPath)
+{
+	// Check if we want to skip previous models
+	auto SkipPrevModels = SettingsManager::GetSetting("skipprevmodel") == "true";
+
+	// If we don't want to skip previously exported models, then we will continue
+	if (!SkipPrevModels)
+		return true;
+
+	// Initialize result
+	bool Result = false;
+
+	// Check it
+	if (SettingsManager::GetSetting("export_xmexport") == "true" && !FileSystems::FileExists(ExportPath + ".XMODEL_EXPORT"))
+		Result = true;
+	// Check it
+	if (SettingsManager::GetSetting("export_smd") == "true" && !FileSystems::FileExists(ExportPath + ".smd"))
+		Result = true;
+	// Check it
+	if (SettingsManager::GetSetting("export_obj") == "true" && !FileSystems::FileExists(ExportPath + ".obj"))
+		Result = true;
+	// Check it
+	if (SettingsManager::GetSetting("export_ma") == "true" && !FileSystems::FileExists(ExportPath + ".ma"))
+		Result = true;
+	// Check it
+	if (SettingsManager::GetSetting("export_xna") == "true" && !FileSystems::FileExists(ExportPath + ".mesh.ascii"))
+		Result = true;
+	// Check it
+	if (SettingsManager::GetSetting("export_semodel") == "true" && !FileSystems::FileExists(ExportPath + ".semodel"))
+		Result = true;
+
+	// Done
+	return Result;
+}
+
 ExportGameResult CoDAssets::ExportModelAsset(const CoDModel_t* Model, const std::string& ExportPath, const std::string& ImagesPath, const std::string& ImageRelativePath, const std::string& ImageExtension)
 {
 	// Prepare to export the model
@@ -1060,22 +1124,26 @@ ExportGameResult CoDAssets::ExportModelAsset(const CoDModel_t* Model, const std:
 			// Iterate and convert
 			for (uint32_t i = 0; i < LodCount; i++)
 			{
-				// Translate generic model to a WraithModel, then export
-				auto Result = CoDXModelTranslator::TranslateXModel(GenericModel, i);
-
-				// Apply lod name
-				Result->AssetName += Strings::Format("_LOD%d", i);
-
-				// Check result and export
-				if (Result != nullptr)
+				// Continue if we should not export this model (files already exist)
+				if (ShouldExportModel(FileSystems::CombinePath(ExportPath, Model->AssetName + Strings::Format("_LOD%d", i))))
 				{
-					// Send off to exporter
-					ExportWraithModel(Result, ExportPath);
-				}
-				else
-				{
-					// We failed
-					return ExportGameResult::UnknownError;
+					// Translate generic model to a WraithModel, then export
+					auto Result = CoDXModelTranslator::TranslateXModel(GenericModel, i);
+
+					// Apply lod name
+					Result->AssetName += Strings::Format("_LOD%d", i);
+
+					// Check result and export
+					if (Result != nullptr)
+					{
+						// Send off to exporter
+						ExportWraithModel(Result, ExportPath);
+					}
+					else
+					{
+						// We failed
+						return ExportGameResult::UnknownError;
+					}
 				}
 			}
 		}
@@ -1087,22 +1155,26 @@ ExportGameResult CoDAssets::ExportModelAsset(const CoDModel_t* Model, const std:
 			// If the biggest > -1 translate
 			if (BiggestLodIndex > -1)
 			{
-				// Translate generic model to a WraithModel, then export
-				auto Result = CoDXModelTranslator::TranslateXModel(GenericModel, BiggestLodIndex);
-
-				// Apply lod name (_LOD0)
-				Result->AssetName += "_LOD0";
-
-				// Check result and export
-				if (Result != nullptr)
+				// Check if we should not export this model (files already exist)
+				if (ShouldExportModel(FileSystems::CombinePath(ExportPath, Model->AssetName + "_LOD0")))
 				{
-					// Send off to exporter
-					ExportWraithModel(Result, ExportPath);
-				}
-				else
-				{
-					// We failed
-					return ExportGameResult::UnknownError;
+					// Translate generic model to a WraithModel, then export
+					auto Result = CoDXModelTranslator::TranslateXModel(GenericModel, BiggestLodIndex);
+
+					// Apply lod name (_LOD0)
+					Result->AssetName += "_LOD0";
+
+					// Check result and export
+					if (Result != nullptr)
+					{
+						// Send off to exporter
+						ExportWraithModel(Result, ExportPath);
+					}
+					else
+					{
+						// We failed
+						return ExportGameResult::UnknownError;
+					}
 				}
 			}
 			else
@@ -1146,9 +1218,11 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
 {
 	// Grab the full image path, if it doesn't exist convert it!
 	auto FullImagePath = FileSystems::CombinePath(ExportPath, Image->AssetName + ImageExtension);
+	// Check if we want to skip previous images
+	auto SkipPrevImages = SettingsManager::GetSetting("skipprevimg") == "true";
 
-	// Check if it exists
-	if (!FileSystems::FileExists(FullImagePath))
+	// Check if it exists and if we want to skip it or not
+	if (!FileSystems::FileExists(FullImagePath) || !SkipPrevImages)
 	{
 		// Buffer for the image (Loaded via the global game handler)
 		std::unique_ptr<XImageDDS> ImageData = nullptr;
@@ -1248,9 +1322,11 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
 {
 	// Grab the full sound path, if it doesn't exist convert it!
 	auto FullSoundPath = FileSystems::CombinePath(ExportPath, Sound->AssetName + SoundExtension);
+	// Check if we want to skip previous Sounds
+	auto SkipPrevSound = SettingsManager::GetSetting("skipprevsound") == "true";
 
 	// Check if it exists
-	if (!FileSystems::FileExists(FullSoundPath))
+	if (!FileSystems::FileExists(FullSoundPath) || !SkipPrevSound)
 	{
 		// Holds universal sound data
 		std::unique_ptr<XSound> SoundData = nullptr;
@@ -1470,7 +1546,7 @@ void CoDAssets::ExportMaterialImageNames(const XMaterial_t& Material, const std:
 
 		// Write each name
 		for (auto& Image : Material.Images)
-			ImageNames.WriteLine(Image.ImageName);
+			ImageNames.WriteLineFmt("%s", Image.ImageName);
 	}
 	catch (...)
 	{
@@ -1485,8 +1561,10 @@ void CoDAssets::ExportMaterialImages(const XMaterial_t& Material, const std::str
 	{
 		// Grab the full image path, if it doesn't exist convert it!
 		auto FullImagePath = FileSystems::CombinePath(ImagesPath, Image.ImageName + ImageExtension);
+		// Check if we want to skip previous images
+		auto SkipPrevImages = SettingsManager::GetSetting("skipprevimg") == "true";
 		// Check if it exists
-		if (!FileSystems::FileExists(FullImagePath))
+		if (!FileSystems::FileExists(FullImagePath) || !SkipPrevImages)
 		{
 			// Buffer for the image (Loaded via the global game handler)
 			std::unique_ptr<XImageDDS> ImageData = GameXImageHandler(Image);

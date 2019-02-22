@@ -37,7 +37,8 @@ public:
 	// Loads a streamed XModel lod, streaming from cache if need be
 	static void LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel);
 
-	// Reads a string via it's string index for Black Ops 4
+	// String Handlers for Black Ops 4
+	static std::string DecryptString(uint8_t* InputBuffer, uint8_t InputLength, uint8_t EncryptionID, uint64_t StringHash);
 	static std::string LoadStringEntry(uint64_t Index);
 
 	// Perform setup required before ripping

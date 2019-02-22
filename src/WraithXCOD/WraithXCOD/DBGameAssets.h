@@ -920,8 +920,8 @@ struct BO4XMaterialImage
 #pragma pack(push, 1)
 struct BO4XMaterial
 {
-	uint64_t Unk01;
 	uint64_t Hash;
+	uint64_t Unk01;
 
 	uint8_t Padding[0x28];
 
@@ -976,15 +976,15 @@ struct BO4GfxImageOriginal // Leaving this here in case they switch it back
 #pragma pack(push, 1)
 struct BO4GfxImage
 {
-	uint64_t NamePtr;
+	uint64_t UnknownPtr;
 
 	uint64_t UnknownPtr1;
 	uint64_t UnknownZero;
 
 	uint64_t LoadedMipPtr;
 
+	uint64_t NamePtr;
 	uint64_t UnknownZero2;
-	uint64_t UnknownHash;
 
 	uint64_t GfxMipsPtr;
 
@@ -1075,8 +1075,8 @@ struct BO4XModelLod
 #pragma pack(push, 1)
 struct BO4XModel
 {
-	uint64_t UnknownZero;
 	uint64_t NamePtr;
+	uint64_t UnknownZero;
 	uint64_t BoneIDsPtr;
 	uint64_t UnknownPtr2;
 	uint64_t ParentListPtr;
@@ -1111,7 +1111,7 @@ struct BO4XModel
 #pragma pack(push, 1)
 struct BO4XAnim
 {
-	uint64_t NamePtr;
+	uint64_t UnknownPtr;
 	uint64_t BoneIDsPtr;
 	uint64_t UnknownZero1;
 	uint64_t DeltaPartsPtr;
@@ -1127,15 +1127,15 @@ struct BO4XAnim
 	uint64_t UnknownZero3;
 	uint64_t RandomDataBytePtr;
 
+	uint64_t NamePtr;
 	uint64_t UnknownZero;
-	uint64_t UnknownHash;
 
 	uint64_t DataIntPtr;
 	uint64_t UnknownZero2;
 	uint64_t DataShortPtr;
 	uint64_t RandomDataShortPtr;
 
-	uint8_t Unknown3[0x18];
+	uint8_t Unknown3[0x20];
 
 	float Framerate;
 	float Frequency;
@@ -2659,9 +2659,8 @@ struct WWIIXMaterial
 #pragma pack(push, 1)
 struct WWIIXMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
+	uint32_t Hash;
+	uint32_t Unk;
 
 	uint64_t ImagePtr;
 };

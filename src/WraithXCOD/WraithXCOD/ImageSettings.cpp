@@ -13,6 +13,7 @@
 BEGIN_MESSAGE_MAP(ImageSettings, WraithWindow)
 	ON_COMMAND(IDC_REBUILDNORMAL, OnRebuildNormal)
 	ON_COMMAND(IDC_REBUILDCOLOR, OnRebuildColor)
+	ON_COMMAND(IDC_SKIPPREVIMG, OnSkipPrevImg)
 	ON_CBN_SELENDOK(IDC_IMAGEFORMAT, OnImageFormat)
 END_MESSAGE_MAP()
 
@@ -48,6 +49,7 @@ void ImageSettings::OnBeforeLoad()
 	// Load up configuration
 	((CButton*)GetDlgItem(IDC_REBUILDNORMAL))->SetCheck(SettingsManager::GetSetting("patchnormals", "true") == "true");
 	((CButton*)GetDlgItem(IDC_REBUILDCOLOR))->SetCheck(SettingsManager::GetSetting("patchcolor", "true") == "true");
+	((CButton*)GetDlgItem(IDC_SKIPPREVIMG))->SetCheck(SettingsManager::GetSetting("skipprevimg", "true") == "true");
 
 	// Add formats
 	auto ComboControl = (CComboBox*)GetDlgItem(IDC_IMAGEFORMAT);
@@ -80,6 +82,14 @@ void ImageSettings::OnRebuildColor()
 	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_REBUILDCOLOR))->GetState() & BST_CHECKED) == BST_CHECKED);
 	// Set it
 	SettingsManager::SetSetting("patchcolor", (CheckboxChecked) ? "true" : "false");
+}
+
+void ImageSettings::OnSkipPrevImg()
+{
+	// Whether or not we are checked
+	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_SKIPPREVIMG))->GetState() & BST_CHECKED) == BST_CHECKED);
+	// Set it
+	SettingsManager::SetSetting("skipprevimg", (CheckboxChecked) ? "true" : "false");
 }
 
 void ImageSettings::OnImageFormat()

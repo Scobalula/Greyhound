@@ -207,6 +207,11 @@ private:
 	// Builds the export path for the asset
 	static std::string BuildExportPath(const CoDAsset_t* Asset);
 
+	// Determines whether we should continue with exporting this anim based off if it exists
+	static bool ShouldExportAnim(std::string ExportPath);
+	// Determines whether we should continue with exporting this model based off if it exists
+	static bool ShouldExportModel(std::string ExportPath);
+
 	// Exports a game animation asset
 	static ExportGameResult ExportAnimationAsset(const CoDAnim_t* Animation, const std::string& ExportPath);
 	// Exports a game model asset

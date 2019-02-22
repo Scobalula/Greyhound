@@ -24,6 +24,7 @@ private:
 	// -- Event delegates
 
 	void OnKeepPaths();
+	void OnSkipPrevSound();
 	void OnSoundFormat();
 
 protected:

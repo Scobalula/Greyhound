@@ -165,7 +165,7 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
 						// Check for Bo4
 						if (Header.Version == 11)
 						{
-							// COnvert the hex value and mask to 60bit
+							// Convert the hex value and mask to 60bit
 							int64_t Result = std::strtoull(Name.c_str(), 0, 16) & 0xFFFFFFFFFFFFFFF;
 
 							// Check for success

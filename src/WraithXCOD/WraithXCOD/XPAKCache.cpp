@@ -82,7 +82,7 @@ bool XPAKCache::LoadPackage(const std::string& FilePath)
 			PackageCacheObject NewObject;
 			// Set data
 			NewObject.Offset = Entry.Offset;
-			NewObject.CompressedSize = Entry.Size;
+			NewObject.CompressedSize = Entry.Size & 0xFFFFFFFFFFFFFF; // 0x80 in last 8 bits in some entries in new XPAKs
 			NewObject.UncompressedSize = Header.DataOffset;
 			NewObject.PackageFileIndex = PackageIndex;
 

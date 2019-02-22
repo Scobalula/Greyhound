@@ -25,6 +25,7 @@ private:
 
 	void OnExportSEAnim();
 	void OnExportDirect();
+	void OnSkipPrevAnim();
 	void OnWAWCompat();
 	void OnBOCompat();
 

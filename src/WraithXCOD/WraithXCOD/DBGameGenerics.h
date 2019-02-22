@@ -25,8 +25,7 @@ struct GfxVertexBuffer
 	Vector3 Position;
 
 	uint32_t BiNormal;
-	uint32_t ColorRGBA;
-
+	uint8_t Color[4];
 	uint16_t UVUPos;
 	uint16_t UVVPos;
 
