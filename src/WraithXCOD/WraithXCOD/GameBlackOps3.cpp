@@ -845,11 +845,23 @@ void GameBlackOps3::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 
 				// Add UV layer
 				Vertex.AddUVLayer(HalfFloats::ToFloat(VertexData.UVUPosition), HalfFloats::ToFloat(VertexData.UVVPosition));
-				// Add Colors
-				Vertex.Color[0] = ExportColors ? VertexData.Color[0] : 255;
-				Vertex.Color[1] = ExportColors ? VertexData.Color[1] : 255;
-				Vertex.Color[2] = ExportColors ? VertexData.Color[2] : 255;
-				Vertex.Color[3] = ExportColors ? VertexData.Color[3] : 255;
+
+				// Add Colors if we want them
+				if (ExportColors)
+				{
+					Vertex.Color[0] = VertexData.Color[0];
+					Vertex.Color[1] = VertexData.Color[1];
+					Vertex.Color[2] = VertexData.Color[2];
+					Vertex.Color[3] = VertexData.Color[3];
+				}
+				else
+				{
+					Vertex.Color[0] = 0xFF;
+					Vertex.Color[1] = 0xFF;
+					Vertex.Color[2] = 0xFF;
+					Vertex.Color[3] = 0xFF;
+				}
+
 				// Unpack normal
 				int32_t PackedX = (((VertexData.VertexNormal >> 0) & ((1 << 10) - 1)) - 512);
 				int32_t PackedY = (((VertexData.VertexNormal >> 10) & ((1 << 10) - 1)) - 512);

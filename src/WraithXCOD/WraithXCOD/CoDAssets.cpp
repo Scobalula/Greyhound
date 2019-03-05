@@ -1546,7 +1546,7 @@ void CoDAssets::ExportMaterialImageNames(const XMaterial_t& Material, const std:
 
 		// Write each name
 		for (auto& Image : Material.Images)
-			ImageNames.WriteLineFmt("%s", Image.ImageName);
+			ImageNames.WriteLineFmt("%s", Image.ImageName.c_str());
 	}
 	catch (...)
 	{

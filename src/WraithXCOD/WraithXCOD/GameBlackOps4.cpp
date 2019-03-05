@@ -801,6 +801,10 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 				int32_t PackedX = (((VertexData.VertexNormal >> 0) & ((1 << 10) - 1)) - 512);
 				int32_t PackedY = (((VertexData.VertexNormal >> 10) & ((1 << 10) - 1)) - 512);
 				int32_t PackedZ = (((VertexData.VertexNormal >> 20) & ((1 << 10) - 1)) - 512);
+				// Calculate
+				Vertex.Normal.X = ((float)PackedX / 511.0f);
+				Vertex.Normal.Y = ((float)PackedY / 511.0f);
+				Vertex.Normal.Z = ((float)PackedZ / 511.0f);
 
 				// Add Colors if we want them
 				if (ExportColors)
@@ -817,11 +821,6 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
 					Vertex.Color[2] = 0xFF;
 					Vertex.Color[3] = 0xFF;
 				}
-
-				// Calculate
-				Vertex.Normal.X = ((float)PackedX / 511.0f);
-				Vertex.Normal.Y = ((float)PackedY / 511.0f);
-				Vertex.Normal.Z = ((float)PackedZ / 511.0f);
 
 				// Skip extended vertex information (first 4 bytes seems to be UV, possibly for better camo UV Mapping)
 				if (HasExtendedVertexInfo)
