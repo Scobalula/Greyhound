@@ -588,7 +588,7 @@ std::unique_ptr<XImageDDS> GameGhosts::ReadXImage(const CoDImage_t* Image)
 	// Proxy the image off, determine type if need be
 	auto Usage = (Image->Format == 84) ? ImageUsageType::NormalMap : ImageUsageType::DiffuseMap;
 	// Proxy off
-	return LoadXImage(XImage_t(Usage, Image->AssetPointer, Image->AssetName));
+	return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
 }
 
 const XMaterial_t GameGhosts::ReadXMaterial(uint64_t MaterialPointer)
@@ -611,16 +611,22 @@ const XMaterial_t GameGhosts::ReadXMaterial(uint64_t MaterialPointer)
 
 		// Default type
 		auto DefaultUsage = ImageUsageType::Unknown;
-		// Check
-		switch (ImageInfo.Usage)
+		// Check 
+		switch (ImageInfo.SemanticHash)
 		{
-		case 2: DefaultUsage = ImageUsageType::DiffuseMap; break;
-		case 5: DefaultUsage = ImageUsageType::NormalMap; break;
-		case 8: DefaultUsage = ImageUsageType::SpecularMap; break;
+		case 0xA0AB1041:
+			DefaultUsage = ImageUsageType::DiffuseMap;
+			break;
+		case 0x59D30D0F:
+			DefaultUsage = ImageUsageType::NormalMap;
+			break;
+		case 0x34ECCCB3:
+			DefaultUsage = ImageUsageType::SpecularMap;
+			break;
 		}
 
 		// Assign the new image
-		Result.Images.emplace_back(DefaultUsage, ImageInfo.ImagePtr, ImageName);
+		Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.ImagePtr, ImageName);
 
 		// Advance
 		MaterialData.ImageTablePtr += sizeof(GhostsXMaterialImage);

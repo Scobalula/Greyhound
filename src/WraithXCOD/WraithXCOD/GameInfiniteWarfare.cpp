@@ -549,7 +549,7 @@ std::unique_ptr<XImageDDS> GameInfiniteWarfare::ReadXImage(const CoDImage_t* Ima
 		Usage = ImageUsageType::DiffuseMap;
 	}
 	// Proxy off
-	return LoadXImage(XImage_t(Usage, Image->AssetPointer, Image->AssetName));
+	return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
 }
 
 const XMaterial_t GameInfiniteWarfare::ReadXMaterial(uint64_t MaterialPointer)
@@ -572,27 +572,22 @@ const XMaterial_t GameInfiniteWarfare::ReadXMaterial(uint64_t MaterialPointer)
 
 		// Default type
 		auto DefaultUsage = ImageUsageType::Unknown;
-		// Check
-		switch (ImageInfo.Usage)
+		// Check 
+		switch (ImageInfo.SemanticHash)
 		{
-		case 14:
-		case 2:	
-			if (ImageName.find("_c") != std::string::npos && (_strnicmp(ImageName.c_str(), "blank_", 6) != 0))
-			{
-				DefaultUsage = ImageUsageType::DiffuseMap;
-			}
+		case 0xA0AB1041:
+			DefaultUsage = ImageUsageType::DiffuseMap;
 			break;
-		case 15:
-		case 5:
+		case 0x59D30D0F:
 			DefaultUsage = ImageUsageType::NormalMap;
 			break;
-		case 8:
+		case 0x34ECCCB3:
 			DefaultUsage = ImageUsageType::SpecularMap;
 			break;
 		}
 
 		// Assign the new image
-		Result.Images.emplace_back(DefaultUsage, ImageInfo.ImagePtr, ImageName);
+		Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.ImagePtr, ImageName);
 
 		// Advance
 		MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);

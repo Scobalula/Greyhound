@@ -602,7 +602,7 @@ std::unique_ptr<XImageDDS> GameBlackOps3::ReadXImage(const CoDImage_t* Image)
 	}
 
 	// Proxy off
-	return LoadXImage(XImage_t(Usage, Image->AssetPointer, Image->AssetName));
+	return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
 }
 
 const XMaterial_t GameBlackOps3::ReadXMaterial(uint64_t MaterialPointer)
@@ -625,23 +625,22 @@ const XMaterial_t GameBlackOps3::ReadXMaterial(uint64_t MaterialPointer)
 
 		// Default type
 		auto DefaultUsage = ImageUsageType::Unknown;
-
-		// Check based on name
-		if (Strings::EndsWith(ImageName, "_c") || Strings::EndsWith(ImageName, "_col"))
+		// Check 
+		switch (ImageInfo.SemanticHash)
 		{
+		case 0xA0AB1041:
 			DefaultUsage = ImageUsageType::DiffuseMap;
-		}
-		else if (Strings::EndsWith(ImageName, "_n") || Strings::EndsWith(ImageName, "_nml"))
-		{
+			break;
+		case 0x59D30D0F:
 			DefaultUsage = ImageUsageType::NormalMap;
-		}
-		else if (Strings::EndsWith(ImageName, "_s"))
-		{
+			break;
+		case 0xEC443804:
 			DefaultUsage = ImageUsageType::SpecularMap;
+			break;
 		}
 
 		// Assign the new image
-		Result.Images.emplace_back(DefaultUsage, ImageInfo.ImagePtr, ImageName);
+		Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.ImagePtr, ImageName);
 
 		// Advance
 		MaterialData.ImageTablePtr += sizeof(BO3XMaterialImage);

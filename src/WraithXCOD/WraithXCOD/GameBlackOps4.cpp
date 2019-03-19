@@ -25,7 +25,7 @@ WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0xA2DC9F0, 0x0, 0x8F77430, 0x0 }
+	{ 0xA56F590, 0x0, 0x9201E10, 0x0 }
 }};
 
 // -- Finished with databases
@@ -539,7 +539,7 @@ std::unique_ptr<XModel_t> GameBlackOps4::ReadXModel(const CoDModel_t* Model)
 std::unique_ptr<XImageDDS> GameBlackOps4::ReadXImage(const CoDImage_t* Image)
 {
 	// Proxy off
-	return LoadXImage(XImage_t(ImageUsageType::DiffuseMap, Image->AssetPointer, Image->AssetName));
+	return LoadXImage(XImage_t(ImageUsageType::DiffuseMap, 0, Image->AssetPointer, Image->AssetName));
 }
 
 const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
@@ -576,16 +576,22 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
 
 		// Default type
 		auto DefaultUsage = ImageUsageType::Unknown;
-
-		// Check usage byte
-		switch (ImageInfo.Usage)
+		// Check 
+		switch (ImageInfo.SemanticHash)
 		{
-		case 1: DefaultUsage = ImageUsageType::DiffuseMap; break;
-		case 2: DefaultUsage = ImageUsageType::NormalMap; break;
+		case 0xA0AB1041:
+			DefaultUsage = ImageUsageType::DiffuseMap;
+			break;
+		case 0x59D30D0F:
+			DefaultUsage = ImageUsageType::NormalMap;
+			break;
+		case 0xEC443804:
+			DefaultUsage = ImageUsageType::SpecularMap;
+			break;
 		}
 
 		// Assign the new image
-		Result.Images.emplace_back(DefaultUsage, ImageInfo.ImagePtr, ImageName);
+		Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.ImagePtr, ImageName);
 
 		// Advance
 		MaterialData.ImageTablePtr += sizeof(BO4XMaterialImage);
@@ -933,8 +939,8 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k += i + 1;
-			j = k * -89;
+			k *= i;
+			j = k + 88;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -952,8 +958,8 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k += ~i;
-			j = k ^ 139;
+			k *= i;
+			j = k - 115;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -971,12 +977,10 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k += i + 1;
-			j = -107 * k;
+			k -= i;
+			j = k + 106;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
-			// Rotate it
-			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -990,12 +994,12 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k *= ~i;
-			j = -111 - k;
+			k += i;
+			j = -67 - k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1010,11 +1014,11 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		{
 			// Edit values
 			k *= i;
-			j = -102 - k;
+			j = k ^ 181;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1028,8 +1032,8 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k ^= ~i;
-			j = k - 118;
+			k *= i;
+			j = k + 45;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -1047,12 +1051,12 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k += i;
-			j = k ^ 132;
+			k *= i;
+			j = 47 - k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1066,12 +1070,12 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k -= i;
-			j = -71 * k;
+			k ^= i;
+			j = -56 - k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1085,8 +1089,8 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k *= i;
-			j = -104 - k;
+			k += i;
+			j = -62 - k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -1104,12 +1108,12 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k ^= i;
-			j = k - 100;
+			k -= i;
+			j = k + 37;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1123,12 +1127,10 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k ^= i;
-			j = k - 98;
+			k -= i;
+			j = k + 12;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
-			// Rotate it
-			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1142,12 +1144,12 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k += ~i;
-			j = k ^ 143;
+			k -= i;
+			j = -77 * k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1161,8 +1163,8 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k ^= i;
-			j = k - 123;
+			k -= i;
+			j = 102 * k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -1180,8 +1182,8 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k += i + 1;
-			j = -110 * k;
+			k += i;
+			j = k + 2;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -1199,12 +1201,12 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k *= ~i;
-			j = -106 - k;
+			k ^= i;
+			j = -9 * k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1218,8 +1220,8 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k += i;
-			j = k ^ 135;
+			k *= i;
+			j = k ^ 193;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -1237,12 +1239,12 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k ^= ~i;
-			j = k - 103;
+			k ^= i;
+			j = k ^ 225;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1256,8 +1258,27 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k *= i;
-			j = -95 - k;
+			k += i;
+			j = 25 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 159:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i;
+			j = k - 123;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -1275,12 +1296,65 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k -= i;
-			j = -127 * k;
+			k ^= i;
+			j = -41 * k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
 			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 162:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k -= i;
+			j = -61 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+		}
+		// Done
+		break;
+	}
+	case 164:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= i;
+			j = k ^ 0xD8;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 165:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i;
+			j = k ^ 0x1F;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 		}
 		// Done
 		break;
@@ -1294,12 +1368,12 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k *= ~i;
-			j = -120 - k;
+			k += i;
+			j = 125 * k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
-			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1313,12 +1387,108 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k ^= ~i;
-			j = k - 116;
+			k -= i;
+			j = k - 110;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 170:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= i;
+			j = 101 * k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 171:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= i;
+			j = 28 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 172:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i;
+			j = k - 78;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 174:
+		// Not encrypted
+		break;
+	case 175:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k *= i;
+			j = -42 * k;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
 			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 178:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i;
+			j = -97 * k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 		}
 		// Done
 		break;
@@ -1332,12 +1502,67 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k -= i;
-			j = -67 * k;
+			k += i;
+			j = k ^ 238;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
 			InputBuffer[i] = RotateLeft8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 181:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k -= i;
+			j = 11 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 182:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k += i;
+			j = k ^ 9;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+		}
+		// Done
+		break;
+	}
+	case 184:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= i;
+			j = -48 - k;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
 		}
 		// Done
 		break;
@@ -1351,8 +1576,8 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
-			k += ~i;
-			j = k ^ 179;
+			k -= i;
+			j = k + 75;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it
@@ -1361,7 +1586,25 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		// Done
 		break;
 	}
-
+	case 187:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
+			k ^= i;
+			j = k ^ 38;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
 	case 189:
 	{
 		// Start values
@@ -1371,8 +1614,27 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 		for (uint8_t i = 0; i < InputLength - 1; i++)
 		{
 			// Edit values
+			k *= i;
+			j = k ^ 212;
+			// Decrypt it if the key and input differ
+			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
+			// Rotate it
+			InputBuffer[i] = RotateRight8(InputBuffer[i], k);
+		}
+		// Done
+		break;
+	}
+	case 191:
+	{
+		// Start values
+		uint32_t k = 0;
+		uint8_t j = 0;
+		// Loop through bytes
+		for (uint8_t i = 0; i < InputLength - 1; i++)
+		{
+			// Edit values
 			k += i;
-			j = k ^ 169;
+			j = k ^ 251;
 			// Decrypt it if the key and input differ
 			InputBuffer[i] = InputBuffer[i] != j ? InputBuffer[i] ^ j : InputBuffer[i];
 			// Rotate it

@@ -35,12 +35,8 @@ struct WAWXMaterial
 #pragma pack(push, 1)
 struct WAWXMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
-	uint8_t Padding2[4];
-
+	uint32_t SemanticHash;
+	uint8_t Padding[8];
 	uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -228,12 +224,8 @@ struct BOXMaterial
 #pragma pack(push, 1)
 struct BOXMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
-	uint8_t Padding2[4];
-
+	uint32_t SemanticHash;
+	uint8_t Padding[8];
 	uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -449,12 +441,8 @@ struct BO2XMaterial
 #pragma pack(push, 1)
 struct BO2XMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
-	uint8_t Padding2[4];
-
+	uint32_t SemanticHash;
+	uint8_t Padding[8];
 	uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -707,12 +695,8 @@ struct BO3GfxImage
 struct BO3XMaterialImage
 {
 	uint64_t ImagePtr;
-
+	uint32_t SemanticHash;
 	uint8_t Padding[0x14];
-
-	uint8_t Usage;
-
-	uint8_t Padding2[3];
 };
 #pragma pack(pop)
 
@@ -908,12 +892,8 @@ struct BO3XAnimDeltaParts
 struct BO4XMaterialImage
 {
 	uint64_t ImagePtr;
-
+	uint32_t SemanticHash;
 	uint8_t Padding[0x14];
-
-	uint8_t Usage;
-
-	uint8_t Padding2[3];
 };
 #pragma pack(pop)
 
@@ -1194,10 +1174,8 @@ struct MWXMaterial
 #pragma pack(push, 1)
 struct MWXMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
+	uint32_t SemanticHash;
+	uint8_t Padding[8];
 	uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -1360,10 +1338,8 @@ struct MW2XMaterial
 #pragma pack(push, 1)
 struct MW2XMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
+	uint32_t SemanticHash;
+	uint8_t Padding[4];
 	uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -1527,10 +1503,8 @@ struct MW3XMaterial
 #pragma pack(push, 1)
 struct MW3XMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
+	uint32_t SemanticHash;
+	uint8_t Padding[4];
 	uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -1719,10 +1693,8 @@ struct GhostsXMaterial
 #pragma pack(push, 1)
 struct GhostsXMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
+	uint32_t SemanticHash;
+	uint8_t Padding[4];
 	uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -1933,10 +1905,8 @@ struct AWXMaterial
 #pragma pack(push, 1)
 struct AWXMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
+	uint32_t SemanticHash;
+	uint8_t Padding[4];
 	uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -2202,10 +2172,8 @@ struct MWRXMaterial
 #pragma pack(push, 1)
 struct MWRXMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
+	uint32_t SemanticHash;
+	uint8_t Padding[4];
 	uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -2451,10 +2419,8 @@ struct IWXMaterial
 #pragma pack(push, 1)
 struct IWXMaterialImage
 {
-	uint8_t Padding[7];
-
-	uint8_t Usage;
-
+	uint32_t SemanticHash;
+	uint8_t Padding[4];
 	uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -2659,9 +2625,8 @@ struct WWIIXMaterial
 #pragma pack(push, 1)
 struct WWIIXMaterialImage
 {
-	uint32_t Hash;
-	uint32_t Unk;
-
+	uint32_t SemanticHash;
+	uint8_t Padding[4];
 	uint64_t ImagePtr;
 };
 #pragma pack(pop)
