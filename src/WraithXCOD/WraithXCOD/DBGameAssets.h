@@ -1869,6 +1869,51 @@ struct GhostsXAnimDeltaParts
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct GhostsSoundAlias
+{
+	uint64_t NamePtr;
+	uint64_t EntriesPtr;
+	uint8_t EntryCount;
+	uint8_t Padding[0x7];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct GhostsSoundAliasEntry
+{
+	uint64_t NamePtr;
+	uint8_t Padding[0x20];
+	uint64_t FileSpecPtr;
+	uint8_t Padding2[0x98];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct GhostsStreamedSound
+{
+	uint16_t Localization;
+	uint16_t PackageIndex;
+	uint8_t Padding[4];
+	uint64_t Offset;
+	uint64_t Size;
+	uint32_t Length;
+};
+#pragma pack(pop)
+
+
+#pragma pack(push, 1)
+struct GhostsPrimedSound
+{
+	uint16_t Localization;
+	uint16_t PackageIndex;
+	uint8_t Padding[4];
+	uint64_t Offset;
+	uint64_t Size;
+	uint64_t LoadedSoundPtr;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct GhostsLoadedSound
 {
 	uint64_t NamePtr;
@@ -2139,14 +2184,27 @@ struct AWSoundAliasFileSpec
 #pragma pack(push, 1)
 struct AWStreamedSound
 {
-	uint8_t Padding[2];
+	uint8_t Localization;
+	bool Exists;
 	uint16_t PackageIndex;
-	uint32_t Exists;
+	uint8_t Padding[4];
 	uint64_t Offset;
 	uint64_t Size;
 	uint32_t Length;
-	uint32_t Padding3;
-	uint64_t Padding4;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct AWPrimedSound
+{
+	uint64_t LoadedSoundPtr;
+	uint8_t Localization;
+	bool Exists;
+	uint16_t PackageIndex;
+	uint8_t Padding[4];
+	uint64_t Offset;
+	uint64_t Size;
+	uint32_t Length;
 };
 #pragma pack(pop)
 

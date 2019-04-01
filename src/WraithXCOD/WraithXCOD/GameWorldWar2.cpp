@@ -52,8 +52,26 @@ std::array<DBGameInfo, 8> GameWorldWar2::MultiPlayerOffsets =
 }};
 
 // Localization prefixes
-const char* LocalizationFolders[] = { "english", "spanish" };
-const char* LocalizationPrefixes[] = { "eng_", "spa_" };
+std::map<std::string, std::string> Localizations
+{
+	{ "english",               "eng_" },
+	{ "french",                "fra_" },
+	{ "german",                "deu_" },
+	{ "italian",               "ita_" },
+	{ "spanish",               "spa_" },
+	{ "russian",               "rus_" },
+	{ "polish",                "pol_" },
+	{ "portuguese",            "por_" },
+	{ "japanese_full",         "jpf_" },
+	{ "japanese_partial",      "jpp_" },
+	{ "traditional_chinese",   "tch_" },
+	{ "simplified_chinese",    "sch_" },
+	{ "arabic",                "ara_" },
+	{ "czech",                 "cze_" },
+	{ "spanishna",             "sna_" },
+	{ "korean",                "kor_" },
+	{ "english_safe",          "ens_" },
+};
 
 // -- Finished with databases
 
@@ -630,23 +648,23 @@ std::unique_ptr<XSound> GameWorldWar2::ReadXSound(const CoDSound_t* Sound)
 		else
 		{
 			// Iterate through all known folders
-			for (uint32_t i = 0; i < _ARRAYSIZE(LocalizationFolders); i++)
+			for (const auto &Localization : Localizations)
 			{
-				auto DirectoryCheck = FileSystems::CombinePath(PackagePath, LocalizationFolders[i]);
+				auto DirectoryCheck = FileSystems::CombinePath(PackagePath, Localization.first);
 
 				// Check for it
 				if (FileSystems::DirectoryExists(DirectoryCheck))
 				{
 					// Set them
 					PackagePath = DirectoryCheck;
-					PackagePath = FileSystems::CombinePath(PackagePath, Strings::Format("%ssoundfile%d.pak", LocalizationPrefixes[i], Sound->PackageIndex));
+					PackagePath = FileSystems::CombinePath(PackagePath, Strings::Format("%ssoundfile%d.pak", Localization.second.c_str(), Sound->PackageIndex));
 
 					// Found it...
 					break;
 				}
 			}
 		}
-		
+
 		// If it doesn't exist, fail out
 		if (!FileSystems::FileExists(PackagePath))
 			return nullptr;

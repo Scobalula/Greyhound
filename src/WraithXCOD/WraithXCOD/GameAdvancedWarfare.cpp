@@ -424,9 +424,13 @@ bool GameAdvancedWarfare::LoadAssets()
 				}
 				else if (SoundFileSpec.Type == 2)
 				{
+					// Validate uniqueness
+					if (UniqueEntries.insert(SoundAliasEntry.FileSpecPtr).second == false)
+						continue;
 					// Read Data
 					auto StreamedSoundInfo = CoDAssets::GameInstance->Read<AWStreamedSound>(SoundAliasEntry.FileSpecPtr + 8);
 					// Check does it exist
+					if (StreamedSoundInfo.Exists)
 					{
 						// Make and add
 						auto LoadedSound = new CoDSound_t();
@@ -439,7 +443,43 @@ bool GameAdvancedWarfare::LoadAssets()
 						LoadedSound->AssetPointer = StreamedSoundInfo.Offset;
 						LoadedSound->AssetSize = StreamedSoundInfo.Size;
 						LoadedSound->Length = StreamedSoundInfo.Length;
-						LoadedSound->IsLocalized = StreamedSoundInfo.Exists > 0;
+						LoadedSound->FullPath = "streamed";
+						LoadedSound->IsLocalized = StreamedSoundInfo.Localization > 0;
+						// Add
+						CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+					}
+				}
+				else if (SoundFileSpec.Type == 3)
+				{
+					// Read Primed Data
+					auto PrimedAudioInfo = CoDAssets::GameInstance->Read<AWPrimedSound>(SoundAliasEntry.FileSpecPtr + 8);
+					// Validate uniqueness
+					if (UniqueEntries.insert(PrimedAudioInfo.LoadedSoundPtr).second == false)
+						continue;
+					// Check does it exist
+					if(PrimedAudioInfo.Exists)
+					{
+						// Read Sound
+						auto LoadedSoundInfo = CoDAssets::GameInstance->Read<AWLoadedSound>(PrimedAudioInfo.LoadedSoundPtr);
+						// Validate and load if need be
+						auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
+						// Make and add
+						auto LoadedSound = new CoDSound_t();
+						// Set
+						LoadedSound->AssetName = FileSystems::GetFileName(LoadedSoundName);
+						LoadedSound->FrameRate = LoadedSoundInfo.FrameRate;
+						LoadedSound->FrameCount = LoadedSoundInfo.FrameCount;
+						LoadedSound->ChannelsCount = LoadedSoundInfo.Channels;
+						LoadedSound->FullPath = FileSystems::GetDirectoryName(LoadedSoundName);
+						LoadedSound->DataType = (LoadedSoundInfo.Format == 7 || LoadedSoundInfo.Format == 6) ? SoundDataTypes::FLAC_WithHeader : SoundDataTypes::WAV_NeedsHeader;
+						LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+						LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+						LoadedSound->AssetName = FileSystems::GetFileName(LoadedSoundName);
+						LoadedSound->IsFileEntry = true;
+						LoadedSound->PackageIndex = PrimedAudioInfo.PackageIndex;
+						LoadedSound->AssetPointer = PrimedAudioInfo.Offset;
+						LoadedSound->AssetSize = PrimedAudioInfo.Size;
+						LoadedSound->IsLocalized = PrimedAudioInfo.Localization > 0;
 						// Add
 						CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
 					}
