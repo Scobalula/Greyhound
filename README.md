@@ -16,6 +16,7 @@ The following tools/plugins are required/recommended for some assets/games:
 
 * [SETools](https://github.com/dtzxporter/SETools) by DTZxPorter (.seanim & .semodel) (Autodesk Maya)
 * [io_anim_seanim](https://github.com/SE2Dev/io_anim_seanim) by SE2Dev (.seanim) (Blender)
+* [io_model_semodel](https://github.com/dtzxporter/io_model_semodel) by DTZxPorter (.semodel) (Blender)
 * [FileTypeDDS](https://github.com/dtzxporter/FileTypeDDS) by DTZxPorter (support in Paint .NET for newer DXGI formats) (Paint .NET)
 * [Intel TextureWorks](https://software.intel.com/en-us/articles/intel-texture-works-plugin) by Intel (DDS + Utils) (Photoshop)
 * [DarkIris](https://aviacreations.com/modme/index.php?view=topic&tid=831) by DTZxPorter (Texture Utils) (Paint .NET)
