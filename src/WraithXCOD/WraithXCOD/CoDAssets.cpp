@@ -841,7 +841,7 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
 		// Export an image
 	case WraithAssetType::Image: Result = ExportImageAsset((CoDImage_t*)Asset, ExportPath, ImageExtension); break;
 		// Export a sound
-	case WraithAssetType::Sound: Result = ExportSoundAsset((CoDSound_t*)Asset, ExportPath, SoundExtension); break;
+	case WraithAssetType::Sound: Result = ExportSoundAsset((CoDSound_t*)Asset, ExportPath, CoDAssets::GameID == SupportedGames::WorldAtWar ? ".wav" : SoundExtension); break;
 		// Export a effect
 	case WraithAssetType::Effect: Result = ExportEffectAsset((CoDEffect_t*)Asset, ExportPath); break;
 		// Export a rawfile
@@ -1606,6 +1606,10 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
 		case SupportedGames::AdvancedWarfare:
 		case SupportedGames::ModernWarfareRemastered:
 		case SupportedGames::WorldWar2:
+		case SupportedGames::WorldAtWar:
+		case SupportedGames::ModernWarfare:
+		case SupportedGames::ModernWarfare2:
+		case SupportedGames::ModernWarfare3:
 			SoundData = GameWorldWar2::ReadXSound(Sound);
 			break;
 		}
@@ -1625,7 +1629,7 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
 		if (SoundData != nullptr)
 		{
 			// Check what format the DATA is, and see if we need to transcode
-			if ((SoundData->DataType == SoundDataTypes::FLAC_WithHeader && SoundFormatType == SoundFormat::Standard_FLAC) || SoundData->DataType == SoundDataTypes::WAV_WithHeader && SoundFormatType == SoundFormat::Standard_WAV)
+			if (((SoundData->DataType == SoundDataTypes::FLAC_WithHeader && SoundFormatType == SoundFormat::Standard_FLAC) || SoundData->DataType == SoundDataTypes::WAV_WithHeader && SoundFormatType == SoundFormat::Standard_WAV) || CoDAssets::GameID == SupportedGames::WorldAtWar)
 			{
 				// We have an already-prepared sound buffer, just write it
 				// Since this can throw, wrap it in an exception handler

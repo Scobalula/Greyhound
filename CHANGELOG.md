@@ -1,9 +1,43 @@
+## Greyhound 1.3.30.0
+
+### CoD 4, 5, MW2, MW3 Loaded Sounds
+
+Support for Loaded Sounds from CoD 4, 5, MW2, and MW3
+
+### Black Ops 4 Update
+
+Update for Call of Duty: Black Ops 4 1.15 Update
+
+## Greyhound 1.3.20.0
+
+### Black Ops 4 Update
+
+Update for Call of Duty: Black Ops 4 1.15 Update
+
+## Greyhound 1.3.10.0
+
+### AW, MWR, Ghosts Primed Audio + Fixes
+
+* Added support for Primed Audio for AW, MWR, and Ghosts (Streamed audio is also supported for Ghosts now)
+* Added localization folder names/prefixes for all known regions
+* Fixed some streamed audio not showing up
+
+## Greyhound 1.3.0.0
+
+### Images File Updates + Black Ops 4 Update
+
+* Update for Call of Duty: Black Ops 4 1.14 Update
+* Added static props names from [Planet](https://github.com/Scobalula/GreyhoundPackageIndex/issues/4#issue-421557868)
+* New additions to the Material Images files, with semantic information written now. I have generated a hash table 
+from Black Ops 3's Techsets from the Mod Tools and so for Black Ops 3 all these slots should be valid, for Black Ops 4 majority should have names, with some resolving to unk_semantic_(hash), other games should have base images with the same resolving as Black Ops 4 in cases of unidentified ones. ![Example](https://i.imgur.com/GjYbVbN.png)
+
 ## Greyhound 1.2.71.0
 
 ### Material Images File Fix + Asset Hashes
 
 * Fixed an issue with the material images files showing invalid text (they will be updated again to add more information in the next update)
 * Added potential static model names, image names from Ethan, and some misc. models from Faithfullfaun
+
 ## Greyhound 1.2.70.0
 
 ### New Features + Black Ops 4 Update

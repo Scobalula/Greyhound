@@ -47,6 +47,7 @@ bool GameWorldAtWar::LoadOffsets()
 			// Read required offsets (XANIM, XMODEL)
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 4)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 5)));
+			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 0xA)));
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
 			// Check (Differs on SP/MP)
@@ -60,6 +61,7 @@ bool GameWorldAtWar::LoadOffsets()
 					// Read and apply sizes
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 5)));
+					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xA)));
 
 					// Return success
 					return true;
@@ -81,6 +83,7 @@ bool GameWorldAtWar::LoadOffsets()
 			// Read required offsets (XANIM, XMODEL)
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 4)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 5)));
+			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 0xA)));
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
 			// Check (Differs on SP/MP)
@@ -94,6 +97,7 @@ bool GameWorldAtWar::LoadOffsets()
 					// Read and apply sizes
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 5)));
+					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xA)));
 
 					// Return success
 					return true;
@@ -111,6 +115,7 @@ bool GameWorldAtWar::LoadAssets()
 	// Prepare to load game assets, into the AssetPool
 	bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
 	bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
+	bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
 
 	// Check if we need assets
 	if (NeedsAnims)
@@ -246,6 +251,55 @@ bool GameWorldAtWar::LoadAssets()
 
 			// Advance
 			ModelOffset += sizeof(WAWXModel);
+		}
+	}
+
+	if (NeedsSounds)
+	{
+		// Sounds are the third offset and second pool, skip 4 byte pointer to free head
+		auto SoundOffset = CoDAssets::GameOffsetInfos[2] + 4;
+		auto SoundCount = CoDAssets::GamePoolSizes[2];
+
+		// Calculate maximum pool size
+		auto MaximumPoolOffset = (SoundCount * sizeof(WAWLoadedSound)) + SoundOffset;
+		// Store original offset
+		auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
+
+		// Loop and read
+		for (uint32_t i = 0; i < SoundCount; i++)
+		{
+			// Read
+			auto SoundResult = CoDAssets::GameInstance->Read<WAWLoadedSound>(SoundOffset);
+
+			// Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
+			if ((SoundResult.NamePtr > MinimumPoolOffset && SoundResult.NamePtr < MaximumPoolOffset) || SoundResult.NamePtr == 0)
+			{
+				// Advance
+				SoundOffset += sizeof(WAWLoadedSound);
+				// Skip this asset
+				continue;
+			}
+
+			// Validate and load if need be
+			auto SoundName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr);
+
+			// Make and add
+			auto LoadedSound = new CoDSound_t();
+			// Set
+			LoadedSound->AssetName = FileSystems::GetFileNameWithoutExtension(SoundName);
+			LoadedSound->AssetPointer = SoundResult.SoundDataPtr;
+			LoadedSound->AssetSize = SoundResult.SoundDataSize;
+			LoadedSound->IsFileEntry = false;
+			LoadedSound->FullPath = FileSystems::GetDirectoryName(SoundName);
+			LoadedSound->DataType = SoundDataTypes::WAV_WithHeader;
+			LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+			LoadedSound->Length = 0;
+
+			// Add
+			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+
+			// Advance
+			SoundOffset += sizeof(WAWLoadedSound);
 		}
 	}
 
@@ -496,6 +550,6 @@ std::unique_ptr<XImageDDS> GameWorldAtWar::LoadXImage(const XImage_t& Image)
 
 std::string GameWorldAtWar::LoadStringEntry(uint64_t Index)
 {
-	// Read and return (Offsets[2] = StringTable)
-	return CoDAssets::GameInstance->ReadNullTerminatedString((12 * Index) + CoDAssets::GameOffsetInfos[2] + 4);
+	// Read and return (Offsets[3] = StringTable)
+	return CoDAssets::GameInstance->ReadNullTerminatedString((12 * Index) + CoDAssets::GameOffsetInfos[3] + 4);
 }

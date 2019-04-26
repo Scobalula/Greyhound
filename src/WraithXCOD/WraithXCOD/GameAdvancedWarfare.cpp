@@ -408,7 +408,7 @@ bool GameAdvancedWarfare::LoadAssets()
 					// Make and add
 					auto LoadedSound = new CoDSound_t();
 					// Set
-					LoadedSound->AssetName = FileSystems::GetFileName(LoadedSoundName);
+					LoadedSound->AssetName = FileSystems::GetFileNameWithoutExtension(LoadedSoundName);
 					LoadedSound->AssetPointer = LoadedSoundInfo.SoundDataPtr;
 					LoadedSound->FrameRate = LoadedSoundInfo.FrameRate;
 					LoadedSound->FrameCount = LoadedSoundInfo.FrameCount;
@@ -466,7 +466,7 @@ bool GameAdvancedWarfare::LoadAssets()
 						// Make and add
 						auto LoadedSound = new CoDSound_t();
 						// Set
-						LoadedSound->AssetName = FileSystems::GetFileName(LoadedSoundName);
+						LoadedSound->AssetName = FileSystems::GetFileNameWithoutExtension(LoadedSoundName);
 						LoadedSound->FrameRate = LoadedSoundInfo.FrameRate;
 						LoadedSound->FrameCount = LoadedSoundInfo.FrameCount;
 						LoadedSound->ChannelsCount = LoadedSoundInfo.Channels;

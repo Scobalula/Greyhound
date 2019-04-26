@@ -179,6 +179,15 @@ struct WAWXAnim
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct WAWLoadedSound
+{
+	uint32_t NamePtr;
+	uint32_t SoundDataPtr;
+	uint32_t SoundDataSize;
+};
+#pragma pack(pop)
+
 #pragma endregion
 
 #pragma region Black Ops 1
@@ -1313,6 +1322,23 @@ struct MWXAnim
 	uint32_t LongIndiciesPtr;
 	uint32_t NotificationsPtr;
 	uint32_t DeltaPartsPtr;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct MWLoadedSound
+{
+	uint32_t NamePtr;
+	uint32_t UnknownInt;
+	uint32_t SoundDataPtr;
+	uint32_t SoundDataSize;
+	uint32_t FrameRate;
+	uint32_t BitsPerSample;
+	uint32_t Channels;
+	uint32_t FrameCount;
+	uint32_t UnknownInt2;
+	uint32_t UnknownPtr;
+	uint32_t UnknownPtr2;
 };
 #pragma pack(pop)
 

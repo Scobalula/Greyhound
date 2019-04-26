@@ -297,10 +297,19 @@ void MainWindow::GetListViewInfo(LV_ITEM* ListItem, CWnd* Owner)
 					break;
 				case WraithAssetType::Sound:
 				{
-					// Sound info
-					auto Time = Strings::ToUnicodeString(Strings::DurationToReadableTime(std::chrono::milliseconds(((CoDSound_t*)Asset)->Length)));
-					// Formatted time
-					DetailsFmt.Format(L"%s", Time.c_str());
+					// Validate info (Some image resources may not have information available)
+					if (((CoDSound_t*)Asset)->Length > 0)
+					{
+						// Sound info
+						auto Time = Strings::ToUnicodeString(Strings::DurationToReadableTime(std::chrono::milliseconds(((CoDSound_t*)Asset)->Length)));
+						// Formatted time
+						DetailsFmt.Format(L"%s", Time.c_str());
+					}
+					else
+					{
+						// Sound info not available
+						DetailsFmt = "N/A";
+					}
 				}
 				break;
 				case WraithAssetType::RawFile:

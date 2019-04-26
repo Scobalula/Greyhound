@@ -46,9 +46,10 @@ bool GameModernWarfare2::LoadOffsets()
 		// Check built-in offsets via game exe mode (SP/MP)
 		for (auto& GameOffsets : (CoDAssets::GameFlags == SupportedGameFlags::SP) ? SinglePlayerOffsets : MultiPlayerOffsets)
 		{
-			// Read required offsets (XANIM, XMODEL)
+			// Read required offsets (XANIM, XMODEL, LOADED SOUND)
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 2)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 4)));
+			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 0xD)));
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
 			// Check
@@ -62,6 +63,7 @@ bool GameModernWarfare2::LoadOffsets()
 					// Read and apply sizes
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 2)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
+					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xD)));
 					// Return success
 					return true;
 				}
@@ -79,9 +81,10 @@ bool GameModernWarfare2::LoadOffsets()
 		{
 			// Load info and verify (Pools is 0x46 for MP, 0x30 for SP)
 			auto GameOffsets = DBGameInfo(CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan - 0xB), CoDAssets::GameInstance->Read<uint32_t>((DBAssetsScan + ((CoDAssets::GameFlags == SupportedGameFlags::SP) ? 0x30 : 0x46))), CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x6)), 0);
-			// Read required offsets (XANIM, XMODEL)
+			// Read required offsets (XANIM, XMODEL, LOADED SOUND)
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 2)));
 			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 4)));
+			CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBAssetPools + (4 * 0xD)));
 			// Verify via first xmodel asset
 			auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
 			// Check
@@ -95,6 +98,7 @@ bool GameModernWarfare2::LoadOffsets()
 					// Read and apply sizes
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 2)));
 					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
+					CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xD)));
 					// Return success
 					return true;
 				}
@@ -111,6 +115,7 @@ bool GameModernWarfare2::LoadAssets()
 	// Prepare to load game assets, into the AssetPool
 	bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
 	bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
+	bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
 
 	// Check if we need assets
 	if (NeedsAnims)
@@ -246,6 +251,59 @@ bool GameModernWarfare2::LoadAssets()
 
 			// Advance
 			ModelOffset += sizeof(MW2XModel);
+		}
+	}
+
+
+	if (NeedsSounds)
+	{
+		// Sounds are the third offset and second pool, skip 4 byte pointer to free head
+		auto SoundOffset = CoDAssets::GameOffsetInfos[2] + 4;
+		auto SoundCount = CoDAssets::GamePoolSizes[2];
+
+		// Calculate maximum pool size
+		auto MaximumPoolOffset = (SoundCount * sizeof(MWLoadedSound)) + SoundOffset;
+		// Store original offset
+		auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
+
+		// Loop and read
+		for (uint32_t i = 0; i < SoundCount; i++)
+		{
+			// Read
+			auto SoundResult = CoDAssets::GameInstance->Read<MWLoadedSound>(SoundOffset);
+
+			// Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
+			if ((SoundResult.NamePtr > MinimumPoolOffset && SoundResult.NamePtr < MaximumPoolOffset) || SoundResult.NamePtr == 0)
+			{
+				// Advance
+				SoundOffset += sizeof(MWLoadedSound);
+				// Skip this asset
+				continue;
+			}
+
+			// Validate and load if need be
+			auto SoundName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr);
+
+			// Make and add
+			auto LoadedSound = new CoDSound_t();
+			// Set
+			LoadedSound->AssetName = FileSystems::GetFileNameWithoutExtension(SoundName);
+			LoadedSound->AssetPointer = SoundResult.SoundDataPtr;
+			LoadedSound->FrameRate = SoundResult.FrameRate;
+			LoadedSound->FrameCount = SoundResult.FrameCount;
+			LoadedSound->AssetSize = SoundResult.SoundDataSize;
+			LoadedSound->ChannelsCount = SoundResult.Channels;
+			LoadedSound->IsFileEntry = false;
+			LoadedSound->FullPath = FileSystems::GetDirectoryName(SoundName);
+			LoadedSound->DataType = SoundDataTypes::WAV_NeedsHeader;
+			LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+			LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+
+			// Add
+			CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+
+			// Advance
+			SoundOffset += sizeof(MWLoadedSound);
 		}
 	}
 
@@ -498,5 +556,5 @@ std::unique_ptr<XImageDDS> GameModernWarfare2::LoadXImage(const XImage_t& Image)
 std::string GameModernWarfare2::LoadStringEntry(uint64_t Index)
 {
 	// Read and return (Offsets[2] = StringTable), sizes differ in SP and MP
-	return (CoDAssets::GameFlags == SupportedGameFlags::SP) ? CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[2] + 4) : CoDAssets::GameInstance->ReadNullTerminatedString((12 * Index) + CoDAssets::GameOffsetInfos[2] + 4);
+	return (CoDAssets::GameFlags == SupportedGameFlags::SP) ? CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[3] + 4) : CoDAssets::GameInstance->ReadNullTerminatedString((12 * Index) + CoDAssets::GameOffsetInfos[3] + 4);
 }
