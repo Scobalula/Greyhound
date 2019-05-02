@@ -552,12 +552,15 @@ const XMaterial_t GameBlackOps2::ReadXMaterial(uint64_t MaterialPointer)
 		switch (ImageInfo.SemanticHash)
 		{
 		case 0xA0AB1041:
+		case 0xF039EC2D:
 			DefaultUsage = ImageUsageType::DiffuseMap;
 			break;
 		case 0x59D30D0F:
+		case 0x942CBFF0:
 			DefaultUsage = ImageUsageType::NormalMap;
 			break;
 		case 0x34ECCCB3:
+		case 0x8C297E80:
 			DefaultUsage = ImageUsageType::SpecularMap;
 			break;
 		}
