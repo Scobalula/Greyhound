@@ -941,7 +941,7 @@ bool CoDAssets::LocateGameInfo()
 		if (!FileSystems::DirectoryExists(ZoneFolder))
 			// Set it
 #if _DEBUG
-			ZoneFolder = "E:\\Tools\\Greyhound\\Default\\zone";
+			ZoneFolder = "F:\\Tools\\Greyhound\\Default\\zone";
 #else
 			ZoneFolder = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "zone");
 #endif

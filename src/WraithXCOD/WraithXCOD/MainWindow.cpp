@@ -34,6 +34,25 @@ BEGIN_MESSAGE_MAP(MainWindow, WraithWindow)
 	ON_NOTIFY(NM_DBLCLK, IDC_ASSETLIST, OnAssetListDoubleClick)
 END_MESSAGE_MAP()
 
+// -- Hashing Functions for BO4 --
+
+const uint64_t FNVPrime = 0x100000001B3;
+const uint64_t FNVOffset = 0xCBF29CE484222325;
+
+// Generates a 64bit FNV Hash for the given string
+uint64_t FNVHash(std::string data)
+{
+	uint64_t Result = FNVOffset;
+
+	for (uint32_t i = 0; i < data.length(); i++)
+	{
+		Result ^= data[i];
+		Result *= FNVPrime;
+	}
+
+	return Result & 0xFFFFFFFFFFFFFFF;
+}
+
 void MainWindow::OnBeforeLoad()
 {
 	// Setup dialog
@@ -823,6 +842,29 @@ void MainWindow::OnSearch()
 				{
 					CanAdd = false;
 					break;
+				}
+
+				// Second pass for Bo4, hash
+				if (CoDAssets::GameID == SupportedGames::BlackOps4)
+				{
+					// Convert to hex string
+					std::stringstream HashValue;
+					HashValue << std::hex << FNVHash(MapFind) << std::dec;
+
+					// If we match, add, then stop
+					auto Result = AssetName.find(HashValue.str());
+					
+					// Check match type
+					if (!isNotSearch && Result != std::string::npos)
+					{
+						CanAdd = true;
+						break;
+					}
+					else if (isNotSearch && Result != std::string::npos)
+					{
+						CanAdd = false;
+						break;
+					}
 				}
 			}
 
