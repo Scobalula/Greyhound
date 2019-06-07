@@ -212,7 +212,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
 			// Add it
 			auto& NewMat = ModelResult->AddMaterial();
 			// Assign values
-			NewMat.MaterialName = LodReference.Materials[i].MaterialName;
+			NewMat.MaterialName = Strings::Replace(LodReference.Materials[i].MaterialName, "@", "_");
 
 			// Assign image names
 			for (auto& Image : LodReference.Materials[i].Images)
