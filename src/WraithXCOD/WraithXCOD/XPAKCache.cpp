@@ -124,8 +124,8 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
 		// A buffer for total size
 		uint64_t TotalDataSize = 0;
 
-		// A buffer for the data, this will eventually be shipped off, it's 32mb of memory
-		auto DataTemporaryBuffer = new int8_t[0x2000000];
+		// A buffer for the data, this will eventually be shipped off, it's 36MB of memory
+		auto DataTemporaryBuffer = new int8_t[0x2400000];
 
 		// Loop until we have all our data
 		while (DataRead < CacheInfo.CompressedSize)
