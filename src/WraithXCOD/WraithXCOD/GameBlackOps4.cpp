@@ -687,7 +687,7 @@ uint32_t* DecryptionTable = new uint32_t[5264]
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0x892F530, 0x0, 0x75B5890, 0x0 }
+	{ 0x8933B30, 0x0, 0x75B9E90, 0x0 }
 }};
 
 // -- Finished with databases
