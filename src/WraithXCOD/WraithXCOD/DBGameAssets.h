@@ -1184,7 +1184,7 @@ struct MWXMaterial
 struct MWXMaterialImage
 {
 	uint32_t SemanticHash;
-	uint8_t Padding[8];
+	uint8_t Padding[4];
 	uint32_t ImagePtr;
 };
 #pragma pack(pop)
