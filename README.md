@@ -10,7 +10,6 @@ For detailed information such as game support, settings, FAQs, etc. please refer
 * Windows 10 x64 or above (Windows 7/8/8.1 should work, but are untested)
 * Microsoft Visual Studio 2017 Runtime ([x86](https://aka.ms/vs/16/release/vc_redist.x86.exe) and [x64](https://aka.ms/vs/16/release/vc_redist.x64.exe))
 * Official copies of the games (only the latest copies from official distributors are tested)
-* [T8ZoneRipper](https://github.com/Scobalula/T8ZoneRipper) (for Call of Duty: Black Ops IIII)
 
 The following tools/plugins are required/recommended for some assets/games:
 
