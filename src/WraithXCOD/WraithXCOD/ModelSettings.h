@@ -37,6 +37,7 @@ private:
 	void OnExportSMD();
 	void OnExportXME();
 	void OnExportSEModel();
+	void OnExportFBX();
 
 protected:
 

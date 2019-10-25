@@ -63,7 +63,7 @@ bool Image::ConvertImageMemory(int8_t* ImageBuffer, uint64_t ImageSize, ImageFor
 bool Image::ConvertImageMemory(const std::shared_ptr<int8_t[]>& ImageBuffer, uint64_t ImageSize, ImageFormat InFormat, const std::string& OutputFile, ImageFormat OutFormat, ImagePatch Patch)
 {
 	// Ship off to buffer convert, just get pointer to data
-	return ConvertImageMemory(*ImageBuffer.get(), ImageSize, InFormat, OutputFile, OutFormat, Patch);
+	return ConvertImageMemory(ImageBuffer.get(), ImageSize, InFormat, OutputFile, OutFormat, Patch);
 }
 
 bool Image::ConvertImageFile(const std::string& InputFile, ImageFormat InFormat, const std::string& OutputFile, ImageFormat OutFormat, ImagePatch Patch)

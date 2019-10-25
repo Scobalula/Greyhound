@@ -23,7 +23,6 @@
 
 // Allow modern GUI controls
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-
 // The WraithX App Instance
 WraithApp WraithAppInstance;
 
@@ -143,8 +142,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "export_xna", "false" },
             { "export_smd", "false" },
             { "export_xmexport", "false" },
+            { "export_xmbin", "false" },
             { "export_seanim", "true" },
             { "export_semodel", "false" },
+            { "export_fbx", "false" },
             { "export_directxanim", "false" },
             { "directxanim_ver", "17" },
             { "global_images", "true" },

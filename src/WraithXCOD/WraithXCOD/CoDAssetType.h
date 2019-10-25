@@ -193,6 +193,14 @@ struct XModelSubmesh_t
 	// A pointer to weight data
 	uint64_t WeightsPtr;
 
+	// Submesh Scale
+	float Scale;
+
+	// Submesh Offset
+	float XOffset;
+	float YOffset;
+	float ZOffset;
+
 	// The index of the material
 	int32_t MaterialIndex;
 };

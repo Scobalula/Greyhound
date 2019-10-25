@@ -60,6 +60,16 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
 	// Read the header
 	auto Header = Reader.Read<BO3XPakHeader>();
 
+	// If MW4 we need to skip the new bytes
+	if (Header.Version == 0xD)
+	{
+		Reader.SetPosition(0);
+		uint64_t Result;
+		Reader.Read((uint8_t*)&Header, 24, Result);
+		Reader.Advance(288);
+		Reader.Read((uint8_t*)&Header + 24, 96, Result);
+	}
+
 	// Load Package Files
 	WraithNameIndex XPAKNames;
 
@@ -237,6 +247,7 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
 	{
 	case 0xA: CoDAssets::GameID = SupportedGames::BlackOps3; break;
 	case 0xB: CoDAssets::GameID = SupportedGames::BlackOps4; break;
+	case 0xD: CoDAssets::GameID = SupportedGames::ModernWarfare4; break;
 	}
 
 	// Success unless otherwise
@@ -294,7 +305,7 @@ std::unique_ptr<XImageDDS> XPAKSupport::ReadImageFile(const CoDImage_t* Image)
 uint16_t GetFormatFromString(const std::string& Format)
 {
 	// Check format
-	if (Format == "BC1" || Format == "BC1_SRGB")
+	if (Format == "BC1" || Format == "BC1_SRGB" || Format == "33" || Format == "34" || Format == "35")
 	{
 		return 71;
 	}
@@ -302,11 +313,11 @@ uint16_t GetFormatFromString(const std::string& Format)
 	{
 		return 74;
 	}
-	else if (Format == "BC3" || Format == "BC3_SRGB")
+	else if (Format == "BC3" || Format == "BC3_SRGB" || Format == "38")
 	{
 		return 77;
 	}
-	else if (Format == "BC4" || Format == "BC4_SNORM")
+	else if (Format == "BC4" || Format == "BC4_SNORM" || Format == "39")
 	{
 		return 80;
 	}
@@ -334,7 +345,7 @@ uint16_t GetFormatFromString(const std::string& Format)
 	{
 		return 10;
 	}
-	else if (Format == "R8G8B8A8_SRGB" || Format == "A8R8G8B8_SRGB" || Format == "R8G8B8A8")
+	else if (Format == "R8G8B8A8_SRGB" || Format == "A8R8G8B8_SRGB" || Format == "R8G8B8A8" || Format == "7")
 	{
 		return 28;
 	}
@@ -342,7 +353,7 @@ uint16_t GetFormatFromString(const std::string& Format)
 	{
 		return 61;
 	}
-	else if (Format == "BC7" || Format == "BC7_SRGB")
+	else if (Format == "BC7" || Format == "BC7_SRGB" || Format == "44" || Format == "45")
 	{
 		return 98;
 	}

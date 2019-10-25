@@ -149,7 +149,7 @@ bool GameWorldWar2::LoadOffsets()
 			// In debug, print the info for easy additions later!
 #if _DEBUG
 			// Format the output
-			printf("Heuristic: { 0x%X, 0x%X, 0x%X, 0x%X }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.DBPoolSizes - BaseAddress), (GameOffsets.StringTable - BaseAddress), (GameOffsets.ImagePackageTable - BaseAddress));
+			printf("Heuristic: { 0x%llX, 0x%llX, 0x%llX, 0x%llX }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.DBPoolSizes - BaseAddress), (GameOffsets.StringTable - BaseAddress), (GameOffsets.ImagePackageTable - BaseAddress));
 #endif
 
 			// Read required offsets (XANIM, XMODEL, XIMAGE, SOUND)

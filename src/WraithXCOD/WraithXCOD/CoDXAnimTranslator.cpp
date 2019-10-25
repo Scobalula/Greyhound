@@ -678,6 +678,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
 		case SupportedGames::AdvancedWarfare:
 		case SupportedGames::ModernWarfareRemastered:
 		case SupportedGames::InfiniteWarfare:
+		case SupportedGames::ModernWarfare4:
 		case SupportedGames::BlackOps3:
 		case SupportedGames::BlackOps4:
 		case SupportedGames::WorldWar2:
@@ -697,6 +698,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
 		case SupportedGames::ModernWarfare:
 		case SupportedGames::ModernWarfare2:
 		case SupportedGames::ModernWarfare3:
+		case SupportedGames::ModernWarfare4:
 		case SupportedGames::Ghosts:
 		case SupportedGames::AdvancedWarfare:
 		case SupportedGames::ModernWarfareRemastered:

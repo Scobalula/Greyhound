@@ -139,6 +139,11 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
         CoDAssets::GameID = SupportedGames::InfiniteWarfare;
         // Load
         HandleSABv4(Reader, Header, SABFileNames, SABNames); break;
+    case 0xA:
+        // Set the game, then load
+        CoDAssets::GameID = SupportedGames::ModernWarfare4;
+        // Load (Version 10 is the same as Version 4)
+        HandleSABv4(Reader, Header, SABFileNames, SABNames); break;
     case 0xE: 
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::BlackOps2;

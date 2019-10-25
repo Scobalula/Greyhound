@@ -24,6 +24,7 @@ BEGIN_MESSAGE_MAP(ModelSettings, WraithWindow)
 	ON_COMMAND(IDC_EXPORTSMD, OnExportSMD)
 	ON_COMMAND(IDC_EXPORTXME, OnExportXME)
 	ON_COMMAND(IDC_EXPORTSEMODEL, OnExportSEModel)
+	ON_COMMAND(IDC_EXPORTFBX, OnExportFBX)
 END_MESSAGE_MAP()
 
 void ModelSettings::OnBeforeLoad()
@@ -70,6 +71,7 @@ void ModelSettings::OnBeforeLoad()
 	((CButton*)GetDlgItem(IDC_EXPORTSMD))->SetCheck(SettingsManager::GetSetting("export_smd", "false") == "true");
 	((CButton*)GetDlgItem(IDC_EXPORTXME))->SetCheck(SettingsManager::GetSetting("export_xmexport", "false") == "true");
 	((CButton*)GetDlgItem(IDC_EXPORTSEMODEL))->SetCheck(SettingsManager::GetSetting("export_semodel", "false") == "true");
+	((CButton*)GetDlgItem(IDC_EXPORTFBX))->SetCheck(SettingsManager::GetSetting("export_fbx", "false") == "true");
 }
 
 void ModelSettings::OnGlobalImages()
@@ -150,6 +152,14 @@ void ModelSettings::OnExportSEModel()
 	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTSEMODEL))->GetState() & BST_CHECKED) == BST_CHECKED);
 	// Set it
 	SettingsManager::SetSetting("export_semodel", (CheckboxChecked) ? "true" : "false");
+}
+
+void ModelSettings::OnExportFBX()
+{
+	// Whether or not we are checked
+	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTFBX))->GetState() & BST_CHECKED) == BST_CHECKED);
+	// Set it
+	SettingsManager::SetSetting("export_fbx", (CheckboxChecked) ? "true" : "false");
 }
 
 void ModelSettings::OnExportVTXColor()

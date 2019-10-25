@@ -541,7 +541,7 @@ uint32_t* DecryptionTable = new uint32_t[4082]
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-	{ 0x88788D0, 0x0, 0x74FDED0, 0x0 }
+	{ 0x8887ED0, 0x0, 0x750D4D0, 0x0 }
 }};
 
 // -- Finished with databases
@@ -681,7 +681,7 @@ bool GameBlackOps4::LoadOffsets()
 		);
 		
 		// Format the output
-		printf("Heuristic: { 0x%X, 0x0, 0x%X, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
+		printf("Heuristic: { 0x%llX, 0x0, 0x%llX, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
 		#endif
 
 		// All Bo4 Updates require a tool update

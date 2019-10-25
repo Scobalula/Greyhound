@@ -13,6 +13,7 @@
 #include "GameBlackOps3.h"
 #include "GameBlackOps4.h"
 #include "GameWorldWar2.h"
+#include "GameModernWarfare4.h"
 
 // Include generic structures
 #include "DBGameGenerics.h"
@@ -131,6 +132,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
 
 		// Read global data
 		auto GlobalData = GlobalMatrixData.Read<DObjAnimMat>();
+
 		// Assign global position
 		NewBone.GlobalPosition = GlobalData.Translation;
 		NewBone.GlobalRotation = GlobalData.Rotation;
@@ -246,9 +248,10 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
 		// We have a streamed model, this is handled on a per-game basis, some information is already in the structures
 		switch (CurrentGame)
 		{
-		case SupportedGames::BlackOps3: GameBlackOps3::LoadXModel(LodReference, ModelResult); break;
-		case SupportedGames::BlackOps4: GameBlackOps4::LoadXModel(LodReference, ModelResult); break;
-		case SupportedGames::WorldWar2: GameWorldWar2::LoadXModel(LodReference, ModelResult); break;
+		case SupportedGames::BlackOps3:			GameBlackOps3::LoadXModel(LodReference, ModelResult); break;
+		case SupportedGames::BlackOps4:			GameBlackOps4::LoadXModel(LodReference, ModelResult); break;
+		case SupportedGames::WorldWar2:			GameWorldWar2::LoadXModel(LodReference, ModelResult); break;
+		case SupportedGames::ModernWarfare4:	GameModernWarfare4::LoadXModel(LodReference, ModelResult); break;
 		}
 	}
 	else

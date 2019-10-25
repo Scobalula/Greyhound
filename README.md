@@ -7,8 +7,8 @@ For detailed information such as game support, settings, FAQs, etc. please refer
 
 ## Requirements
 
-* Windows 7 x64 or above
-* Microsoft Visual Studio 2013 Runtime ([x86](https://download.microsoft.com/download/0/5/6/056dcda9-d667-4e27-8001-8a0c6971d6b1/vcredist_x86.exe) and [x64](https://download.microsoft.com/download/0/5/6/056dcda9-d667-4e27-8001-8a0c6971d6b1/vcredist_x64.exe))
+* Windows 10 x64 or above (Windows 7/8/8.1 should work, but are untested)
+* Microsoft Visual Studio 2017 Runtime ([x86](https://aka.ms/vs/16/release/vc_redist.x86.exe) and [x64](https://aka.ms/vs/16/release/vc_redist.x64.exe))
 * Official copies of the games (only the latest copies from official distributors are tested)
 * [T8ZoneRipper](https://github.com/Scobalula/T8ZoneRipper) (for Call of Duty: Black Ops IIII)
 

@@ -34,6 +34,7 @@
 #include "GameModernWarfare.h"
 #include "GameModernWarfare2.h"
 #include "GameModernWarfare3.h"
+#include "GameModernWarfare4.h"
 #include "GameGhosts.h"
 #include "GameAdvancedWarfare.h"
 #include "GameModernWarfareRM.h"
@@ -41,6 +42,7 @@
 #include "GameWorldWar2.h"
 
 // We need the game cache functions
+#include "CASCCache.h"
 #include "IWDCache.h"
 #include "IPAKCache.h"
 #include "PAKCache.h"
@@ -64,6 +66,8 @@
 #include "ValveSMDExport.h"
 #include "OBJExport.h"
 #include "XAnimRawExport.h"
+#include "FBXExport.h"
+#include "XMBExport.h"
 
 // TODO: Use image usage/semantic hashes to determine image types instead when reading from XMaterials
 
@@ -412,7 +416,9 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
 	{ "iw7_ship.exe", SupportedGames::InfiniteWarfare, SupportedGameFlags::SP },
 	// World War II
 	{ "s2_sp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::SP },
-	{ "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP }
+	{ "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
+	// Modern Warfare 4
+	{ "modernwarfare.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
 };
 
 // -- End find game database
@@ -537,6 +543,7 @@ LoadGameResult CoDAssets::LoadGame()
 		case SupportedGames::ModernWarfare: Success = GameModernWarfare::LoadAssets(); break;
 		case SupportedGames::ModernWarfare2: Success = GameModernWarfare2::LoadAssets(); break;
 		case SupportedGames::ModernWarfare3: Success = GameModernWarfare3::LoadAssets(); break;
+		case SupportedGames::ModernWarfare4: Success = GameModernWarfare4::LoadAssets(); break;
 		case SupportedGames::Ghosts: Success = GameGhosts::LoadAssets(); break;
 		case SupportedGames::AdvancedWarfare: Success = GameAdvancedWarfare::LoadAssets(); break;
 		case SupportedGames::ModernWarfareRemastered: Success = GameModernWarfareRM::LoadAssets(); break;
@@ -935,20 +942,6 @@ bool CoDAssets::LocateGameInfo()
 		break;
 	case SupportedGames::BlackOps4:
 	{
-		// Get Zone Folder
-		auto ZoneFolder = FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "zone");
-		// Check if it exists, if it doesn't, fall back to if it exists in our dir
-		if (!FileSystems::DirectoryExists(ZoneFolder))
-			// Set it
-#if _DEBUG
-			ZoneFolder = "F:\\Tools\\Greyhound\\Default\\zone";
-#else
-			ZoneFolder = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "zone");
-#endif
-
-		// Check if it exists
-		if (!FileSystems::DirectoryExists(ZoneFolder))
-			MessageBoxA(NULL, "Greyhound failed to find the Zone folder. Information on extracting the Zone folder is available on the Github Repo. Models and Images will not export correctly until you do this.", "Greyhound", MB_OK | MB_ICONWARNING);
 		// Initial setup required for BO4
 		GameBlackOps4::PerformInitialSetup();
 		// Load game offset info
@@ -960,9 +953,9 @@ bool CoDAssets::LocateGameInfo()
 		// Set game string handler
 		GameStringHandler = GameBlackOps4::LoadStringEntry;
 		// Allocate a new XPAK Mega Cache
-		GamePackageCache = std::make_unique<XPAKCache>();
+		GamePackageCache = std::make_unique<CASCCache>();
 		// Set the XPAK path
-		GamePackageCache->LoadPackageCacheAsync(ZoneFolder);
+		GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
 		break;
 	}
 	case SupportedGames::ModernWarfare:
@@ -1077,6 +1070,22 @@ bool CoDAssets::LocateGameInfo()
 		// Set the PAK path
 		GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
 		break;
+	case SupportedGames::ModernWarfare4:
+		// Initial setup required for MW4
+		GameModernWarfare4::PerformInitialSetup();
+		// Load game offset info
+		Success = GameModernWarfare4::LoadOffsets();
+		// Set shorthand
+		GDTShorthand = "MW4";
+		//// Set game ximage handler
+		GameXImageHandler = GameModernWarfare4::LoadXImage;
+		//// Set game string handler
+		GameStringHandler = GameModernWarfare4::LoadStringEntry;
+		// Allocate a new XPAK Mega Cache
+		GamePackageCache = std::make_unique<CASCCache>();
+		// Set the XPAK path
+		GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+		break;
 	}
 
 	// Setup the game's cache
@@ -1109,6 +1118,7 @@ std::string CoDAssets::BuildExportPath(const CoDAsset_t* Asset)
 	case SupportedGames::ModernWarfare: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare"); break;
 	case SupportedGames::ModernWarfare2: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_2"); break;
 	case SupportedGames::ModernWarfare3: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_3"); break;
+	case SupportedGames::ModernWarfare4: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_4"); break;
 	case SupportedGames::Ghosts: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "ghosts"); break;
 	case SupportedGames::AdvancedWarfare: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "advanced_warfare"); break;
 	case SupportedGames::ModernWarfareRemastered: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_rm"); break;
@@ -1168,6 +1178,7 @@ std::unique_ptr<XAnim_t> CoDAssets::LoadGenericAnimAsset(const CoDAnim_t* Animat
 	case SupportedGames::ModernWarfare: return GameModernWarfare::ReadXAnim(Animation); break;
 	case SupportedGames::ModernWarfare2: return GameModernWarfare2::ReadXAnim(Animation); break;
 	case SupportedGames::ModernWarfare3: return GameModernWarfare3::ReadXAnim(Animation); break;
+	case SupportedGames::ModernWarfare4: return GameModernWarfare4::ReadXAnim(Animation); break;
 	case SupportedGames::Ghosts: return GameGhosts::ReadXAnim(Animation); break;
 	case SupportedGames::AdvancedWarfare: return GameAdvancedWarfare::ReadXAnim(Animation); break;
 	case SupportedGames::ModernWarfareRemastered: return GameModernWarfareRM::ReadXAnim(Animation); break;
@@ -1247,6 +1258,7 @@ std::unique_ptr<XModel_t> CoDAssets::LoadGenericModelAsset(const CoDModel_t* Mod
 	case SupportedGames::ModernWarfare: return GameModernWarfare::ReadXModel(Model); break;
 	case SupportedGames::ModernWarfare2: return GameModernWarfare2::ReadXModel(Model); break;
 	case SupportedGames::ModernWarfare3: return GameModernWarfare3::ReadXModel(Model); break;
+	case SupportedGames::ModernWarfare4: return GameModernWarfare4::ReadXModel(Model); break;
 	case SupportedGames::Ghosts: return GameGhosts::ReadXModel(Model); break;
 	case SupportedGames::AdvancedWarfare: return GameAdvancedWarfare::ReadXModel(Model); break;
 	case SupportedGames::ModernWarfareRemastered: return GameModernWarfareRM::ReadXModel(Model); break;
@@ -1311,6 +1323,9 @@ bool CoDAssets::ShouldExportModel(std::string ExportPath)
 	// Check it
 	if (SettingsManager::GetSetting("export_semodel") == "true" && !FileSystems::FileExists(ExportPath + ".semodel"))
 		Result = true;
+	// Check it
+	if (SettingsManager::GetSetting("export_fbx") == "true" && !FileSystems::FileExists(ExportPath + ".fbx"))
+		Result = true;
 
 	// Done
 	return Result;
@@ -1320,7 +1335,6 @@ ExportGameResult CoDAssets::ExportModelAsset(const CoDModel_t* Model, const std:
 {
 	// Prepare to export the model
 	std::unique_ptr<XModel_t> GenericModel = CoDAssets::LoadGenericModelAsset(Model);
-
 	// Grab the image format type
 	auto ImageFormatType = ImageFormat::Standard_PNG;
 	// Check setting
@@ -1506,9 +1520,9 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
 			case SupportedGames::BlackOps2: 
 				ImageData = IPAKSupport::ReadImageFile(Image);
 				break;
-
 			case SupportedGames::BlackOps3: 
 			case SupportedGames::BlackOps4:
+			case SupportedGames::ModernWarfare4:
 				ImageData = XPAKSupport::ReadImageFile(Image);
 				break;
 			}
@@ -1524,6 +1538,7 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
 			case SupportedGames::AdvancedWarfare: ImageData = GameAdvancedWarfare::ReadXImage(Image); break;
 			case SupportedGames::ModernWarfareRemastered: ImageData = GameModernWarfareRM::ReadXImage(Image); break;
 			case SupportedGames::InfiniteWarfare: ImageData = GameInfiniteWarfare::ReadXImage(Image); break;
+			case SupportedGames::ModernWarfare4: ImageData = GameModernWarfare4::ReadXImage(Image); break;
 			case SupportedGames::WorldWar2: ImageData = GameWorldWar2::ReadXImage(Image); break;
 			}
 		}
@@ -1600,6 +1615,7 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
 		case SupportedGames::BlackOps3:
 		case SupportedGames::BlackOps4:
 		case SupportedGames::InfiniteWarfare:
+		case SupportedGames::ModernWarfare4:
 			SoundData = SABSupport::LoadSound(Sound);
 			break;
 		case SupportedGames::Ghosts:
@@ -1709,6 +1725,12 @@ void CoDAssets::ExportWraithModel(const std::unique_ptr<WraithModel>& Model, con
 		// Export a XME file
 		CodXME::ExportXME(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".XMODEL_EXPORT"));
 	}
+	// Check for XMB format
+	if (SettingsManager::GetSetting("export_xmbin") == "true")
+	{
+		// Export a XMB file
+		// CodXMB::ExportXMB(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".XMODEL_BIN"));
+	}
 	// Check for SMD format
 	if (SettingsManager::GetSetting("export_smd") == "true")
 	{
@@ -1743,7 +1765,12 @@ void CoDAssets::ExportWraithModel(const std::unique_ptr<WraithModel>& Model, con
 		// Export a SEModel file
 		SEModel::ExportSEModel(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".semodel"));
 	}
-
+	// Check for FBX format
+	if (SettingsManager::GetSetting("export_fbx") == "true")
+	{
+		// Export an FBX file
+		// FBX::ExportFBX(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".fbx"));
+	}
 	// Prepare GDT info
 	CoDAssets::GameGDTProcessor->ProcessModelGDT(Model);
 }
@@ -1992,7 +2019,7 @@ void CoDAssets::ExportSelectedAssets(void* Caller, const std::unique_ptr<std::ve
 	auto NumberOfCores = SystemInfo.dwNumberOfProcessors;
 	
 	// Clamp it, no less than 1, no more than 3
-	auto DegreeOfConverter = VectorMath::Clamp<uint32_t>(NumberOfCores, 1, 3);
+	auto DegreeOfConverter = VectorMath::Clamp<uint32_t>(NumberOfCores, 1, 8);
 
 	// Prepare to convert the assets in async
 	CoDXConverter([&AssetIndex, &Caller, &Assets, &AssetsToConvert]
@@ -2013,7 +2040,7 @@ void CoDAssets::ExportSelectedAssets(void* Caller, const std::unique_ptr<std::ve
 			// Get the asset we need
 			auto& Asset = Assets->at(AssetToConvert);
 			// Make sure it's not a placeholder
-			if (Asset->AssetStatus != WraithAssetStatus::Placeholder)
+			// if (Asset->AssetStatus != WraithAssetStatus::Placeholder)
 			{
 				// Set the status
 				Asset->AssetStatus = WraithAssetStatus::Processing;
