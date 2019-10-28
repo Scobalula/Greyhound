@@ -17,28 +17,28 @@
 class GeneralSettings : public WraithWindow
 {
 public:
-	// Make a new panel
-	GeneralSettings(CWnd* pParent = NULL) : WraithWindow(IDD_GENERALSETTINGS, pParent) { }
+    // Make a new panel
+    GeneralSettings(CWnd* pParent = NULL) : WraithWindow(IDD_GENERALSETTINGS, pParent) { }
 
 private:
-	// -- Event delegates
+    // -- Event delegates
 
-	void OnXModels();
-	void OnXAnims();
-	void OnXImages();
-	void OnXEffects();
-	void OnXRawFiles();
-	void OnXSounds();
-	void OnSortByData();
+    void OnXModels();
+    void OnXAnims();
+    void OnXImages();
+    void OnXEffects();
+    void OnXRawFiles();
+    void OnXSounds();
+    void OnSortByData();
 
 protected:
 
-	// Occures when the window is loading
-	virtual void OnBeforeLoad();
+    // Occures when the window is loading
+    virtual void OnBeforeLoad();
 
-	// The title font
-	CFont TitleFont;
+    // The title font
+    CFont TitleFont;
 
-	// Make the map
-	DECLARE_MESSAGE_MAP()
+    // Make the map
+    DECLARE_MESSAGE_MAP()
 };

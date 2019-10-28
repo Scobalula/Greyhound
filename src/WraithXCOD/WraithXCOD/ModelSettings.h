@@ -17,36 +17,36 @@
 class ModelSettings : public WraithWindow
 {
 public:
-	// Make a new panel
-	ModelSettings(CWnd* pParent = NULL) : WraithWindow(IDD_MODELSETTINGS, pParent) { }
+    // Make a new panel
+    ModelSettings(CWnd* pParent = NULL) : WraithWindow(IDD_MODELSETTINGS, pParent) { }
 
 private:
-	// -- Event delegates
+    // -- Event delegates
 
-	void OnGlobalImages();
-	void OnExportImages();
-	void OnExportAllLods();
-	void OnExportHitbox();
-	void OnExportVTXColor();
-	void OnExportIMGNames();
-	void OnSkipPrevModels();
+    void OnGlobalImages();
+    void OnExportImages();
+    void OnExportAllLods();
+    void OnExportHitbox();
+    void OnExportVTXColor();
+    void OnExportIMGNames();
+    void OnSkipPrevModels();
 
-	void OnExportMA();
-	void OnExportOBJ();
-	void OnExportXNA();
-	void OnExportSMD();
-	void OnExportXME();
-	void OnExportSEModel();
-	void OnExportFBX();
+    void OnExportMA();
+    void OnExportOBJ();
+    void OnExportXNA();
+    void OnExportSMD();
+    void OnExportXME();
+    void OnExportSEModel();
+    void OnExportFBX();
 
 protected:
 
-	// Occures when the window is loading
-	virtual void OnBeforeLoad();
+    // Occures when the window is loading
+    virtual void OnBeforeLoad();
 
-	// The title font
-	CFont TitleFont;
+    // The title font
+    CFont TitleFont;
 
-	// Make the map
-	DECLARE_MESSAGE_MAP()
+    // Make the map
+    DECLARE_MESSAGE_MAP()
 };

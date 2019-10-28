@@ -17,26 +17,26 @@
 class AnimSettings : public WraithWindow
 {
 public:
-	// Make a new panel
-	AnimSettings(CWnd* pParent = NULL) : WraithWindow(IDD_ANIMSETTINGS, pParent) { }
+    // Make a new panel
+    AnimSettings(CWnd* pParent = NULL) : WraithWindow(IDD_ANIMSETTINGS, pParent) { }
 
 private:
-	// -- Event delegates
+    // -- Event delegates
 
-	void OnExportSEAnim();
-	void OnExportDirect();
-	void OnSkipPrevAnim();
-	void OnWAWCompat();
-	void OnBOCompat();
+    void OnExportSEAnim();
+    void OnExportDirect();
+    void OnSkipPrevAnim();
+    void OnWAWCompat();
+    void OnBOCompat();
 
 protected:
 
-	// Occures when the window is loading
-	virtual void OnBeforeLoad();
+    // Occures when the window is loading
+    virtual void OnBeforeLoad();
 
-	// The title font
-	CFont TitleFont;
+    // The title font
+    CFont TitleFont;
 
-	// Make the map
-	DECLARE_MESSAGE_MAP()
+    // Make the map
+    DECLARE_MESSAGE_MAP()
 };

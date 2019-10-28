@@ -17,26 +17,26 @@
 class GDTSettings : public WraithWindow
 {
 public:
-	// Make a new panel
-	GDTSettings(CWnd* pParent = NULL) : WraithWindow(IDD_GDTSETTINGS, pParent) { }
+    // Make a new panel
+    GDTSettings(CWnd* pParent = NULL) : WraithWindow(IDD_GDTSETTINGS, pParent) { }
 
 private:
-	// -- Event delegates
+    // -- Event delegates
 
-	void OnBO3GDT();
-	void OnWAWGDT();
-	void OnClearCache();
-	void OnCacheClose();
-	void OnOverwriteGDT();
+    void OnBO3GDT();
+    void OnWAWGDT();
+    void OnClearCache();
+    void OnCacheClose();
+    void OnOverwriteGDT();
 
 protected:
 
-	// Occures when the window is loading
-	virtual void OnBeforeLoad();
+    // Occures when the window is loading
+    virtual void OnBeforeLoad();
 
-	// The title font
-	CFont TitleFont;
+    // The title font
+    CFont TitleFont;
 
-	// Make the map
-	DECLARE_MESSAGE_MAP()
+    // Make the map
+    DECLARE_MESSAGE_MAP()
 };

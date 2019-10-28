@@ -10,10 +10,10 @@
 class PAKCache : public CoDPackageCache
 {
 public:
-	// Constructors
-	PAKCache();
-	virtual ~PAKCache();
+    // Constructors
+    PAKCache();
+    virtual ~PAKCache();
 
-	// Implement the load function
-	virtual void LoadPackageCache(const std::string& BasePath);
+    // Implement the load function
+    virtual void LoadPackageCache(const std::string& BasePath);
 };

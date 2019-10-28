@@ -37,7 +37,7 @@ void SoundSettings::OnBeforeLoad()
         CLIP_DEFAULT_PRECIS,           // ClipPrecision
         DEFAULT_QUALITY,               // Quality
         DEFAULT_PITCH | FF_SWISS,      // PitchAndFamily
-        L"Microsoft Sans Serif");	   // Name
+        L"Microsoft Sans Serif");       // Name
 
     // Set it
     GetDlgItem(IDC_TITLE)->SetFont(&TitleFont);

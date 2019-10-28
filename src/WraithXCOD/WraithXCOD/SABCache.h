@@ -10,10 +10,10 @@
 class SABCache : public CoDPackageCache
 {
 public:
-	// Constructors
-	SABCache();
-	virtual ~SABCache();
+    // Constructors
+    SABCache();
+    virtual ~SABCache();
 
-	// Implement the load function
-	virtual void LoadPackageCache(const std::string& BasePath);
+    // Implement the load function
+    virtual void LoadPackageCache(const std::string& BasePath);
 };

@@ -7,22 +7,22 @@
 
 SABCache::SABCache()
 {
-	// Defaults
+    // Defaults
 }
 
 SABCache::~SABCache()
 {
-	// Clean up if need be
+    // Clean up if need be
 }
 
 void SABCache::LoadPackageCache(const std::string& BasePath)
 {
-	// Call Base function first!
-	CoDPackageCache::LoadPackageCache(BasePath);
+    // Call Base function first!
+    CoDPackageCache::LoadPackageCache(BasePath);
 
-	// Set packages path
-	this->PackageFilesPath = BasePath;
+    // Set packages path
+    this->PackageFilesPath = BasePath;
 
-	// We've finished loading, set status
-	this->SetLoadedState();
+    // We've finished loading, set status
+    this->SetLoadedState();
 }

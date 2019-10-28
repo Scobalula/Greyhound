@@ -10,8 +10,8 @@
 class CoDIWITranslator
 {
 public:
-	// -- Conversion function
+    // -- Conversion function
 
-	// Translates an IWI file to a DDS file
-	static std::unique_ptr<XImageDDS> TranslateIWI(const std::unique_ptr<uint8_t[]>& IWIBuffer, uint32_t IWIBufferSize);
+    // Translates an IWI file to a DDS file
+    static std::unique_ptr<XImageDDS> TranslateIWI(const std::unique_ptr<uint8_t[]>& IWIBuffer, uint32_t IWIBufferSize);
 };

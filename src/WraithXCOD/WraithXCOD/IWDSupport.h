@@ -12,11 +12,11 @@ class IWDSupport
 {
 public:
 
-	// -- Parsing functions
+    // -- Parsing functions
 
-	// Parse and load image assets within a IWD file
-	static bool ParseIWD(const std::string& FilePath);
+    // Parse and load image assets within a IWD file
+    static bool ParseIWD(const std::string& FilePath);
 
-	// Reads an image entry from the package file
-	static std::unique_ptr<XImageDDS> ReadImageFile(const CoDImage_t* Image);
+    // Reads an image entry from the package file
+    static std::unique_ptr<XImageDDS> ReadImageFile(const CoDImage_t* Image);
 };

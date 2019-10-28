@@ -9,79 +9,79 @@
 
 struct DObjAnimMat
 {
-	Quaternion Rotation;
-	Vector3 Translation;
-	float TranslationWeight;
+    Quaternion Rotation;
+    Vector3 Translation;
+    float TranslationWeight;
 };
 
 union GfxPackedUnitVec
 {
-	uint32_t PackedInteger;
-	int8_t PackedBytes[4];
+    uint32_t PackedInteger;
+    int8_t PackedBytes[4];
 };
 
 struct GfxVertexBuffer
 {
-	Vector3 Position;
+    Vector3 Position;
 
-	uint32_t BiNormal;
-	uint8_t Color[4];
-	uint16_t UVUPos;
-	uint16_t UVVPos;
+    uint32_t BiNormal;
+    uint8_t Color[4];
+    uint16_t UVUPos;
+    uint16_t UVVPos;
 
-	uint32_t Normal;
-	uint32_t Tangent;
+    uint32_t Normal;
+    uint32_t Tangent;
 };
 
 struct GfxFaceBuffer
 {
-	uint16_t Index1;
-	uint16_t Index2;
-	uint16_t Index3;
+    uint16_t Index1;
+    uint16_t Index2;
+    uint16_t Index3;
 };
 
 struct GfxRigidVerts
 {
-	uint16_t BoneIndex;
-	uint16_t VertexCount;
+    uint16_t BoneIndex;
+    uint16_t VertexCount;
 
-	uint16_t FacesCount;
-	uint16_t FacesIndex;
+    uint16_t FacesCount;
+    uint16_t FacesIndex;
 
-	uint32_t SurfaceCollisionPtr;
+    uint32_t SurfaceCollisionPtr;
 };
 
 struct GfxRigidVerts64
 {
-	uint16_t BoneIndex;
-	uint16_t VertexCount;
+    uint16_t BoneIndex;
+    uint16_t VertexCount;
 
-	uint16_t FacesCount;
-	uint16_t FacesIndex;
+    uint16_t FacesCount;
+    uint16_t FacesIndex;
 
-	uint64_t SurfaceCollisionPtr;
+    uint64_t SurfaceCollisionPtr;
 };
 
 struct QuatData
 {
-	int16_t RotationX;
-	int16_t RotationY;
-	int16_t RotationZ;
-	int16_t RotationW;
+    int16_t RotationX;
+    int16_t RotationY;
+    int16_t RotationZ;
+    int16_t RotationW;
 };
 
 struct Quat2Data
 {
-	int16_t RotationZ;
-	int16_t RotationW;
+    int16_t RotationZ;
+    int16_t RotationW;
 };
 
 struct __declspec(align(4)) GfxBoneInfo
 {
-	float Bounds[2][3];
-	float Offset[3];
-	float RadiusSquared;
-	uint8_t Collmap;
+    float Bounds[2][3];
+    float Offset[3];
+    float RadiusSquared;
+    uint8_t Collmap;
 };
 
 // -- Verify structures

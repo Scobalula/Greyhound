@@ -19,65 +19,65 @@
 // A list of supported Call of Duty games, or none for nothing loaded
 enum class SupportedGames
 {
-	None,
-	WorldAtWar,
-	BlackOps,
-	BlackOps2,
-	BlackOps3,
-	BlackOps4,
-	ModernWarfare,
-	ModernWarfare2,
-	ModernWarfare3,
-	ModernWarfare4,
-	ModernWarfareRemastered,
-	Ghosts,
-	InfiniteWarfare,
-	AdvancedWarfare,
-	WorldWar2
+    None,
+    WorldAtWar,
+    BlackOps,
+    BlackOps2,
+    BlackOps3,
+    BlackOps4,
+    ModernWarfare,
+    ModernWarfare2,
+    ModernWarfare3,
+    ModernWarfare4,
+    ModernWarfareRemastered,
+    Ghosts,
+    InfiniteWarfare,
+    AdvancedWarfare,
+    WorldWar2
 };
 
 // A list of supported game flags for Call of Duty
 enum class SupportedGameFlags
 {
-	None,
-	Files,
-	SP,
-	MP,
-	ZM
+    None,
+    Files,
+    SP,
+    MP,
+    ZM
 };
 
 // A set of FindGame() results
 enum class FindGameResult
 {
-	Success,
-	NoGamesRunning,
-	FailedToLocateInfo,
-	UnknownError
+    Success,
+    NoGamesRunning,
+    FailedToLocateInfo,
+    UnknownError
 };
 
 // A set of LoadFile() results
 enum class LoadGameFileResult
 {
-	Success,
-	InvalidFile,
-	UnknownError
+    Success,
+    InvalidFile,
+    UnknownError
 };
 
 // A set of LoadGame() results
 enum class LoadGameResult
 {
-	Success,
-	NoAssetsFound,
-	ProcessNotRunning,
-	UnknownError
+    Success,
+    NoAssetsFound,
+    ProcessNotRunning,
+    UnknownError
 };
 
 // A set of ExportAsset() results
 enum class ExportGameResult
 {
-	Success,
-	Placeholder,
-	UnknownError
+    Success,
+    Placeholder,
+    UnknownError
 };
 
 // Delegate for reading a ximage
@@ -92,155 +92,155 @@ typedef void(*ExportStatusHandler)(void* Caller, uint32_t AssetIndex);
 // Represents a game process info
 struct CoDGameProcess
 {
-	// The name of the process
-	const char* ProcessName;
-	// The game id of this process
-	SupportedGames GameID;
-	// The game flags of this process
-	SupportedGameFlags GameFlags;
+    // The name of the process
+    const char* ProcessName;
+    // The game id of this process
+    SupportedGames GameID;
+    // The game flags of this process
+    SupportedGameFlags GameFlags;
 
-	CoDGameProcess(const char* Name, SupportedGames Game, SupportedGameFlags Flags)
-	{
-		// Set data
-		ProcessName = Name;
-		GameID = Game;
-		GameFlags = Flags;
-	}
+    CoDGameProcess(const char* Name, SupportedGames Game, SupportedGameFlags Flags)
+    {
+        // Set data
+        ProcessName = Name;
+        GameID = Game;
+        GameFlags = Flags;
+    }
 };
 
 // A class that handles reading assets from COD games
 class CoDAssets
 {
 public:
-	// -- Global variables
+    // -- Global variables
 
-	// A list of game process info
-	const static std::vector<CoDGameProcess> GameProcessInfo;
+    // A list of game process info
+    const static std::vector<CoDGameProcess> GameProcessInfo;
 
-	// The running game instance, if any
-	static std::unique_ptr<ProcessReader> GameInstance;
-	// The running game ID, if any
-	static SupportedGames GameID;
-	// The running game flags, if any
-	static SupportedGameFlags GameFlags;
+    // The running game instance, if any
+    static std::unique_ptr<ProcessReader> GameInstance;
+    // The running game ID, if any
+    static SupportedGames GameID;
+    // The running game flags, if any
+    static SupportedGameFlags GameFlags;
 
-	// The game's loaded assets
-	static std::unique_ptr<AssetPool> GameAssets;
-	// The game's package cache, if any
-	static std::unique_ptr<CoDPackageCache> GamePackageCache;
-	// The game's ximage read handler
-	static LoadXImageHandler GameXImageHandler;
-	// The game's string read handler
-	static LoadStringHandler GameStringHandler;
+    // The game's loaded assets
+    static std::unique_ptr<AssetPool> GameAssets;
+    // The game's package cache, if any
+    static std::unique_ptr<CoDPackageCache> GamePackageCache;
+    // The game's ximage read handler
+    static LoadXImageHandler GameXImageHandler;
+    // The game's string read handler
+    static LoadStringHandler GameStringHandler;
 
-	// -- Global game information
+    // -- Global game information
 
-	// A list of game offsets, varies per-game
-	static std::vector<uint64_t> GameOffsetInfos;
-	// A list of game pool sizes, varies per-game
-	static std::vector<uint32_t> GamePoolSizes;
+    // A list of game offsets, varies per-game
+    static std::vector<uint64_t> GameOffsetInfos;
+    // A list of game pool sizes, varies per-game
+    static std::vector<uint32_t> GamePoolSizes;
 
-	// A GDT processor for this game
-	static std::unique_ptr<CoDGDTProcessor> GameGDTProcessor;
+    // A GDT processor for this game
+    static std::unique_ptr<CoDGDTProcessor> GameGDTProcessor;
 
-	// -- Loading and cleanup functions
+    // -- Loading and cleanup functions
 
-	// Loads the game and finds assets if need be
-	static FindGameResult BeginGameMode();
-	// Loads the specified game file
-	static LoadGameFileResult BeginGameFileMode(const std::string& FilePath);
+    // Loads the game and finds assets if need be
+    static FindGameResult BeginGameMode();
+    // Loads the specified game file
+    static LoadGameFileResult BeginGameFileMode(const std::string& FilePath);
 
-	// Attempts to find one of the supported games (Process only, file support via LoadModtools())
-	static FindGameResult FindGame();
-	// Attempts to load assets from the loaded game
-	static LoadGameResult LoadGame();
-	// Attempts to load assets from a file
-	static LoadGameFileResult LoadFile(const std::string& FilePath);
-	// Cleans up a game if attached
-	static void CleanUpGame();
+    // Attempts to find one of the supported games (Process only, file support via LoadModtools())
+    static FindGameResult FindGame();
+    // Attempts to load assets from the loaded game
+    static LoadGameResult LoadGame();
+    // Attempts to load assets from a file
+    static LoadGameFileResult LoadFile(const std::string& FilePath);
+    // Cleans up a game if attached
+    static void CleanUpGame();
 
-	// -- Exporting functions
+    // -- Exporting functions
 
-	// Occures to alert the dialog of progress
-	static ExportProgressHandler OnExportProgress;
-	// Occures to alert the dialog of an asset
-	static ExportStatusHandler OnExportStatus;
+    // Occures to alert the dialog of progress
+    static ExportProgressHandler OnExportProgress;
+    // Occures to alert the dialog of an asset
+    static ExportStatusHandler OnExportStatus;
 
-	// A count of assets exported
-	static std::atomic<uint32_t> ExportedAssetsCount;
-	// A count of total assets to export
-	static std::atomic<uint32_t> AssetsToExportCount;
-	// Whether or not export can continue
-	static std::atomic<bool> CanExportContinue;
+    // A count of assets exported
+    static std::atomic<uint32_t> ExportedAssetsCount;
+    // A count of total assets to export
+    static std::atomic<uint32_t> AssetsToExportCount;
+    // Whether or not export can continue
+    static std::atomic<bool> CanExportContinue;
 
-	// Export all currently loaded game assets
-	static void ExportAllAssets(void* Caller = NULL);
-	// Export selected indicies only
-	static void ExportSelection(const std::vector<uint32_t>& Indicies, void* Caller = NULL);
+    // Export all currently loaded game assets
+    static void ExportAllAssets(void* Caller = NULL);
+    // Export selected indicies only
+    static void ExportSelection(const std::vector<uint32_t>& Indicies, void* Caller = NULL);
 
-	// The latest export path
-	static std::string LatestExportPath;
+    // The latest export path
+    static std::string LatestExportPath;
 
-	// Exports the game asset
-	static ExportGameResult ExportAsset(const CoDAsset_t* Asset);
+    // Exports the game asset
+    static ExportGameResult ExportAsset(const CoDAsset_t* Asset);
 
-	// Gets a model asset for previewing
-	static std::unique_ptr<WraithModel> GetModelForPreview(const CoDModel_t* Model);
+    // Gets a model asset for previewing
+    static std::unique_ptr<WraithModel> GetModelForPreview(const CoDModel_t* Model);
 
 private:
-	// -- Game utility functions, internal
+    // -- Game utility functions, internal
 
-	// Attempt to locate the loaded game's offset info
-	static bool LocateGameInfo();
+    // Attempt to locate the loaded game's offset info
+    static bool LocateGameInfo();
 
-	// Safely clean up the package cache if need be
-	static void CleanupPackageCache();
+    // Safely clean up the package cache if need be
+    static void CleanupPackageCache();
 
-	// Game generics, load generic assets of types
+    // Game generics, load generic assets of types
 
-	// Loads a generic XAnim
-	static std::unique_ptr<XAnim_t> LoadGenericAnimAsset(const CoDAnim_t* Anim);
-	// Loads a generic XModel
-	static std::unique_ptr<XModel_t> LoadGenericModelAsset(const CoDModel_t* Model);
+    // Loads a generic XAnim
+    static std::unique_ptr<XAnim_t> LoadGenericAnimAsset(const CoDAnim_t* Anim);
+    // Loads a generic XModel
+    static std::unique_ptr<XModel_t> LoadGenericModelAsset(const CoDModel_t* Model);
 
-	// -- Game export utility functions, internal
+    // -- Game export utility functions, internal
 
-	// Builds the export path for the asset
-	static std::string BuildExportPath(const CoDAsset_t* Asset);
+    // Builds the export path for the asset
+    static std::string BuildExportPath(const CoDAsset_t* Asset);
 
-	// Determines whether we should continue with exporting this anim based off if it exists
-	static bool ShouldExportAnim(std::string ExportPath);
-	// Determines whether we should continue with exporting this model based off if it exists
-	static bool ShouldExportModel(std::string ExportPath);
+    // Determines whether we should continue with exporting this anim based off if it exists
+    static bool ShouldExportAnim(std::string ExportPath);
+    // Determines whether we should continue with exporting this model based off if it exists
+    static bool ShouldExportModel(std::string ExportPath);
 
-	// Exports a game animation asset
-	static ExportGameResult ExportAnimationAsset(const CoDAnim_t* Animation, const std::string& ExportPath);
-	// Exports a game model asset
-	static ExportGameResult ExportModelAsset(const CoDModel_t* Model, const std::string& ExportPath, const std::string& ImagesPath, const std::string& ImageRelativePath, const std::string& ImageExtension);
-	// Exports a game image asset
-	static ExportGameResult ExportImageAsset(const CoDImage_t* Image, const std::string& ExportPath, const std::string& ImageExtension);
-	// Exports a game sound asset
-	static ExportGameResult ExportSoundAsset(const CoDSound_t* Sound, const std::string& ExportPath, const std::string& SoundExtension);
-	// Exports a game effect asset
-	static ExportGameResult ExportEffectAsset(const CoDEffect_t* Effect, const std::string& ExportPath);
-	// Exports a game rawfile asset
-	static ExportGameResult ExportRawfileAsset(const CoDRawFile_t* Rawfile, const std::string& ExportPath);
+    // Exports a game animation asset
+    static ExportGameResult ExportAnimationAsset(const CoDAnim_t* Animation, const std::string& ExportPath);
+    // Exports a game model asset
+    static ExportGameResult ExportModelAsset(const CoDModel_t* Model, const std::string& ExportPath, const std::string& ImagesPath, const std::string& ImageRelativePath, const std::string& ImageExtension);
+    // Exports a game image asset
+    static ExportGameResult ExportImageAsset(const CoDImage_t* Image, const std::string& ExportPath, const std::string& ImageExtension);
+    // Exports a game sound asset
+    static ExportGameResult ExportSoundAsset(const CoDSound_t* Sound, const std::string& ExportPath, const std::string& SoundExtension);
+    // Exports a game effect asset
+    static ExportGameResult ExportEffectAsset(const CoDEffect_t* Effect, const std::string& ExportPath);
+    // Exports a game rawfile asset
+    static ExportGameResult ExportRawfileAsset(const CoDRawFile_t* Rawfile, const std::string& ExportPath);
 
-	// Exports Material Image Names
-	static void ExportMaterialImageNames(const XMaterial_t& Material, const std::string& ExportPath);
+    // Exports Material Image Names
+    static void ExportMaterialImageNames(const XMaterial_t& Material, const std::string& ExportPath);
 
-	// Exports images from a specific game material
-	static void ExportMaterialImages(const XMaterial_t& Material, const std::string& ImagesPath, const std::string& ImageExtension, ImageFormat ImageFormatType);
+    // Exports images from a specific game material
+    static void ExportMaterialImages(const XMaterial_t& Material, const std::string& ImagesPath, const std::string& ImageExtension, ImageFormat ImageFormatType);
 
-	// Export a WraithModel to the various formats specified in settings
-	static void ExportWraithModel(const std::unique_ptr<WraithModel>& Model, const std::string& ExportPath);
+    // Export a WraithModel to the various formats specified in settings
+    static void ExportWraithModel(const std::unique_ptr<WraithModel>& Model, const std::string& ExportPath);
 
-	// Exports the asset in the list provided, in async
-	static void ExportSelectedAssets(void* Caller, const std::unique_ptr<std::vector<CoDAsset_t*>>& Assets);
+    // Exports the asset in the list provided, in async
+    static void ExportSelectedAssets(void* Caller, const std::unique_ptr<std::vector<CoDAsset_t*>>& Assets);
 
-	// Sorts the assets by various properties
-	static bool SortAssets(const CoDAsset_t* lhs, const CoDAsset_t* rhs);
+    // Sorts the assets by various properties
+    static bool SortAssets(const CoDAsset_t* lhs, const CoDAsset_t* rhs);
 
-	// A locking mutex for proper async operations
-	static std::mutex CodMutex;
+    // A locking mutex for proper async operations
+    static std::mutex CodMutex;
 };

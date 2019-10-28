@@ -18,45 +18,45 @@
 class SettingsWindow : public WraithWindow
 {
 public:
-	// Make a new settings window
-	SettingsWindow(CWnd* pParent = NULL) : WraithWindow(IDD_SETTINGSDIALOG, pParent) { }
+    // Make a new settings window
+    SettingsWindow(CWnd* pParent = NULL) : WraithWindow(IDD_SETTINGSDIALOG, pParent) { }
 
 private:
-	// -- Event delegates
+    // -- Event delegates
 
-	void OnGeneralPage();
-	void OnModelsPage();
-	void OnAnimsPage();
-	void OnImagesPage();
-	void OnSoundsPage();
-	void OnGDTPage();
+    void OnGeneralPage();
+    void OnModelsPage();
+    void OnAnimsPage();
+    void OnImagesPage();
+    void OnSoundsPage();
+    void OnGDTPage();
 
-	// Helper for disabling all controls
-	void SetUnselected();
+    // Helper for disabling all controls
+    void SetUnselected();
 
 protected:
 
-	// -- Control instances
+    // -- Control instances
 
-	WraithSettingButton GeneralButton;
-	WraithSettingButton ModelButton;
-	WraithSettingButton AnimButton;
-	WraithSettingButton ImageButton;
-	WraithSettingButton SoundButton;
-	WraithSettingButton GDTButton;
+    WraithSettingButton GeneralButton;
+    WraithSettingButton ModelButton;
+    WraithSettingButton AnimButton;
+    WraithSettingButton ImageButton;
+    WraithSettingButton SoundButton;
+    WraithSettingButton GDTButton;
 
-	// The current settings panel
-	std::unique_ptr<WraithWindow> SettingsPanel;
+    // The current settings panel
+    std::unique_ptr<WraithWindow> SettingsPanel;
 
-	// Occures when we need to swap control instances
-	virtual void DoDataExchange(CDataExchange* pDX);
-	// Occures when the window is loading
-	virtual void OnBeforeLoad();
-	// Occures when the window was loaded
-	virtual void OnLoad();
-	// Handle painting
-	afx_msg void OnPaint();
+    // Occures when we need to swap control instances
+    virtual void DoDataExchange(CDataExchange* pDX);
+    // Occures when the window is loading
+    virtual void OnBeforeLoad();
+    // Occures when the window was loaded
+    virtual void OnLoad();
+    // Handle painting
+    afx_msg void OnPaint();
 
-	// Make the map
-	DECLARE_MESSAGE_MAP()
+    // Make the map
+    DECLARE_MESSAGE_MAP()
 };

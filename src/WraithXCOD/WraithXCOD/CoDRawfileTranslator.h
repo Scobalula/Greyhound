@@ -10,8 +10,8 @@
 class CoDRawfileTranslator
 {
 public:
-	// -- Translation functions
+    // -- Translation functions
 
-	// Translates a Rawfile asset
-	static void TranslateRawfile(const CoDRawFile_t* Rawfile, const std::string& ExportPath, const bool ATRCompressed, const bool GSCCompressed);
+    // Translates a Rawfile asset
+    static void TranslateRawfile(const CoDRawFile_t* Rawfile, const std::string& ExportPath, const bool ATRCompressed, const bool GSCCompressed);
 };

@@ -5,9 +5,9 @@
 
 DBGameInfo::DBGameInfo(uint64_t Pools, uint64_t Sizes, uint64_t Strings, uint64_t Package)
 {
-	// Set values
-	DBAssetPools = Pools;
-	DBPoolSizes = Sizes;
-	StringTable = Strings;
-	ImagePackageTable = Package;
+    // Set values
+    DBAssetPools = Pools;
+    DBPoolSizes = Sizes;
+    StringTable = Strings;
+    ImagePackageTable = Package;
 }
