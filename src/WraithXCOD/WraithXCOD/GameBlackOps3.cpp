@@ -174,7 +174,7 @@ bool GameBlackOps3::LoadOffsets()
             // In debug, print the info for easy additions later!
 #if _DEBUG
             // Format the output
-            printf("Heuristic: { 0x%X, 0x0, 0x%X, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
+            printf("Heuristic: { 0x%llX, 0x0, 0x%llX, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
 #endif
 
             // Read required offsets (XANIM, XMODEL, XIMAGE)

@@ -1084,7 +1084,7 @@ bool CoDAssets::LocateGameInfo()
         // Allocate a new XPAK Mega Cache
         GamePackageCache = std::make_unique<CASCCache>();
         // Set the XPAK path
-        // GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+        GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
         break;
     }
 
@@ -1615,7 +1615,6 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
         case SupportedGames::BlackOps3:
         case SupportedGames::BlackOps4:
         case SupportedGames::InfiniteWarfare:
-        case SupportedGames::ModernWarfare4:
             SoundData = SABSupport::LoadSound(Sound);
             break;
         case SupportedGames::Ghosts:
@@ -1627,6 +1626,11 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
         case SupportedGames::ModernWarfare2:
         case SupportedGames::ModernWarfare3:
             SoundData = GameWorldWar2::ReadXSound(Sound);
+        case SupportedGames::ModernWarfare4:
+            if(Sound->IsFileEntry)
+                SoundData = SABSupport::LoadSound(Sound);
+            else
+                SoundData = GameWorldWar2::ReadXSound(Sound);
             break;
         }
 

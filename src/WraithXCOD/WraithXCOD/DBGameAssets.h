@@ -3287,3 +3287,18 @@ struct MW4XMaterialImage
     uint64_t ImagePtr;
 };
 #pragma pack(pop)
+
+#pragma pack(push, 1)
+struct MW4SoundBank
+{
+    uint64_t NamePtr;
+    uint64_t BankNamePtr;
+    uint64_t LanguagePtr;
+    uint64_t TypePtr;
+    uint64_t AliasCount;
+    uint64_t AliasesPtr;
+    uint8_t Padding[448];
+    uint64_t SoundBankPtr;
+    uint64_t Unk1;
+};
+#pragma pack(pop)

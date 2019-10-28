@@ -605,6 +605,18 @@ std::unique_ptr<XSound> GameWorldWar2::ReadXSound(const CoDSound_t* Sound)
         // Make the header
         Sound::WriteWAVHeaderToStream(Result->DataBuffer, (uint32_t)Sound->FrameRate, (uint32_t)Sound->ChannelsCount, (uint32_t)Sound->AssetSize);
     }
+    // Allocate a buffer, if we're WAV, add size of WAV header
+    else if (Sound->DataType == SoundDataTypes::FLAC_NeedsHeader)
+    {
+        Result->DataBuffer = new int8_t[Sound->AssetSize + Sound::GetMaximumFLACHeaderSize()];
+        Result->DataType = SoundDataTypes::FLAC_WithHeader;
+        Result->DataSize = (uint32_t)(Sound->AssetSize + Sound::GetMaximumFLACHeaderSize());
+
+        DataOffset += Sound::GetMaximumFLACHeaderSize();
+
+        // Write FLAC Header
+        Sound::WriteFLACHeaderToStream(Result->DataBuffer, Sound->FrameRate, Sound->ChannelsCount, Sound->FrameCount);
+    }
     else
     {
         Result->DataBuffer = new int8_t[Sound->AssetSize];

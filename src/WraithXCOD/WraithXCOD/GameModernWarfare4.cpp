@@ -7,6 +7,7 @@
 #include "CoDAssets.h"
 #include "CoDRawImageTranslator.h"
 #include "CoDXPoolParser.h"
+#include "DBGameFiles.h"
 
 // We need the DirectX Mesh Class
 #include "..\..\DirectXMesh\DirectXMesh.h"
@@ -23,7 +24,7 @@
 // Modern Warfare 4 SP
 std::array<DBGameInfo, 1> GameModernWarfare4::SinglePlayerOffsets =
 {{
-    { 0xAE9EAF0, 0x0, 0xC8A0300, 0x0 }
+    { 0xAE9CAF0, 0x0, 0xC89E300, 0x0 }
 }};
 
 // -- Finished with databases
@@ -78,8 +79,51 @@ struct MW4XAssetPoolData
     uint32_t AssetSize;
 };
 
+struct MW4SoundBankInfo
+{
+    uint64_t BankNamePointer;
+    uint8_t Padding[0x20];
+    uint64_t BankFilePointer;
+    uint64_t UnkPointer;
+    uint32_t BankFileSize;
+    uint32_t Unk;
+};
+
+struct MW4SoundAlias
+{
+    uint64_t NamePtr;
+    uint32_t NameHash;
+    uint32_t Padding;
+    uint64_t EntriesPtr;
+    uint64_t EntriesCount;
+};
+
+struct MW4SoundAliasEntry
+{
+    uint64_t NamePtr;
+    uint64_t Unk;
+    uint64_t Unk2;
+    uint64_t FilePtr;
+    uint32_t NameHash;
+    uint32_t Padding;
+    uint32_t FileHash;
+    uint8_t Padding2[188];
+};
+
 // Verify that our pool data is exactly 0x20
 static_assert(sizeof(MW4XAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
+
+uint32_t ComputeSABEntryHash(const std::string Name)
+{
+    uint32_t Result = 0x1505;
+
+    for (auto& Char : Name)
+    {
+        Result = Char + (Result << 6) + (Result << 16) - Result;
+    }
+
+    return Result;
+}
 
 bool GameModernWarfare4::LoadOffsets()
 {
@@ -92,6 +136,8 @@ bool GameModernWarfare4::LoadOffsets()
     //    Modern Warfare 4 stringtable, check entries, results may vary
     //    Reading is: (StringIndex * 28) + StringTablePtr + 8
     // ----------------------------------------------------
+
+    auto Thing = ComputeSABEntryHash("reloads\\iw8_scharlie\\wfoly_ar_scharlie_reload_gl_end.LN.75.44100.all");
 
     // Attempt to load the game offsets
     if (CoDAssets::GameInstance != nullptr)
@@ -106,11 +152,15 @@ bool GameModernWarfare4::LoadOffsets()
             auto AnimPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
             auto ModelPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
             auto ImagePoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
+            auto SoundPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
+            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 22));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(SoundPoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(SoundTransientPoolData.PoolPtr);
 
             // Verify via first xmodel asset
             auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]));
@@ -123,6 +173,8 @@ bool GameModernWarfare4::LoadOffsets()
                 CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
                 CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
                 CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(SoundPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(SoundTransientPoolData.PoolSize);
                 // Return success
                 return true;
             }
@@ -159,11 +211,15 @@ bool GameModernWarfare4::LoadOffsets()
             auto AnimPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
             auto ModelPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
             auto ImagePoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
+            auto SoundPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
+            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(SoundPoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(SoundTransientPoolData.PoolPtr);
 
             // Verify via first xmodel asset
             auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]));
@@ -171,11 +227,13 @@ bool GameModernWarfare4::LoadOffsets()
             if (FirstXModelName == "axis_guide_createfx")
             {
                 // Verify string table, otherwise we are all set
-                CoDAssets::GameOffsetInfos.emplace_back(BaseAddress + GameOffsets.StringTable);
+                CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
                 // Read and apply sizes
                 CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
                 CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
                 CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(SoundPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(SoundTransientPoolData.PoolSize);
                 // Return success
                 return true;
             }
@@ -194,6 +252,7 @@ bool GameModernWarfare4::LoadAssets()
     bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
     bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
+    bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
 
     // Check if we need assets
     if (NeedsAnims)
@@ -364,6 +423,134 @@ bool GameModernWarfare4::LoadAssets()
 
             // Advance
             ImageOffset += sizeof(MW4GfxImage);
+        }
+    }
+
+    // Since MW now stores the entire SABL in Fast Files, we must essentially parse it in memory, SABS files can be loaded as usual.
+    if (NeedsSounds)
+    {
+        // MW has 2 soundbank pools, soundbank and soundbanktransient, weapons are in soundbanktransient, as far as we care, both are the same
+        for (size_t PoolIndex = 0; PoolIndex < 2; PoolIndex++)
+        {
+            // Images are the fourth offset and foruth pool
+            auto SoundOffset = CoDAssets::GameOffsetInfos[3 + PoolIndex];
+            auto SoundCount = CoDAssets::GamePoolSizes[3 + PoolIndex];
+
+            // Calculate maximum pool size
+            auto MaximumPoolOffset = (SoundCount * sizeof(MW4SoundBank)) + SoundOffset;
+            // Store original offset
+            auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3 + PoolIndex];
+
+            // Loop and read
+            for (uint32_t i = 0; i < SoundCount; i++)
+            {
+                // Read
+                auto SoundResult = CoDAssets::GameInstance->Read<MW4SoundBank>(SoundOffset);
+
+                // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
+                if ((SoundResult.NamePtr > MinimumPoolOffset && SoundResult.NamePtr < MaximumPoolOffset) || SoundResult.NamePtr == 0)
+                {
+                    // Advance
+                    SoundOffset += sizeof(MW4SoundBank);
+                    // Skip this asset
+                    continue;
+                }
+
+                auto SoundBankInfo = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(SoundResult.SoundBankPtr);
+
+                if (SoundBankInfo.BankFilePointer > 0)
+                {
+                    // Due to them being out of order, we must parse the aliases to get the hashes
+                    // Ideally I would like to figure out this hash so we don't need to do this, it's
+                    // not the same one used in Bo3 (SDBM)
+                    // The unordered lists do not seem to affect SABS files, just SABLs
+                    std::map<uint32_t, std::string> SABFileNames;
+
+                    for (uint64_t j = 0; j < SoundResult.AliasCount; j++)
+                    {
+                        auto Alias = CoDAssets::GameInstance->Read<MW4SoundAlias>(SoundResult.AliasesPtr + j * sizeof(MW4SoundAlias));
+
+                        for (uint64_t k = 0; k < Alias.EntriesCount; k++)
+                        {
+                            auto Entry = CoDAssets::GameInstance->Read<MW4SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW4SoundAliasEntry));
+
+                            SABFileNames[Entry.FileHash] = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
+                        }
+                    }
+
+                    // Parse the loaded header, and offset from the pointer to it
+                    auto Header = CoDAssets::GameInstance->Read<SABFileHeader>(SoundBankInfo.BankFilePointer);
+
+                    // Verify magic first, same for all SAB files
+                    // The magic is ('2UX#')
+                    if (Header.Magic != 0x23585532)
+                    {
+                        // Failed, invalid file
+                        return false;
+                    }
+
+                    // Get Settings
+                    auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
+
+                    // Prepare to loop and read entries
+                    for (uint32_t i = 0; i < Header.EntriesCount; i++)
+                    {
+                        // Read each entry
+                        auto Entry = CoDAssets::GameInstance->Read<SABv4Entry>(SoundBankInfo.BankFilePointer + Header.EntryTableOffset + i * sizeof(SABv4Entry));
+
+                        // Prepare to parse the information to our generic structure
+                        std::string EntryName = "";
+                        // Check our options
+                        if (SABFileNames.size() > 0)
+                        {
+                            // We have it in file
+                            EntryName = SABFileNames[Entry.Key];
+                        }
+                        //else if (NameIndex.NameDatabase.find(Entry.Key) != NameIndex.NameDatabase.end())
+                        //{
+                        //    // We have it in a database
+                        //    EntryName = NameIndex.NameDatabase.at(Entry.Key);
+                        //}
+                        else
+                        {
+                            // We don't have one
+                            EntryName = Strings::Format("_%llx", Entry.Key);
+                        }
+
+                        // Setup a new entry
+                        auto LoadedSound = new CoDSound_t();
+                        // Set the name, but remove all extensions first
+                        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
+                        LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
+
+                        // Set various properties
+                        LoadedSound->FrameRate = Entry.FrameRate;
+                        LoadedSound->FrameCount = Entry.FrameCount;
+                        LoadedSound->ChannelsCount = Entry.ChannelCount;
+                        // The offset should be after the seek table, since it is not required
+                        LoadedSound->AssetPointer = SoundBankInfo.BankFilePointer + (Entry.Offset + Entry.SeekTableLength);
+                        LoadedSound->AssetSize = Entry.Size;
+                        LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+                        LoadedSound->IsFileEntry = false;
+                        LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+                        // All Modern Warfare (v10) entries are FLAC's with no header
+                        LoadedSound->DataType = SoundDataTypes::FLAC_NeedsHeader;
+
+                        // Check do we want to skip this
+                        if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
+                        {
+                            delete LoadedSound;
+                            continue;
+                        }
+
+                        // Add
+                        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+                    }
+                }
+
+                // Advance
+                SoundOffset += sizeof(MW4SoundBank);
+            }
         }
     }
 
@@ -898,7 +1085,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             // Iterate over verticies
             for (uint32_t i = 0; i < Submesh.VertexCount; i++)
             {
-                if (std::abs(Normals[i].x + Normals[i].y + Normals[i].z) < 0.00001)
+                if ((std::abs(Normals[i].x) + std::abs(Normals[i].y) + std::abs(Normals[i].z)) < 0.00001)
                 {
                     // Set to 1.0
                     Mesh.Verticies[i].Normal = Vector3(1.0f, 0.0f, 0.0f);
@@ -916,7 +1103,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((28 * Index) + CoDAssets::GameOffsetInfos[3] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((28 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
 }
 void GameModernWarfare4::PerformInitialSetup()
 {
