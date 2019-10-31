@@ -3136,9 +3136,9 @@ struct MW4XModelSurface
     
     uint16_t Padding6;
 
-    uint16_t VertListCount;
+    uint8_t VertListCount;
 
-    uint8_t Padding0[6];
+    uint8_t Padding0[7];
 
 
     uint16_t WeightCounts[8];
