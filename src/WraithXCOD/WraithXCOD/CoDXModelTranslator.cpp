@@ -186,6 +186,16 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         ModelResult->GenerateLocalPositions(true, false);
     }
 
+    // Check if we didn't parse any bones, if we didn't, we need can "inject" tag_origin (this is mostly for MW which has weird models
+    // that are rare with thousands of bones)
+    if (Model->BoneCount == 0)
+    {
+        // Add the new bone
+        auto& NewBone = ModelResult->AddBone();
+        NewBone.TagName = "tag_origin";
+        NewBone.BoneParent = -1;
+    }
+
     // Check if we just wanted the bones of the model (Used for hitbox logic)
     if (JustBones) { return ModelResult; }
 

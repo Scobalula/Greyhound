@@ -345,7 +345,11 @@ bool GameModernWarfare4::LoadAssets()
             // Set
             LoadedModel->AssetName = ModelName;
             LoadedModel->AssetPointer = ModelOffset;
-            LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
+            // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
+            if (ModelResult.NumBones > 0 && ModelResult.TranslationsPtr > 0 && ModelResult.RotationsPtr > 0 && ModelResult.ParentListPtr > 0)
+                LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
+            else
+                LoadedModel->BoneCount = 0;
             LoadedModel->LodCount = ModelResult.NumLods;
 
             // Check placeholder configuration, "empty_model" is the base xmodel swap
@@ -647,9 +651,12 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
 
         // Copy over default properties
         ModelAsset->ModelName = Model->AssetName;
-        // Bone counts
-        ModelAsset->BoneCount = ModelData.NumBones + ModelData.UnkBoneCount;
-        ModelAsset->RootBoneCount = ModelData.NumRootBones;
+        // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
+        if (ModelData.NumBones > 0 && ModelData.TranslationsPtr > 0 && ModelData.RotationsPtr > 0 && ModelData.ParentListPtr > 0)
+        {
+            ModelAsset->BoneCount = ModelData.NumBones + ModelData.UnkBoneCount;
+            ModelAsset->RootBoneCount = ModelData.NumRootBones;
+        }
 
         // Bone data type
         ModelAsset->BoneRotationData = BoneDataTypes::DivideBySize;
@@ -1006,8 +1013,9 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             // Pre-allocate vertex weights (Data defaults to weight 1.0 on bone 0)
             auto VertexWeights = std::vector<WeightsData>(Submesh.VertexCount);
 
-            // Setup weights
-            PrepareVertexWeights(VertexWeights, Submesh);
+            // Setup weights if we have any bones
+            if(ResultModel->BoneCount() > 1)
+                PrepareVertexWeights(VertexWeights, Submesh);
 
             // Jump to vertex position data, advance to this submeshes verticies
             MeshReader.SetPosition(Submesh.VertexPtr);
