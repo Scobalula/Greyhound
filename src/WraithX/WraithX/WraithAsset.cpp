@@ -5,14 +5,14 @@
 
 WraithAsset::WraithAsset()
 {
-	// Set defaults
-	AssetType = WraithAssetType::Unknown;
-	AssetName = "WraithAsset";
-	AssetStatus = WraithAssetStatus::NotLoaded;
-	AssetSize = -1;
+    // Set defaults
+    AssetType = WraithAssetType::Unknown;
+    AssetName = "WraithAsset";
+    AssetStatus = WraithAssetStatus::NotLoaded;
+    AssetSize = -1;
 }
 
 WraithAsset::~WraithAsset()
 {
-	// Default
+    // Default
 }

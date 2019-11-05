@@ -10,6 +10,6 @@
 class SEAnim
 {
 public:
-	// Export a WraithAnim to a SEAnim file
-	static void ExportSEAnim(const WraithAnim& Animation, const std::string& FileName);
+    // Export a WraithAnim to a SEAnim file
+    static void ExportSEAnim(const WraithAnim& Animation, const std::string& FileName);
 };

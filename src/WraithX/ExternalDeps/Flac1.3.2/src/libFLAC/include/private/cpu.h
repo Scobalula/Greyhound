@@ -151,33 +151,33 @@
 #endif
 
 typedef enum {
-	FLAC__CPUINFO_TYPE_IA32,
-	FLAC__CPUINFO_TYPE_X86_64,
-	FLAC__CPUINFO_TYPE_UNKNOWN
+    FLAC__CPUINFO_TYPE_IA32,
+    FLAC__CPUINFO_TYPE_X86_64,
+    FLAC__CPUINFO_TYPE_UNKNOWN
 } FLAC__CPUInfo_Type;
 
 typedef struct {
-	FLAC__bool intel;
+    FLAC__bool intel;
 
-	FLAC__bool cmov;
-	FLAC__bool mmx;
-	FLAC__bool sse;
-	FLAC__bool sse2;
+    FLAC__bool cmov;
+    FLAC__bool mmx;
+    FLAC__bool sse;
+    FLAC__bool sse2;
 
-	FLAC__bool sse3;
-	FLAC__bool ssse3;
-	FLAC__bool sse41;
-	FLAC__bool sse42;
-	FLAC__bool avx;
-	FLAC__bool avx2;
-	FLAC__bool fma;
+    FLAC__bool sse3;
+    FLAC__bool ssse3;
+    FLAC__bool sse41;
+    FLAC__bool sse42;
+    FLAC__bool avx;
+    FLAC__bool avx2;
+    FLAC__bool fma;
 } FLAC__CPUInfo_x86;
 
 
 typedef struct {
-	FLAC__bool use_asm;
-	FLAC__CPUInfo_Type type;
-	FLAC__CPUInfo_x86 x86;
+    FLAC__bool use_asm;
+    FLAC__CPUInfo_Type type;
+    FLAC__CPUInfo_x86 x86;
 } FLAC__CPUInfo;
 
 void FLAC__cpu_info(FLAC__CPUInfo *info);

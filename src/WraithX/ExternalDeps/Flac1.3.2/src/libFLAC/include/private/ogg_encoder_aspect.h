@@ -39,16 +39,16 @@
 #include "FLAC/stream_encoder.h" /* for FLAC__StreamEncoderWriteStatus */
 
 typedef struct FLAC__OggEncoderAspect {
-	/* these are storage for values that can be set through the API */
-	long serial_number;
-	uint32_t num_metadata;
+    /* these are storage for values that can be set through the API */
+    long serial_number;
+    uint32_t num_metadata;
 
-	/* these are for internal state related to Ogg encoding */
-	ogg_stream_state stream_state;
-	ogg_page page;
-	FLAC__bool seen_magic; /* true if we've seen the fLaC magic in the write callback yet */
-	FLAC__bool is_first_packet;
-	FLAC__uint64 samples_written;
+    /* these are for internal state related to Ogg encoding */
+    ogg_stream_state stream_state;
+    ogg_page page;
+    FLAC__bool seen_magic; /* true if we've seen the fLaC magic in the write callback yet */
+    FLAC__bool is_first_packet;
+    FLAC__uint64 samples_written;
 } FLAC__OggEncoderAspect;
 
 void FLAC__ogg_encoder_aspect_set_serial_number(FLAC__OggEncoderAspect *aspect, long value);

@@ -11,12 +11,12 @@
 class WraithProgressBar
 {
 private:
-	// -- Custom events
+    // -- Custom events
 
-	// Handles painting the WraithProgressBar
-	static void OnPaint(HWND hProgress, HDC hDC, PAINTSTRUCT& pPaintStruct);
+    // Handles painting the WraithProgressBar
+    static void OnPaint(HWND hProgress, HDC hDC, PAINTSTRUCT& pPaintStruct);
 
 public:
-	// Handles the WNDPROC messages for the WraithProgressBar
-	static LRESULT CALLBACK WndProcWraithProgressBar(HWND hProgress, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
+    // Handles the WNDPROC messages for the WraithProgressBar
+    static LRESULT CALLBACK WndProcWraithProgressBar(HWND hProgress, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 };

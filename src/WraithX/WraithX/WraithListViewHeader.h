@@ -12,15 +12,15 @@ class WraithListViewHeader : public CHeaderCtrl
 {
 protected:
 
-	// Occures when an item needs rendering
-	virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
-	// Handle paint override
-	afx_msg void OnPaint();
-	// Handle NC paint override
-	afx_msg void OnNcPaint();
-	// Handle background paint override
-	afx_msg BOOL OnEraseBkgnd(CDC* cDC);
+    // Occures when an item needs rendering
+    virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+    // Handle paint override
+    afx_msg void OnPaint();
+    // Handle NC paint override
+    afx_msg void OnNcPaint();
+    // Handle background paint override
+    afx_msg BOOL OnEraseBkgnd(CDC* cDC);
 
-	// Declare the message map instance
-	DECLARE_MESSAGE_MAP()
+    // Declare the message map instance
+    DECLARE_MESSAGE_MAP()
 };

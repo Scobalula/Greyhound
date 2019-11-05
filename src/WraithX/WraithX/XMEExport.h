@@ -9,6 +9,6 @@
 class CodXME
 {
 public:
-	// Export a WraithModel to a XME file
-	static void ExportXME(const WraithModel& Model, const std::string& FileName);
+    // Export a WraithModel to a XME file
+    static void ExportXME(const WraithModel& Model, const std::string& FileName);
 };

@@ -20,71 +20,71 @@
 class WraithPreviewScene
 {
 public:
-	// -- WraithPreviewScene
-	WraithPreviewScene();
-	~WraithPreviewScene();
+    // -- WraithPreviewScene
+    WraithPreviewScene();
+    ~WraithPreviewScene();
 
-	// Renders the preview scene
-	void RenderScene();
+    // Renders the preview scene
+    void RenderScene();
 
-	// Adds a submesh
-	void AddSubmesh(GLuint SubmeshList);
+    // Adds a submesh
+    void AddSubmesh(GLuint SubmeshList);
 
 private:
 
-	// A list of opengl displays
-	std::vector<GLuint> SubmeshDrawCalls;
+    // A list of opengl displays
+    std::vector<GLuint> SubmeshDrawCalls;
 };
 
 // A class that handles previewing assets
 class WraithPreview : public WraithWindow
 {
 public:
-	// -- WraithPreview functions
-	WraithPreview(UINT nIDTemplate);
-	virtual ~WraithPreview();
+    // -- WraithPreview functions
+    WraithPreview(UINT nIDTemplate);
+    virtual ~WraithPreview();
 
-	// Loads a WraithModel to preview
-	void LoadWraithModel(const std::unique_ptr<WraithModel>& Model);
+    // Loads a WraithModel to preview
+    void LoadWraithModel(const std::unique_ptr<WraithModel>& Model);
 
-	// Shows the preview window
-	void ShowPreview();
+    // Shows the preview window
+    void ShowPreview();
 
 protected:
 
-	// Handle proper control styles for OpenGL
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-	// Handle drawing the control
-	afx_msg void OnPaint();
-	// Occures when the control is made
-	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	// Handle painting the background
-	afx_msg BOOL OnEraseBkgnd(CDC* cDC);
-	// Handle resizing the buffer
-	afx_msg void OnSize(UINT nType, int cx, int cy);
+    // Handle proper control styles for OpenGL
+    virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+    // Handle drawing the control
+    afx_msg void OnPaint();
+    // Occures when the control is made
+    afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    // Handle painting the background
+    afx_msg BOOL OnEraseBkgnd(CDC* cDC);
+    // Handle resizing the buffer
+    afx_msg void OnSize(UINT nType, int cx, int cy);
 
-	// Declare the message map instance
-	DECLARE_MESSAGE_MAP()
+    // Declare the message map instance
+    DECLARE_MESSAGE_MAP()
 
 private:
 
-	// -- WraithPreview helpers
+    // -- WraithPreview helpers
 
-	// Sets up OpenGL properly
-	void InitializeOpenGL();
-	// Renders the scene
-	void RenderScene();
+    // Sets up OpenGL properly
+    void InitializeOpenGL();
+    // Renders the scene
+    void RenderScene();
 
-	// The loaded scene object
-	std::unique_ptr<WraithPreviewScene> PreviewScene;
+    // The loaded scene object
+    std::unique_ptr<WraithPreviewScene> PreviewScene;
 
-	// -- Variables
+    // -- Variables
 
-	HGLRC m_hRC;
-	CDC* m_pDC;
-	BOOL m_Created;
-	UINT m_TemplateID;
+    HGLRC m_hRC;
+    CDC* m_pDC;
+    BOOL m_Created;
+    UINT m_TemplateID;
 
-	// -- Current texture
-	GLuint m_iTexture;
+    // -- Current texture
+    GLuint m_iTexture;
 };

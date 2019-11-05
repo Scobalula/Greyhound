@@ -29,6 +29,7 @@ enum class SupportedGames
     ModernWarfare2,
     ModernWarfare3,
     ModernWarfare4,
+    QuantumSolace,
     ModernWarfareRemastered,
     Ghosts,
     InfiniteWarfare,

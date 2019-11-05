@@ -658,7 +658,7 @@ namespace DirectX
     REFGUID __cdecl GetWICCodec(_In_ WICCodecs codec);
 
     IWICImagingFactory* __cdecl GetWICFactory( bool& iswic2 );
-	void __cdecl CleanupWICFactory();
+    void __cdecl CleanupWICFactory();
     void __cdecl SetWICFactory( _In_opt_ IWICImagingFactory* pWIC);
 
     //---------------------------------------------------------------------------------

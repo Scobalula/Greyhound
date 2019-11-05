@@ -10,18 +10,18 @@
 class WraithMenu : public CMenu
 {
 public:
-	WraithMenu();
-	virtual ~WraithMenu();
+    WraithMenu();
+    virtual ~WraithMenu();
 
-	// Enables the menu to draw on it's own
-	void EnableOwnerDraw();
+    // Enables the menu to draw on it's own
+    void EnableOwnerDraw();
 
-	// Gets a reference to the submenu item
-	std::unique_ptr<WraithMenu> GetWraithSubMenu(int nPos) const;
+    // Gets a reference to the submenu item
+    std::unique_ptr<WraithMenu> GetWraithSubMenu(int nPos) const;
 
 protected:
 
-	// Overridden events
-	virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
-	virtual void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
+    // Overridden events
+    virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+    virtual void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 };

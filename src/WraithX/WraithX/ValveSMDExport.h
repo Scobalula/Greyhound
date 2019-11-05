@@ -9,6 +9,6 @@
 class ValveSMD
 {
 public:
-	// Export a WraithModel to a Valve SMD file
-	static void ExportSMD(const WraithModel& Model, const std::string& FileName);
+    // Export a WraithModel to a Valve SMD file
+    static void ExportSMD(const WraithModel& Model, const std::string& FileName);
 };

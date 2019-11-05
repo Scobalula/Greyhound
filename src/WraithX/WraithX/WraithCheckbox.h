@@ -10,12 +10,12 @@
 class WraithCheckbox
 {
 private:
-	// -- Custom events
+    // -- Custom events
 
-	// Handles painting the WraithCheckbox
-	static void OnPaint(HWND hCheckbox, HDC hDC, PAINTSTRUCT& pPaintStruct);
+    // Handles painting the WraithCheckbox
+    static void OnPaint(HWND hCheckbox, HDC hDC, PAINTSTRUCT& pPaintStruct);
 
 public:
-	// Handles the WNDPROC messages for the WraithCheckbox
-	static LRESULT CALLBACK WndProcWraithCheckbox(HWND hCheckbox, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
+    // Handles the WNDPROC messages for the WraithCheckbox
+    static LRESULT CALLBACK WndProcWraithCheckbox(HWND hCheckbox, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 };

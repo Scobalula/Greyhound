@@ -113,6 +113,7 @@
     <ClCompile Include="GameModernWarfare2.cpp" />
     <ClCompile Include="GameModernWarfare3.cpp" />
     <ClCompile Include="GameModernWarfareRM.cpp" />
+    <ClCompile Include="GameQuantumSolace.cpp" />
     <ClCompile Include="GameWorldAtWar.cpp" />
     <ClCompile Include="GameWorldWar2.cpp" />
     <ClCompile Include="GDTSettings.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="GameModernWarfare2.h" />
     <ClInclude Include="GameModernWarfare3.h" />
     <ClInclude Include="GameModernWarfareRM.h" />
+    <ClInclude Include="GameQuantumSolace.h" />
     <ClInclude Include="GameWorldAtWar.h" />
     <ClInclude Include="GameWorldWar2.h" />
     <ClInclude Include="GDTSettings.h" />

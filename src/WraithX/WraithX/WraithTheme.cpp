@@ -43,96 +43,96 @@ ImageResourceHandler WraithTheme::OnLoadImageResource = nullptr;
 
 void WraithTheme::InitializeDefaultTheme()
 {
-	// Set the colors
-	DefaultForeground          = Gdiplus::Color(255, 255, 255, 255);	// WHITE
-	DefaultControlBorder       = Gdiplus::Color(255, 30, 144, 255);		// DODGERBLUE
-	DisabledControlBorder      = Gdiplus::Color(255, 169, 169, 169);	// DARKGRAY
-	DisabledControlFill        = Gdiplus::Color(255, 169, 169, 169);	// DARKGRAY
-	DefaultControlGradTop      = Gdiplus::Color(255, 50, 50, 50);		// GRADIENT COLOR TOP
-	DefaultControlGradBottom   = Gdiplus::Color(255, 42, 42, 42);		// GRADIENT COLOR BOTTOM
-	DefaultFillGradTop         = Gdiplus::Color(255, 0, 102, 255);		// GRADIENT COLOR TOP
-	DefaultFillGradBottom      = Gdiplus::Color(255, 0, 51, 204);		// GRADIENT COLOR BOTTOM
-	DefaultControlBackground   = Gdiplus::Color(255, 37, 37, 37);		// A DARK BLACK-GRAY COLOR
-	ListItemColorBase          = Gdiplus::Color(255, 54, 54, 54);		// A DARK BLACK-GRAY COLOR
-	ListItemColorAlt           = Gdiplus::Color(255, 36, 36, 36);		// A DARK BLACK-GRAY COLOR
-	DefaultHighlightForeground = Gdiplus::Color(0, 0, 0);				// BLACK
-	DefaultHighlightBackground = Gdiplus::Color(255, 255, 255);			// WHITE
-	HeaderFillGradTop          = Gdiplus::Color(50, 50, 50);			// A DARK GRAY COLOR
-	HeaderFillGradBottom       = Gdiplus::Color(42, 42, 42);			// A DARK GRAY COLOR
-	HeaderBorderColor          = Gdiplus::Color(32, 32, 32);			// A DARK GRAY BORDER
-	HeaderBackgroundColor      = Gdiplus::Color(48, 48, 48);			// A DARK GRAY BACK
-	HeaderSeparatorColor       = Gdiplus::Color(64, 64, 64);			// A LIGHT GRAY DIVIDER
-	WindowFrameColor           = Gdiplus::Color(54, 54, 54);			// A GRAY BORDER
+    // Set the colors
+    DefaultForeground          = Gdiplus::Color(255, 255, 255, 255);    // WHITE
+    DefaultControlBorder       = Gdiplus::Color(255, 30, 144, 255);        // DODGERBLUE
+    DisabledControlBorder      = Gdiplus::Color(255, 169, 169, 169);    // DARKGRAY
+    DisabledControlFill        = Gdiplus::Color(255, 169, 169, 169);    // DARKGRAY
+    DefaultControlGradTop      = Gdiplus::Color(255, 50, 50, 50);        // GRADIENT COLOR TOP
+    DefaultControlGradBottom   = Gdiplus::Color(255, 42, 42, 42);        // GRADIENT COLOR BOTTOM
+    DefaultFillGradTop         = Gdiplus::Color(255, 0, 102, 255);        // GRADIENT COLOR TOP
+    DefaultFillGradBottom      = Gdiplus::Color(255, 0, 51, 204);        // GRADIENT COLOR BOTTOM
+    DefaultControlBackground   = Gdiplus::Color(255, 37, 37, 37);        // A DARK BLACK-GRAY COLOR
+    ListItemColorBase          = Gdiplus::Color(255, 54, 54, 54);        // A DARK BLACK-GRAY COLOR
+    ListItemColorAlt           = Gdiplus::Color(255, 36, 36, 36);        // A DARK BLACK-GRAY COLOR
+    DefaultHighlightForeground = Gdiplus::Color(0, 0, 0);                // BLACK
+    DefaultHighlightBackground = Gdiplus::Color(255, 255, 255);            // WHITE
+    HeaderFillGradTop          = Gdiplus::Color(50, 50, 50);            // A DARK GRAY COLOR
+    HeaderFillGradBottom       = Gdiplus::Color(42, 42, 42);            // A DARK GRAY COLOR
+    HeaderBorderColor          = Gdiplus::Color(32, 32, 32);            // A DARK GRAY BORDER
+    HeaderBackgroundColor      = Gdiplus::Color(48, 48, 48);            // A DARK GRAY BACK
+    HeaderSeparatorColor       = Gdiplus::Color(64, 64, 64);            // A LIGHT GRAY DIVIDER
+    WindowFrameColor           = Gdiplus::Color(54, 54, 54);            // A GRAY BORDER
 
-	// Clear
-	ColorHints.clear();
+    // Clear
+    ColorHints.clear();
 
-	// Add hints
-	ColorHints.push_back(Gdiplus::Color(255, 30, 144, 255));	// DODGERBLUE (0)
-	ColorHints.push_back(Gdiplus::Color(255, 255, 0, 0));		// RED (1)
-	ColorHints.push_back(Gdiplus::Color(255, 50, 205, 50));		// LIMEGREEN (2)
-	ColorHints.push_back(Gdiplus::Color(255, 255, 255, 50));	// YELLOW (3)
-	ColorHints.push_back(Gdiplus::Color(255, 255, 165, 0));		// ORANGE (4)
-	ColorHints.push_back(Gdiplus::Color(255, 182, 57, 255));	// PURPLEISH COLOR (5)
+    // Add hints
+    ColorHints.push_back(Gdiplus::Color(255, 30, 144, 255));    // DODGERBLUE (0)
+    ColorHints.push_back(Gdiplus::Color(255, 255, 0, 0));        // RED (1)
+    ColorHints.push_back(Gdiplus::Color(255, 50, 205, 50));        // LIMEGREEN (2)
+    ColorHints.push_back(Gdiplus::Color(255, 255, 255, 50));    // YELLOW (3)
+    ColorHints.push_back(Gdiplus::Color(255, 255, 165, 0));        // ORANGE (4)
+    ColorHints.push_back(Gdiplus::Color(255, 182, 57, 255));    // PURPLEISH COLOR (5)
 
-	// Run callback if available
-	if (OnLoadIconResource != nullptr)
-	{
-		// Call and load
-		ApplicationIcon = OnLoadIconResource(WraithIconAssets::ApplicationIcon);
-		ApplicationIconLarge = OnLoadIconResource(WraithIconAssets::ApplicationIconLarge);
-		CheckboxCheckedIcon = OnLoadIconResource(WraithIconAssets::CheckboxCheckedIcon);
-	}
+    // Run callback if available
+    if (OnLoadIconResource != nullptr)
+    {
+        // Call and load
+        ApplicationIcon = OnLoadIconResource(WraithIconAssets::ApplicationIcon);
+        ApplicationIconLarge = OnLoadIconResource(WraithIconAssets::ApplicationIconLarge);
+        CheckboxCheckedIcon = OnLoadIconResource(WraithIconAssets::CheckboxCheckedIcon);
+    }
 
-	// Run callback if available
-	if (OnLoadImageResource != nullptr)
-	{
-		// Call and load
-		SettingsNormalImage = OnLoadImageResource(WraithImageAssets::SettingsNormalIcon);
-		SettingsHoverImage = OnLoadImageResource(WraithImageAssets::SettingsHoverIcon);
-		SettingsSelectedImage = OnLoadImageResource(WraithImageAssets::SettingsSelectedIcon);
-	}
+    // Run callback if available
+    if (OnLoadImageResource != nullptr)
+    {
+        // Call and load
+        SettingsNormalImage = OnLoadImageResource(WraithImageAssets::SettingsNormalIcon);
+        SettingsHoverImage = OnLoadImageResource(WraithImageAssets::SettingsHoverIcon);
+        SettingsSelectedImage = OnLoadImageResource(WraithImageAssets::SettingsSelectedIcon);
+    }
 }
 
 void WraithTheme::UnloadThemeResources()
 {
-	// Delete icons if loaded
-	if (ApplicationIcon != NULL)
-	{
-		// Destroy and mark
-		DestroyIcon(ApplicationIcon);
-		ApplicationIcon = NULL;
-	}
-	if (CheckboxCheckedIcon != NULL)
-	{
-		// Destroy and mark
-		DestroyIcon(CheckboxCheckedIcon);
-		CheckboxCheckedIcon = NULL;
-	}
-	if (ApplicationIconLarge != NULL)
-	{
-		// Destroy and mark
-		DestroyIcon(ApplicationIconLarge);
-		ApplicationIconLarge = NULL;
-	}
+    // Delete icons if loaded
+    if (ApplicationIcon != NULL)
+    {
+        // Destroy and mark
+        DestroyIcon(ApplicationIcon);
+        ApplicationIcon = NULL;
+    }
+    if (CheckboxCheckedIcon != NULL)
+    {
+        // Destroy and mark
+        DestroyIcon(CheckboxCheckedIcon);
+        CheckboxCheckedIcon = NULL;
+    }
+    if (ApplicationIconLarge != NULL)
+    {
+        // Destroy and mark
+        DestroyIcon(ApplicationIconLarge);
+        ApplicationIconLarge = NULL;
+    }
 
-	// Delete images if loaded
-	if (SettingsNormalImage != nullptr)
-	{
-		// Delete
-		delete SettingsNormalImage;
-		SettingsNormalImage = nullptr;
-	}
-	if (SettingsHoverImage != nullptr)
-	{
-		// Delete
-		delete SettingsHoverImage;
-		SettingsHoverImage = nullptr;
-	}
-	if (SettingsSelectedImage != nullptr)
-	{
-		// Delete
-		delete SettingsSelectedImage;
-		SettingsHoverImage = nullptr;
-	}
+    // Delete images if loaded
+    if (SettingsNormalImage != nullptr)
+    {
+        // Delete
+        delete SettingsNormalImage;
+        SettingsNormalImage = nullptr;
+    }
+    if (SettingsHoverImage != nullptr)
+    {
+        // Delete
+        delete SettingsHoverImage;
+        SettingsHoverImage = nullptr;
+    }
+    if (SettingsSelectedImage != nullptr)
+    {
+        // Delete
+        delete SettingsSelectedImage;
+        SettingsHoverImage = nullptr;
+    }
 }

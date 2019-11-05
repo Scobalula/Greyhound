@@ -13,18 +13,18 @@
 class WraithApp : public CWinApp
 {
 private:
-	// The handle to the window to show
-	WraithWindow* MainAppWindow;
+    // The handle to the window to show
+    WraithWindow* MainAppWindow;
 
 public:
-	// Create a new WraithApp instance
-	WraithApp();
+    // Create a new WraithApp instance
+    WraithApp();
 
-	// Initialize the application
-	virtual BOOL InitInstance();
+    // Initialize the application
+    virtual BOOL InitInstance();
 
-	// Run the application, initializing if need be, with the specified WraithWindow
-	void RunApplication(WraithWindow& WraithWnd);
+    // Run the application, initializing if need be, with the specified WraithWindow
+    void RunApplication(WraithWindow& WraithWnd);
 
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
 };

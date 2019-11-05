@@ -11,18 +11,18 @@ std::unique_ptr<std::unordered_map<std::string, std::string>> CommandLineManager
 
 void CommandLineManager::ParseCommandLine(const std::vector<std::string>& Arguments)
 {
-	// Prepare to load command line
-	if (CommandLineCache == nullptr)
-	{
-		// Setup
-		CommandLineCache.reset(new std::unordered_map<std::string, std::string>);
-	}
-	else
-	{
-		// Clear
-		CommandLineCache->clear();
-	}
+    // Prepare to load command line
+    if (CommandLineCache == nullptr)
+    {
+        // Setup
+        CommandLineCache.reset(new std::unordered_map<std::string, std::string>);
+    }
+    else
+    {
+        // Clear
+        CommandLineCache->clear();
+    }
 
-	// TODO: Parse based on specifications
+    // TODO: Parse based on specifications
 
 }

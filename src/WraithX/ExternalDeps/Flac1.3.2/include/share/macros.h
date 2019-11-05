@@ -40,6 +40,6 @@
  */
 
 #define FLAC_CHECK_RETURN(x) \
-			{	if ((x) < 0) \
-					fprintf (stderr, "%s : %s\n", #x, strerror (errno)) ; \
-			}
+            {    if ((x) < 0) \
+                    fprintf (stderr, "%s : %s\n", #x, strerror (errno)) ; \
+            }

@@ -11,12 +11,12 @@
 class WraithX
 {
 private:
-	// The GDI+ instance
-	static ULONG_PTR GDIPlusToken;
+    // The GDI+ instance
+    static ULONG_PTR GDIPlusToken;
 
 public:
-	// Setup everything required for WraithX to function, GUI if specified, load command line args (old entry point)
-	static bool InitializeAPI(bool GUI, bool ImageAPI = true);
-	// Close down the API
-	static void ShutdownAPI(bool GUI, bool ImageAPI = true);
+    // Setup everything required for WraithX to function, GUI if specified, load command line args (old entry point)
+    static bool InitializeAPI(bool GUI, bool ImageAPI = true);
+    // Close down the API
+    static void ShutdownAPI(bool GUI, bool ImageAPI = true);
 };

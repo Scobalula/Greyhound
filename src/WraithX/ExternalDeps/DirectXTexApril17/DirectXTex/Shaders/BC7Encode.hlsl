@@ -8,11 +8,11 @@
 
 //#define REF_DEVICE
 
-#define CHAR_LENGTH			8
-#define NCHANNELS			4
-#define	BC7_UNORM			98
-#define MAX_UINT			0xFFFFFFFF
-#define MIN_UINT			0
+#define CHAR_LENGTH            8
+#define NCHANNELS            4
+#define    BC7_UNORM            98
+#define MAX_UINT            0xFFFFFFFF
+#define MIN_UINT            0
 
 static const uint candidateSectionBit[64] = //Associated to partition 0-63
 {
@@ -224,8 +224,8 @@ void swap(inout uint lhs, inout uint rhs)
 }
 
 uint ComputeError(in uint4 a, in uint4 b)
-{		
-	return dot(a.rgb, b.rgb) + g_alpha_weight * a.a*b.a;
+{        
+    return dot(a.rgb, b.rgb) + g_alpha_weight * a.a*b.a;
 }
 
 void Ensure_A_Is_Larger( inout uint4 a, inout uint4 b )
@@ -246,10 +246,10 @@ StructuredBuffer<uint4> g_InBuff : register( t1 );
 
 RWStructuredBuffer<uint4> g_OutBuff : register( u0 );
 
-#define THREAD_GROUP_SIZE	64
-#define BLOCK_SIZE_Y		4
-#define BLOCK_SIZE_X		4
-#define BLOCK_SIZE			(BLOCK_SIZE_Y * BLOCK_SIZE_X)
+#define THREAD_GROUP_SIZE    64
+#define BLOCK_SIZE_Y        4
+#define BLOCK_SIZE_X        4
+#define BLOCK_SIZE            (BLOCK_SIZE_Y * BLOCK_SIZE_X)
 
 struct BufferShared
 {
@@ -402,9 +402,9 @@ void TryMode456CS( uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID ) // mode
         if (threadInBlock < 8)  // try mode 4 in threads 0..7
         {
             // mode 4 thread distribution
-            // Thread           0	1	2	3	4	5	6	7
-            // Rotation	        0	0	1	1	2	2	3	3
-            // Index selector   0	1	0	1	0	1	0	1
+            // Thread           0    1    2    3    4    5    6    7
+            // Rotation            0    0    1    1    2    2    3    3
+            // Index selector   0    1    0    1    0    1    0    1
 
             mode = 4;
             compress_endpoints4( endPoint );
@@ -412,8 +412,8 @@ void TryMode456CS( uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID ) // mode
         else                    // try mode 5 in threads 8..11
         {
             // mode 5 thread distribution
-            // Thread	 8	9  10  11
-            // Rotation	 0	1   2   3
+            // Thread     8    9  10  11
+            // Rotation     0    1   2   3
 
             mode = 5;
             compress_endpoints5( endPoint );
@@ -451,7 +451,7 @@ void TryMode456CS( uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID ) // mode
             swap(endPoint[0].a, endPoint[1].a);
         }
         */
-	
+    
         // should be the same as above
         dotProduct = int2( dot( pixel.rgb - endPoint[0].rgb, pixel.rgb - endPoint[0].rgb ), dot( pixel.rgb - endPoint[1].rgb, pixel.rgb - endPoint[1].rgb ) );
         if ( dotProduct.x > dotProduct.y )
@@ -1363,7 +1363,7 @@ void EncodeBlockCS(uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID)
                 if ( span_norm_sqr.y > 0 && dotProduct.y > 0 && uint( dotProduct.y * 63.49999 ) > uint( 32 * span_norm_sqr.y ) )
                 {
                     swap(ep[0].a, ep[1].a);
-                    swap(ep_quantized[0].a, ep_quantized[1].a);		    
+                    swap(ep_quantized[0].a, ep_quantized[1].a);            
                 }
             }
         }
@@ -1388,7 +1388,7 @@ void EncodeBlockCS(uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID)
             if ( span_norm_sqr > 0 && dotProduct > 0 && uint( dotProduct * 63.49999 ) > uint( 32 * span_norm_sqr ) )
             {
                 swap(ep[0], ep[1]);
-                swap(ep_quantized[0], ep_quantized[1]);		
+                swap(ep_quantized[0], ep_quantized[1]);        
             }
         }
 
@@ -1575,7 +1575,7 @@ uint2x4 compress_endpoints0( inout uint2x4 endPoint, uint2 P )
     for ( uint j = 0; j < 2; j ++ )
     {
         quantized[j].rgb = quantize(endPoint[j].rgbb, 5).rgb & 0xFFFFFFFE;
-	    quantized[j].rgb |= P[j];
+        quantized[j].rgb |= P[j];
         quantized[j].a = 0xFF;
 
         endPoint[j].rgb = unquantize(quantized[j].rgbb, 5).rgb;
@@ -1591,11 +1591,11 @@ uint2x4 compress_endpoints1( inout uint2x4 endPoint, uint2 P )
     for ( uint j = 0; j < 2; j ++ )
     {
         quantized[j].rgb = quantize(endPoint[j].rgbb, 7).rgb & 0xFFFFFFFE;
-	    quantized[j].rgb |= P[j];
+        quantized[j].rgb |= P[j];
         quantized[j].a = 0xFF;
 
         endPoint[j].rgb = unquantize(quantized[j].rgbb, 7).rgb;
-	    endPoint[j].a = 0xFF;
+        endPoint[j].a = 0xFF;
 
         quantized[j] <<= 1;
     }
@@ -1610,7 +1610,7 @@ uint2x4 compress_endpoints2( inout uint2x4 endPoint )
         quantized[j].a = 0xFF;
 
         endPoint[j].rgb = unquantize(quantized[j].rgbb, 5).rgb;
-	    endPoint[j].a = 0xFF;    
+        endPoint[j].a = 0xFF;    
 
         quantized[j] <<= 3;
     }
@@ -1622,7 +1622,7 @@ uint2x4 compress_endpoints3( inout uint2x4 endPoint, uint2 P )
     for ( uint j = 0; j < 2; j ++ )
     {
         quantized[j].rgb = endPoint[j].rgb & 0xFFFFFFFE;
-	    quantized[j].rgb |= P[j];
+        quantized[j].rgb |= P[j];
         quantized[j].a = 0xFF;
         
         endPoint[j].rgb = quantized[j].rgb;
@@ -1667,8 +1667,8 @@ uint2x4 compress_endpoints6( inout uint2x4 endPoint, uint2 P )
     for ( uint j = 0; j < 2; j ++ )
     {
         quantized[j] = endPoint[j] & 0xFFFFFFFE;
-	    quantized[j] |= P[j];
-	        
+        quantized[j] |= P[j];
+            
         endPoint[j] = quantized[j];
     }
     return quantized;
@@ -1679,7 +1679,7 @@ uint2x4 compress_endpoints7( inout uint2x4 endPoint, uint2 P )
     for ( uint j = 0; j < 2; j ++ )
     {
         quantized[j] = quantize(endPoint[j], 6) & 0xFFFFFFFE;
-	    quantized[j] |= P[j];
+        quantized[j] |= P[j];
 
         endPoint[j] = unquantize(quantized[j], 6);
     }
@@ -1783,7 +1783,7 @@ void block_package2( out uint4 block, uint partition, uint threadBase )
             | ( ( get_end_point_l(1).g & 0xF8 ) << 14 ) | ( ( get_end_point_h(1).g & 0xF8 ) << 19 ) 
             | ( ( get_end_point_l(2).g & 0xF8 ) << 24 );
     block.z = ( ( get_end_point_h(2).g & 0xF8 ) >>  3 ) | ( ( get_end_point_l(0).b & 0xF8 ) <<  2 )
-            | ( ( get_end_point_h(0).b & 0xF8 ) <<  7 )	| ( ( get_end_point_l(1).b & 0xF8 ) << 12 )
+            | ( ( get_end_point_h(0).b & 0xF8 ) <<  7 )    | ( ( get_end_point_l(1).b & 0xF8 ) << 12 )
             | ( ( get_end_point_h(1).b & 0xF8 ) << 17 ) | ( ( get_end_point_l(2).b & 0xF8 ) << 22 ) 
             | ( ( get_end_point_h(2).b & 0xF8 ) << 27 );
     block.w = ( ( get_end_point_h(2).b & 0xF8 ) >>  5 ) 
@@ -1853,7 +1853,7 @@ void block_package5( out uint4 block, uint rotation, uint threadBase )
             | ( ( get_end_point_l(0).r & 0xFE ) <<  7 ) | ( ( get_end_point_h(0).r & 0xFE ) << 14 )
             | ( ( get_end_point_l(0).g & 0xFE ) << 21 ) | ( ( get_end_point_h(0).g & 0xFE ) << 28 );
     block.y = ( ( get_end_point_h(0).g & 0xFE ) >>  4 ) | ( ( get_end_point_l(0).b & 0xFE ) <<  3 )
-            | ( ( get_end_point_h(0).b & 0xFE ) << 10 )	| ( get_end_point_l(0).a << 18 ) | ( get_end_point_h(0).a << 26 );
+            | ( ( get_end_point_h(0).b & 0xFE ) << 10 )    | ( get_end_point_l(0).a << 18 ) | ( get_end_point_h(0).a << 26 );
     block.z = ( get_end_point_h(0).a >>  6 )
             | ( get_color_index(0) <<  2 ) | ( get_color_index(1) <<  3 ) | ( get_color_index(2) <<  5 ) | ( get_color_index(3) <<  7 ) 
             | ( get_color_index(4) <<  9 ) | ( get_color_index(5) << 11 ) | ( get_color_index(6) << 13 ) | ( get_color_index(7) << 15 )
@@ -1871,7 +1871,7 @@ void block_package6( out uint4 block, uint threadBase )
             | ( ( get_end_point_l(0).r & 0xFE ) <<  6 ) | ( ( get_end_point_h(0).r & 0xFE ) << 13 )
             | ( ( get_end_point_l(0).g & 0xFE ) << 20 ) | ( ( get_end_point_h(0).g & 0xFE ) << 27 );
     block.y = ( ( get_end_point_h(0).g & 0xFE ) >>  5 ) | ( ( get_end_point_l(0).b & 0xFE ) <<  2 )
-            | ( ( get_end_point_h(0).b & 0xFE ) <<  9 )	| ( ( get_end_point_l(0).a & 0xFE ) << 16 )
+            | ( ( get_end_point_h(0).b & 0xFE ) <<  9 )    | ( ( get_end_point_l(0).a & 0xFE ) << 16 )
             | ( ( get_end_point_h(0).a & 0xFE ) << 23 )
             | ( get_end_point_l(0).r & 0x01 ) << 31;
     block.z = ( get_end_point_h(0).r & 0x01 )
@@ -1887,9 +1887,9 @@ void block_package7( out uint4 block, uint partition, uint threadBase )
             | ( ( get_end_point_l(1).r & 0xF8 ) << 21 ) | ( ( get_end_point_h(1).r & 0xF8 ) << 26 );
     block.y = ( ( get_end_point_h(1).r & 0xF8 ) >>  6 ) | ( ( get_end_point_l(0).g & 0xF8 ) >>  1 )
             | ( ( get_end_point_h(0).g & 0xF8 ) <<  4 ) | ( ( get_end_point_l(1).g & 0xF8 ) <<  9 ) 
-            | ( ( get_end_point_h(1).g & 0xF8 ) << 14 )	| ( ( get_end_point_l(0).b & 0xF8 ) << 19 ) 
+            | ( ( get_end_point_h(1).g & 0xF8 ) << 14 )    | ( ( get_end_point_l(0).b & 0xF8 ) << 19 ) 
             | ( ( get_end_point_h(0).b & 0xF8 ) << 24 );
-    block.z = ( ( get_end_point_l(1).b & 0xF8 ) >>  3 )	| ( ( get_end_point_h(1).b & 0xF8 ) <<  2 ) 
+    block.z = ( ( get_end_point_l(1).b & 0xF8 ) >>  3 )    | ( ( get_end_point_h(1).b & 0xF8 ) <<  2 ) 
             | ( ( get_end_point_l(0).a & 0xF8 ) <<  7 ) | ( ( get_end_point_h(0).a & 0xF8 ) << 12 ) 
             | ( ( get_end_point_l(1).a & 0xF8 ) << 17 ) | ( ( get_end_point_h(1).a & 0xF8 ) << 22 ) 
             | ( ( get_end_point_l(0).r & 0x04 ) << 28 ) | ( ( get_end_point_h(0).r & 0x04 ) << 29 );

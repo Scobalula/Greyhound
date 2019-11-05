@@ -62,12 +62,12 @@
  */
 uint32_t FLAC__bitmath_silog2(FLAC__int64 v)
 {
-	if(v == 0)
-		return 0;
+    if(v == 0)
+        return 0;
 
-	if(v == -1)
-		return 2;
+    if(v == -1)
+        return 2;
 
-	v = (v < 0) ? (-(v+1)) : v;
-	return FLAC__bitmath_ilog2_wide(v)+2;
+    v = (v < 0) ? (-(v+1)) : v;
+    return FLAC__bitmath_ilog2_wide(v)+2;
 }

@@ -19,6 +19,18 @@
 #include "DBGameGenerics.h"
 #include "SettingsManager.h"
 
+struct QSGfxVertexBuffer
+{
+    Vector3 Position;
+
+    uint32_t BiNormal;
+    uint8_t Color[4];
+    uint32_t Pad1;
+    Vector2 UV;
+    uint32_t Tangent;
+    uint32_t Normal;
+};
+
 std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::unique_ptr<XModel_t>& Model, uint32_t LodIndex, bool JustBones)
 {
     // Check if we want Vertex Colors
@@ -293,6 +305,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
             case SupportedGames::ModernWarfare:
             case SupportedGames::ModernWarfare2:
             case SupportedGames::ModernWarfare3:
+            case SupportedGames::QuantumSolace:
                 PrepareVertexWeightsA(VertexWeights, Submesh);
                 break;
             case SupportedGames::Ghosts:
@@ -305,90 +318,145 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
                 break;
             }
 
-            // Mesh buffers size
-            uintptr_t ReadDataSize = 0;
-            // Calculated buffer size
-            auto VerticiesLength = (sizeof(GfxVertexBuffer) * Submesh.VertexCount);
-            auto FacesLength = (sizeof(GfxFaceBuffer) * Submesh.FaceCount);
-            // Read mesh data
-            auto VertexData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.VertexPtr, VerticiesLength, ReadDataSize), ReadDataSize);
-            auto FaceData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.FacesPtr, FacesLength, ReadDataSize), ReadDataSize);
-
-            // Iterate over verticies
-            for (uint32_t i = 0; i < Submesh.VertexCount; i++)
+            if (CurrentGame != SupportedGames::QuantumSolace)
             {
-                // Make a new vertex
-                auto& Vertex = Mesh.AddVertex();
+                // Mesh buffers size
+                uintptr_t ReadDataSize = 0;
+                // Calculated buffer size
+                auto VerticiesLength = (sizeof(GfxVertexBuffer) * Submesh.VertexCount);
+                auto FacesLength = (sizeof(GfxFaceBuffer) * Submesh.FaceCount);
+                // Read mesh data
+                auto VertexData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.VertexPtr, VerticiesLength, ReadDataSize), ReadDataSize);
+                auto FaceData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.FacesPtr, FacesLength, ReadDataSize), ReadDataSize);
 
-                // Read data
-                auto VertexInfo = VertexData.Read<GfxVertexBuffer>();
-                // Assign data
-                Vertex.Position = VertexInfo.Position;
-
-                // Unpack normal (Game specific)
-                switch (CurrentGame)
+                // Iterate over verticies
+                for (uint32_t i = 0; i < Submesh.VertexCount; i++)
                 {
-                case SupportedGames::WorldAtWar:
-                case SupportedGames::BlackOps:
-                case SupportedGames::ModernWarfare:
-                case SupportedGames::ModernWarfare2:
-                case SupportedGames::ModernWarfare3:
-                    // Apply UV layer (These games seems to have UVV before UVU) this works on all models
-                    Vertex.AddUVLayer(HalfFloats::ToFloat(VertexInfo.UVVPos), HalfFloats::ToFloat(VertexInfo.UVUPos));
-                    // Unpack vertex normal
-                    Vertex.Normal = UnpackNormalA(VertexInfo.Normal);
-                    break;
-                case SupportedGames::BlackOps2:
-                    // Apply UV layer
-                    Vertex.AddUVLayer(HalfFloats::ToFloat(VertexInfo.UVUPos), HalfFloats::ToFloat(VertexInfo.UVVPos));
-                    // Unpack vertex normal
-                    Vertex.Normal = UnpackNormalB(VertexInfo.Normal);
-                    break;
-                case SupportedGames::Ghosts:
-                case SupportedGames::AdvancedWarfare:
-                case SupportedGames::ModernWarfareRemastered:
-                case SupportedGames::InfiniteWarfare:
-                    // Apply UV layer
-                    Vertex.AddUVLayer(HalfFloats::ToFloat(VertexInfo.UVUPos), HalfFloats::ToFloat(VertexInfo.UVVPos));
-                    // Unpack vertex normal
-                    Vertex.Normal = UnpackNormalC(VertexInfo.Normal);
-                    break;
+                    // Make a new vertex
+                    auto& Vertex = Mesh.AddVertex();
+
+                    // Read data
+                    auto VertexInfo = VertexData.Read<GfxVertexBuffer>();
+                    // Assign data
+                    Vertex.Position = VertexInfo.Position;
+
+                    // Unpack normal (Game specific)
+                    switch (CurrentGame)
+                    {
+                    case SupportedGames::WorldAtWar:
+                    case SupportedGames::BlackOps:
+                    case SupportedGames::ModernWarfare:
+                    case SupportedGames::ModernWarfare2:
+                    case SupportedGames::ModernWarfare3:
+                        // Apply UV layer (These games seems to have UVV before UVU) this works on all models
+                        Vertex.AddUVLayer(HalfFloats::ToFloat(VertexInfo.UVVPos), HalfFloats::ToFloat(VertexInfo.UVUPos));
+                        // Unpack vertex normal
+                        Vertex.Normal = UnpackNormalA(VertexInfo.Normal);
+                        break;
+                    case SupportedGames::BlackOps2:
+                        // Apply UV layer
+                        Vertex.AddUVLayer(HalfFloats::ToFloat(VertexInfo.UVUPos), HalfFloats::ToFloat(VertexInfo.UVVPos));
+                        // Unpack vertex normal
+                        Vertex.Normal = UnpackNormalB(VertexInfo.Normal);
+                        break;
+                    case SupportedGames::Ghosts:
+                    case SupportedGames::AdvancedWarfare:
+                    case SupportedGames::ModernWarfareRemastered:
+                    case SupportedGames::InfiniteWarfare:
+                        // Apply UV layer
+                        Vertex.AddUVLayer(HalfFloats::ToFloat(VertexInfo.UVUPos), HalfFloats::ToFloat(VertexInfo.UVVPos));
+                        // Unpack vertex normal
+                        Vertex.Normal = UnpackNormalC(VertexInfo.Normal);
+                        break;
+                    }
+
+                    // Add Colors if we want them
+                    if (ExportColors)
+                    {
+                        Vertex.Color[0] = VertexInfo.Color[0];
+                        Vertex.Color[1] = VertexInfo.Color[1];
+                        Vertex.Color[2] = VertexInfo.Color[2];
+                        Vertex.Color[3] = VertexInfo.Color[3];
+                    }
+                    else
+                    {
+                        Vertex.Color[0] = 0xFF;
+                        Vertex.Color[1] = 0xFF;
+                        Vertex.Color[2] = 0xFF;
+                        Vertex.Color[3] = 0xFF;
+                    }
+
+                    // Assign weights
+                    auto& WeightValue = VertexWeights[i];
+
+                    // Iterate
+                    for (uint32_t w = 0; w < WeightValue.WeightCount; w++)
+                    {
+                        // Add new weight
+                        Vertex.AddVertexWeight(WeightValue.BoneValues[w], WeightValue.WeightValues[w]);
+                    }
                 }
 
-                // Add Colors if we want them
-                if (ExportColors)
+                // Iterate over faces
+                for (uint32_t i = 0; i < Submesh.FaceCount; i++)
                 {
-                    Vertex.Color[0] = VertexInfo.Color[0];
-                    Vertex.Color[1] = VertexInfo.Color[1];
-                    Vertex.Color[2] = VertexInfo.Color[2];
-                    Vertex.Color[3] = VertexInfo.Color[3];
-                }
-                else
-                {
-                    Vertex.Color[0] = 0xFF;
-                    Vertex.Color[1] = 0xFF;
-                    Vertex.Color[2] = 0xFF;
-                    Vertex.Color[3] = 0xFF;
-                }
-
-                // Assign weights
-                auto& WeightValue = VertexWeights[i];
-
-                // Iterate
-                for (uint32_t w = 0; w < WeightValue.WeightCount; w++)
-                {
-                    // Add new weight
-                    Vertex.AddVertexWeight(WeightValue.BoneValues[w], WeightValue.WeightValues[w]);
+                    // Read data
+                    auto FaceIndicies = FaceData.Read<GfxFaceBuffer>();
+                    // Add the face
+                    Mesh.AddFace(FaceIndicies.Index1, FaceIndicies.Index2, FaceIndicies.Index3);
                 }
             }
-
-            // Iterate over faces
-            for (uint32_t i = 0; i < Submesh.FaceCount; i++)
+            else
             {
-                // Read data
-                auto FaceIndicies = FaceData.Read<GfxFaceBuffer>();
-                // Add the face
-                Mesh.AddFace(FaceIndicies.Index1, FaceIndicies.Index2, FaceIndicies.Index3);
+                // Mesh buffers size
+                uintptr_t ReadDataSize = 0;
+                // Calculated buffer size
+                auto VerticiesLength = (sizeof(QSGfxVertexBuffer) * Submesh.VertexCount);
+                auto FacesLength = (sizeof(GfxFaceBuffer) * Submesh.FaceCount);
+                // Read mesh data
+                auto VertexData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.VertexPtr, VerticiesLength, ReadDataSize), ReadDataSize);
+                auto FaceData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.FacesPtr, FacesLength, ReadDataSize), ReadDataSize);
+
+                // Iterate over verticies
+                for (uint32_t i = 0; i < Submesh.VertexCount; i++)
+                {
+                    // Make a new vertex
+                    auto& Vertex = Mesh.AddVertex();
+
+                    // Read data
+                    auto VertexInfo = VertexData.Read<QSGfxVertexBuffer>();
+                    // Assign data
+                    Vertex.Position = VertexInfo.Position;
+                    Vertex.Normal = UnpackNormalA(VertexInfo.Tangent);
+                    Vertex.AddUVLayer(VertexInfo.UV.X, VertexInfo.UV.Y);
+
+                    // Add Colors if we want them
+                    {
+                        Vertex.Color[0] = 0xFF;
+                        Vertex.Color[1] = 0xFF;
+                        Vertex.Color[2] = 0xFF;
+                        Vertex.Color[3] = 0xFF;
+                    }
+
+                    // Assign weights
+                    auto& WeightValue = VertexWeights[i];
+
+                    // Iterate
+                    for (uint32_t w = 0; w < WeightValue.WeightCount; w++)
+                    {
+                        // Add new weight
+                        Vertex.AddVertexWeight(WeightValue.BoneValues[w], WeightValue.WeightValues[w]);
+                    }
+                }
+
+                // Iterate over faces
+                for (uint32_t i = 0; i < Submesh.FaceCount; i++)
+                {
+                    // Read data
+                    auto FaceIndicies = FaceData.Read<GfxFaceBuffer>();
+                    // Add the face
+                    Mesh.AddFace(FaceIndicies.Index1, FaceIndicies.Index2, FaceIndicies.Index3);
+                }
             }
         }
     }

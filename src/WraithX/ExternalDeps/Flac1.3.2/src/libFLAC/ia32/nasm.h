@@ -29,59 +29,59 @@
 ;  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-	bits 32
+    bits 32
 
 %ifdef OBJ_FORMAT_win32
-	%define FLAC__PUBLIC_NEEDS_UNDERSCORE
-	%idefine code_section section .text align=16 class=CODE use32
-	%idefine data_section section .data align=32 class=DATA use32
-	%idefine bss_section  section .bss  align=32 class=DATA use32
+    %define FLAC__PUBLIC_NEEDS_UNDERSCORE
+    %idefine code_section section .text align=16 class=CODE use32
+    %idefine data_section section .data align=32 class=DATA use32
+    %idefine bss_section  section .bss  align=32 class=DATA use32
 %elifdef OBJ_FORMAT_aout
-	%define FLAC__PUBLIC_NEEDS_UNDERSCORE
-	%idefine code_section section .text
-	%idefine data_section section .data
-	%idefine bss_section  section .bss
+    %define FLAC__PUBLIC_NEEDS_UNDERSCORE
+    %idefine code_section section .text
+    %idefine data_section section .data
+    %idefine bss_section  section .bss
 %elifdef OBJ_FORMAT_aoutb
-	%define FLAC__PUBLIC_NEEDS_UNDERSCORE
-	%idefine code_section section .text
-	%idefine data_section section .data
-	%idefine bss_section  section .bss
+    %define FLAC__PUBLIC_NEEDS_UNDERSCORE
+    %idefine code_section section .text
+    %idefine data_section section .data
+    %idefine bss_section  section .bss
 %elifdef OBJ_FORMAT_coff
-	%define FLAC__PUBLIC_NEEDS_UNDERSCORE
-	%idefine code_section section .text
-	%idefine data_section section .data
-	%idefine bss_section  section .bss
+    %define FLAC__PUBLIC_NEEDS_UNDERSCORE
+    %idefine code_section section .text
+    %idefine data_section section .data
+    %idefine bss_section  section .bss
 %elifdef OBJ_FORMAT_macho
-	%define FLAC__PUBLIC_NEEDS_UNDERSCORE
-	%idefine code_section section .text
-	%idefine data_section section .data
-	%idefine bss_section  section .bss
+    %define FLAC__PUBLIC_NEEDS_UNDERSCORE
+    %idefine code_section section .text
+    %idefine data_section section .data
+    %idefine bss_section  section .bss
 %elifdef OBJ_FORMAT_elf
-	%idefine code_section section .text align=16
-	%idefine data_section section .data align=32
-	%idefine bss_section  section .bss  align=32
+    %idefine code_section section .text align=16
+    %idefine data_section section .data align=32
+    %idefine bss_section  section .bss  align=32
 %else
-	%error unsupported object format! ; this directive doesn't really work here
+    %error unsupported object format! ; this directive doesn't really work here
 %endif
 
 %imacro cglobal 1
-	%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
-		global _%1
-	%else
-		%if __NASM_MAJOR__ >= 2
-			global %1:function hidden
-		%else
-			global %1
-		%endif
-	%endif
+    %ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
+        global _%1
+    %else
+        %if __NASM_MAJOR__ >= 2
+            global %1:function hidden
+        %else
+            global %1
+        %endif
+    %endif
 %endmacro
 
 %imacro cextern 1
-	%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
-		extern _%1
-	%else
-		extern %1
-	%endif
+    %ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
+        extern _%1
+    %else
+        extern %1
+    %endif
 %endmacro
 
 %imacro cident 1

@@ -10,6 +10,6 @@ class FBX
 {
 public:
 
-	// Export a WraithModel to an FBX File
-	static void ExportFBX(const WraithModel& Model, const std::string& FileName);
+    // Export a WraithModel to an FBX File
+    static void ExportFBX(const WraithModel& Model, const std::string& FileName);
 };

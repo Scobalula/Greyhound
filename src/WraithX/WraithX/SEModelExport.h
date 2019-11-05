@@ -10,6 +10,6 @@
 class SEModel
 {
 public:
-	// Export a WraithModel to a SEModel file
-	static void ExportSEModel(const WraithModel& Model, const std::string& FileName, bool SupportsScale = false);
+    // Export a WraithModel to a SEModel file
+    static void ExportSEModel(const WraithModel& Model, const std::string& FileName, bool SupportsScale = false);
 };

@@ -9,6 +9,6 @@
 class XNALara
 {
 public:
-	// Export a WraithModel to a XNALara mesh file
-	static void ExportXNA(const WraithModel& Model, const std::string& FileName);
+    // Export a WraithModel to a XNALara mesh file
+    static void ExportXNA(const WraithModel& Model, const std::string& FileName);
 };

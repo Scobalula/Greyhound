@@ -78,13 +78,13 @@ static uint32_t
 cpu_xgetbv_x86(void)
 {
 #if (defined _MSC_VER || defined __INTEL_COMPILER) && FLAC__AVX_SUPPORTED
-	return (uint32_t)_xgetbv(0);
+    return (uint32_t)_xgetbv(0);
 #elif defined __GNUC__
-	uint32_t lo, hi;
-	__asm__ volatile (".byte 0x0f, 0x01, 0xd0" : "=a"(lo), "=d"(hi) : "c" (0));
-	return lo;
+    uint32_t lo, hi;
+    __asm__ volatile (".byte 0x0f, 0x01, 0xd0" : "=a"(lo), "=d"(hi) : "c" (0));
+    return lo;
 #else
-	return 0;
+    return 0;
 #endif
 }
 
@@ -92,36 +92,36 @@ static uint32_t
 cpu_have_cpuid(void)
 {
 #if defined FLAC__CPU_X86_64 || defined __i686__ || defined __SSE__ || (defined _M_IX86_FP && _M_IX86_FP > 0)
-	/* target CPU does have CPUID instruction */
-	return 1;
+    /* target CPU does have CPUID instruction */
+    return 1;
 #elif defined FLAC__HAS_NASM
-	return FLAC__cpu_have_cpuid_asm_ia32();
+    return FLAC__cpu_have_cpuid_asm_ia32();
 #elif defined __GNUC__ && defined HAVE_CPUID_H
-	if (__get_cpuid_max(0, 0) != 0)
-		return 1;
-	else
-		return 0;
+    if (__get_cpuid_max(0, 0) != 0)
+        return 1;
+    else
+        return 0;
 #elif defined _MSC_VER
-	FLAC__uint32 flags1, flags2;
-	__asm {
-		pushfd
-		pushfd
-		pop		eax
-		mov		flags1, eax
-		xor		eax, 0x200000
-		push	eax
-		popfd
-		pushfd
-		pop		eax
-		mov		flags2, eax
-		popfd
-	}
-	if (((flags1^flags2) & 0x200000) != 0)
-		return 1;
-	else
-		return 0;
+    FLAC__uint32 flags1, flags2;
+    __asm {
+        pushfd
+        pushfd
+        pop        eax
+        mov        flags1, eax
+        xor        eax, 0x200000
+        push    eax
+        popfd
+        pushfd
+        pop        eax
+        mov        flags2, eax
+        popfd
+    }
+    if (((flags1^flags2) & 0x200000) != 0)
+        return 1;
+    else
+        return 0;
 #else
-	return 0;
+    return 0;
 #endif
 }
 
@@ -129,30 +129,30 @@ static void
 cpuinfo_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx, FLAC__uint32 *ecx, FLAC__uint32 *edx)
 {
 #if defined _MSC_VER
-	int cpuinfo[4];
-	int ext = level & 0x80000000;
-	__cpuid(cpuinfo, ext);
-	if ((uint32_t)cpuinfo[0] >= level) {
+    int cpuinfo[4];
+    int ext = level & 0x80000000;
+    __cpuid(cpuinfo, ext);
+    if ((uint32_t)cpuinfo[0] >= level) {
 #if FLAC__AVX_SUPPORTED
-		__cpuidex(cpuinfo, level, 0); /* for AVX2 detection */
+        __cpuidex(cpuinfo, level, 0); /* for AVX2 detection */
 #else
-		__cpuid(cpuinfo, level); /* some old compilers don't support __cpuidex */
+        __cpuid(cpuinfo, level); /* some old compilers don't support __cpuidex */
 #endif
-		*eax = cpuinfo[0]; *ebx = cpuinfo[1]; *ecx = cpuinfo[2]; *edx = cpuinfo[3];
-		return;
-	}
+        *eax = cpuinfo[0]; *ebx = cpuinfo[1]; *ecx = cpuinfo[2]; *edx = cpuinfo[3];
+        return;
+    }
 #elif defined __GNUC__ && defined HAVE_CPUID_H
-	FLAC__uint32 ext = level & 0x80000000;
-	__cpuid(ext, *eax, *ebx, *ecx, *edx);
-	if (*eax >= level) {
-		__cpuid_count(level, 0, *eax, *ebx, *ecx, *edx);
-		return;
-	}
+    FLAC__uint32 ext = level & 0x80000000;
+    __cpuid(ext, *eax, *ebx, *ecx, *edx);
+    if (*eax >= level) {
+        __cpuid_count(level, 0, *eax, *ebx, *ecx, *edx);
+        return;
+    }
 #elif defined FLAC__HAS_NASM && defined FLAC__CPU_IA32
-	FLAC__cpu_info_asm_ia32(level, eax, ebx, ecx, edx);
-	return;
+    FLAC__cpu_info_asm_ia32(level, eax, ebx, ecx, edx);
+    return;
 #endif
-	*eax = *ebx = *ecx = *edx = 0;
+    *eax = *ebx = *ecx = *edx = 0;
 }
 
 #endif
@@ -161,71 +161,71 @@ static void
 x86_cpu_info (FLAC__CPUInfo *info)
 {
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN) && !defined FLAC__NO_ASM
-	FLAC__bool x86_osxsave = false;
-	FLAC__bool os_avx = false;
-	FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
+    FLAC__bool x86_osxsave = false;
+    FLAC__bool os_avx = false;
+    FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
 
-	info->use_asm = true; /* we assume a minimum of 80386 */
-	if (!cpu_have_cpuid())
-		return;
+    info->use_asm = true; /* we assume a minimum of 80386 */
+    if (!cpu_have_cpuid())
+        return;
 
-	cpuinfo_x86(0, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
-	info->x86.intel = (flags_ebx == 0x756E6547 && flags_edx == 0x49656E69 && flags_ecx == 0x6C65746E) ? true : false; /* GenuineIntel */
-	cpuinfo_x86(1, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
+    cpuinfo_x86(0, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
+    info->x86.intel = (flags_ebx == 0x756E6547 && flags_edx == 0x49656E69 && flags_ecx == 0x6C65746E) ? true : false; /* GenuineIntel */
+    cpuinfo_x86(1, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
 
-	info->x86.cmov  = (flags_edx & FLAC__CPUINFO_X86_CPUID_CMOV ) ? true : false;
-	info->x86.mmx   = (flags_edx & FLAC__CPUINFO_X86_CPUID_MMX  ) ? true : false;
-	info->x86.sse   = (flags_edx & FLAC__CPUINFO_X86_CPUID_SSE  ) ? true : false;
-	info->x86.sse2  = (flags_edx & FLAC__CPUINFO_X86_CPUID_SSE2 ) ? true : false;
-	info->x86.sse3  = (flags_ecx & FLAC__CPUINFO_X86_CPUID_SSE3 ) ? true : false;
-	info->x86.ssse3 = (flags_ecx & FLAC__CPUINFO_X86_CPUID_SSSE3) ? true : false;
-	info->x86.sse41 = (flags_ecx & FLAC__CPUINFO_X86_CPUID_SSE41) ? true : false;
-	info->x86.sse42 = (flags_ecx & FLAC__CPUINFO_X86_CPUID_SSE42) ? true : false;
+    info->x86.cmov  = (flags_edx & FLAC__CPUINFO_X86_CPUID_CMOV ) ? true : false;
+    info->x86.mmx   = (flags_edx & FLAC__CPUINFO_X86_CPUID_MMX  ) ? true : false;
+    info->x86.sse   = (flags_edx & FLAC__CPUINFO_X86_CPUID_SSE  ) ? true : false;
+    info->x86.sse2  = (flags_edx & FLAC__CPUINFO_X86_CPUID_SSE2 ) ? true : false;
+    info->x86.sse3  = (flags_ecx & FLAC__CPUINFO_X86_CPUID_SSE3 ) ? true : false;
+    info->x86.ssse3 = (flags_ecx & FLAC__CPUINFO_X86_CPUID_SSSE3) ? true : false;
+    info->x86.sse41 = (flags_ecx & FLAC__CPUINFO_X86_CPUID_SSE41) ? true : false;
+    info->x86.sse42 = (flags_ecx & FLAC__CPUINFO_X86_CPUID_SSE42) ? true : false;
 
-	if (FLAC__AVX_SUPPORTED) {
-		x86_osxsave     = (flags_ecx & FLAC__CPUINFO_X86_CPUID_OSXSAVE) ? true : false;
-		info->x86.avx   = (flags_ecx & FLAC__CPUINFO_X86_CPUID_AVX    ) ? true : false;
-		info->x86.fma   = (flags_ecx & FLAC__CPUINFO_X86_CPUID_FMA    ) ? true : false;
-		cpuinfo_x86(7, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
-		info->x86.avx2  = (flags_ebx & FLAC__CPUINFO_X86_CPUID_AVX2   ) ? true : false;
-	}
+    if (FLAC__AVX_SUPPORTED) {
+        x86_osxsave     = (flags_ecx & FLAC__CPUINFO_X86_CPUID_OSXSAVE) ? true : false;
+        info->x86.avx   = (flags_ecx & FLAC__CPUINFO_X86_CPUID_AVX    ) ? true : false;
+        info->x86.fma   = (flags_ecx & FLAC__CPUINFO_X86_CPUID_FMA    ) ? true : false;
+        cpuinfo_x86(7, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
+        info->x86.avx2  = (flags_ebx & FLAC__CPUINFO_X86_CPUID_AVX2   ) ? true : false;
+    }
 
-	/*
-	 * now have to check for OS support of AVX instructions
-	 */
-	if (FLAC__AVX_SUPPORTED && info->x86.avx && x86_osxsave && (cpu_xgetbv_x86() & 0x6) == 0x6) {
-		os_avx = true;
-	}
-	if (!os_avx) {
-		/* no OS AVX support */
-		info->x86.avx     = false;
-		info->x86.avx2    = false;
-		info->x86.fma     = false;
-	}
+    /*
+     * now have to check for OS support of AVX instructions
+     */
+    if (FLAC__AVX_SUPPORTED && info->x86.avx && x86_osxsave && (cpu_xgetbv_x86() & 0x6) == 0x6) {
+        os_avx = true;
+    }
+    if (!os_avx) {
+        /* no OS AVX support */
+        info->x86.avx     = false;
+        info->x86.avx2    = false;
+        info->x86.fma     = false;
+    }
 #else
-	info->use_asm = false;
+    info->use_asm = false;
 #endif
 }
 
 void FLAC__cpu_info (FLAC__CPUInfo *info)
 {
-	memset(info, 0, sizeof(*info));
+    memset(info, 0, sizeof(*info));
 
 #ifdef FLAC__CPU_IA32
-	info->type = FLAC__CPUINFO_TYPE_IA32;
+    info->type = FLAC__CPUINFO_TYPE_IA32;
 #elif defined FLAC__CPU_X86_64
-	info->type = FLAC__CPUINFO_TYPE_X86_64;
+    info->type = FLAC__CPUINFO_TYPE_X86_64;
 #else
-	info->type = FLAC__CPUINFO_TYPE_UNKNOWN;
+    info->type = FLAC__CPUINFO_TYPE_UNKNOWN;
 #endif
 
-	switch (info->type) {
-	case FLAC__CPUINFO_TYPE_IA32: /* fallthrough */
-	case FLAC__CPUINFO_TYPE_X86_64:
-		x86_cpu_info (info);
-		break;
-	default:
-		info->use_asm = false;
-		break;
-	}
+    switch (info->type) {
+    case FLAC__CPUINFO_TYPE_IA32: /* fallthrough */
+    case FLAC__CPUINFO_TYPE_X86_64:
+        x86_cpu_info (info);
+        break;
+    default:
+        info->use_asm = false;
+        break;
+    }
 }

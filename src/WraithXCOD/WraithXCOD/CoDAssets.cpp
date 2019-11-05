@@ -40,6 +40,7 @@
 #include "GameModernWarfareRM.h"
 #include "GameInfiniteWarfare.h"
 #include "GameWorldWar2.h"
+#include "GameQuantumSolace.h"
 
 // We need the game cache functions
 #include "CASCCache.h"
@@ -419,6 +420,8 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
     // Modern Warfare 4
     { "modernwarfare.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
+    // 007 Quantum Solace
+    { "jb_liveengine_s.exe", SupportedGames::QuantumSolace, SupportedGameFlags::SP },
 };
 
 // -- End find game database
@@ -535,6 +538,7 @@ LoadGameResult CoDAssets::LoadGame()
         // Load assets from the game
         switch (GameID)
         {
+        case SupportedGames::QuantumSolace: Success = GameQuantumSolace::LoadAssets(); break;
         case SupportedGames::WorldAtWar: Success = GameWorldAtWar::LoadAssets(); break;
         case SupportedGames::BlackOps: Success = GameBlackOps::LoadAssets(); break;
         case SupportedGames::BlackOps2: Success = GameBlackOps2::LoadAssets(); break;
@@ -884,6 +888,20 @@ bool CoDAssets::LocateGameInfo()
     // Also, apply proper handlers for various game read functions (Non-inlinable functions only)
     switch (GameID)
     {
+    case SupportedGames::QuantumSolace:
+        // Load game offset info
+        Success = GameQuantumSolace::LoadOffsets();
+        // Set shorthand
+        GDTShorthand = "QS";
+        // Set game ximage handler
+        GameXImageHandler = GameQuantumSolace::LoadXImage;
+        // Set game string handler
+        GameStringHandler = GameQuantumSolace::LoadStringEntry;
+        // Allocate a new IWD Mega Cache
+        // GamePackageCache = std::make_unique<IWDCache>();
+        // Set the IWD path
+        // GamePackageCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "main"));
+        break;
     case SupportedGames::WorldAtWar:
         // Load game offset info
         Success = GameWorldAtWar::LoadOffsets();
@@ -1170,6 +1188,7 @@ std::unique_ptr<XAnim_t> CoDAssets::LoadGenericAnimAsset(const CoDAnim_t* Animat
     // Read from game
     switch (CoDAssets::GameID)
     {
+    case SupportedGames::QuantumSolace: return GameQuantumSolace::ReadXAnim(Animation); break;
     case SupportedGames::WorldAtWar: return GameWorldAtWar::ReadXAnim(Animation); break;
     case SupportedGames::BlackOps: return GameBlackOps::ReadXAnim(Animation); break;
     case SupportedGames::BlackOps2: return GameBlackOps2::ReadXAnim(Animation); break;
@@ -1250,6 +1269,7 @@ std::unique_ptr<XModel_t> CoDAssets::LoadGenericModelAsset(const CoDModel_t* Mod
     // Read from game
     switch (CoDAssets::GameID)
     {
+    case SupportedGames::QuantumSolace: return GameQuantumSolace::ReadXModel(Model); break;
     case SupportedGames::WorldAtWar: return GameWorldAtWar::ReadXModel(Model); break;
     case SupportedGames::BlackOps: return GameBlackOps::ReadXModel(Model); break;
     case SupportedGames::BlackOps2: return GameBlackOps2::ReadXModel(Model); break;

@@ -33,12 +33,12 @@
 
 %include "nasm.h"
 
-	data_section
+    data_section
 
 cglobal FLAC__cpu_have_cpuid_asm_ia32
 cglobal FLAC__cpu_info_asm_ia32
 
-	code_section
+    code_section
 
 ; **********************************************************************
 ;
@@ -46,20 +46,20 @@ cglobal FLAC__cpu_info_asm_ia32
 ;
 
 cident FLAC__cpu_have_cpuid_asm_ia32
-	pushfd
-	pop	eax
-	mov	edx, eax
-	xor	eax, 0x00200000
-	push	eax
-	popfd
-	pushfd
-	pop	eax
-	xor	eax, edx
-	and	eax, 0x00200000
-	shr	eax, 0x15
-	push	edx
-	popfd
-	ret
+    pushfd
+    pop    eax
+    mov    edx, eax
+    xor    eax, 0x00200000
+    push    eax
+    popfd
+    pushfd
+    pop    eax
+    xor    eax, edx
+    and    eax, 0x00200000
+    shr    eax, 0x15
+    push    edx
+    popfd
+    ret
 
 
 ; **********************************************************************
@@ -68,52 +68,52 @@ cident FLAC__cpu_have_cpuid_asm_ia32
 ;
 
 cident FLAC__cpu_info_asm_ia32
-	;[esp + 8] == level
-	;[esp + 12] == flags_eax
-	;[esp + 16] == flags_ebx
-	;[esp + 20] == flags_ecx
-	;[esp + 24] == flags_edx
+    ;[esp + 8] == level
+    ;[esp + 12] == flags_eax
+    ;[esp + 16] == flags_ebx
+    ;[esp + 20] == flags_ecx
+    ;[esp + 24] == flags_edx
 
-	push	ebx
-	call	FLAC__cpu_have_cpuid_asm_ia32
-	test	eax, eax
-	jz	.no_cpuid
+    push    ebx
+    call    FLAC__cpu_have_cpuid_asm_ia32
+    test    eax, eax
+    jz    .no_cpuid
 
-	mov	eax, [esp + 8]
-	and	eax, 0x80000000
-	cpuid
-	cmp	eax, [esp + 8]
-	jb	.no_cpuid
-	xor	ecx, ecx
-	mov	eax, [esp + 8]
-	cpuid
+    mov    eax, [esp + 8]
+    and    eax, 0x80000000
+    cpuid
+    cmp    eax, [esp + 8]
+    jb    .no_cpuid
+    xor    ecx, ecx
+    mov    eax, [esp + 8]
+    cpuid
 
-	push	ebx
-	;[esp + 16] == flags_eax
-	mov	ebx, [esp + 16]
-	mov	[ebx], eax
-	pop	eax
-	;[esp + 16] == flags_ebx
-	mov	ebx, [esp + 16]
-	mov	[ebx], eax
-	mov	ebx, [esp + 20]
-	mov	[ebx], ecx
-	mov	ebx, [esp + 24]
-	mov	[ebx], edx
-	jmp	.end
+    push    ebx
+    ;[esp + 16] == flags_eax
+    mov    ebx, [esp + 16]
+    mov    [ebx], eax
+    pop    eax
+    ;[esp + 16] == flags_ebx
+    mov    ebx, [esp + 16]
+    mov    [ebx], eax
+    mov    ebx, [esp + 20]
+    mov    [ebx], ecx
+    mov    ebx, [esp + 24]
+    mov    [ebx], edx
+    jmp    .end
 
 .no_cpuid:
-	xor	eax, eax
-	mov	ebx, [esp + 12]
-	mov	[ebx], eax
-	mov	ebx, [esp + 16]
-	mov	[ebx], eax
-	mov	ebx, [esp + 20]
-	mov	[ebx], eax
-	mov	ebx, [esp + 24]
-	mov	[ebx], eax
+    xor    eax, eax
+    mov    ebx, [esp + 12]
+    mov    [ebx], eax
+    mov    ebx, [esp + 16]
+    mov    [ebx], eax
+    mov    ebx, [esp + 20]
+    mov    [ebx], eax
+    mov    ebx, [esp + 24]
+    mov    [ebx], eax
 .end:
-	pop	ebx
-	ret
+    pop    ebx
+    ret
 
 ; end

@@ -9,6 +9,6 @@
 class CodXMB
 {
 public:
-	// Export a WraithModel to a XMB file
-	static void ExportXMB(const WraithModel& Model, const std::string& FileName);
+    // Export a WraithModel to a XMB file
+    static void ExportXMB(const WraithModel& Model, const std::string& FileName);
 };

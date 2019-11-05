@@ -183,6 +183,9 @@
     <ClCompile Include="CASCFileReader.cpp">
       <Filter>Source Files\Helpers</Filter>
     </ClCompile>
+    <ClCompile Include="GameQuantumSolace.cpp">
+      <Filter>Source Files\Games</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoDAssets.h">
@@ -343,6 +346,9 @@
     </ClInclude>
     <ClInclude Include="CASCFileReader.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameQuantumSolace.h">
+      <Filter>Header Files\Games</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -10,12 +10,12 @@
 class CommandLineManager
 {
 private:
-	// The command line cache
-	static std::unique_ptr<std::unordered_map<std::string, std::string>> CommandLineCache;
+    // The command line cache
+    static std::unique_ptr<std::unordered_map<std::string, std::string>> CommandLineCache;
 
 public:
-	// -- Functions
+    // -- Functions
 
-	// Parse the arguments given to the application
-	static void ParseCommandLine(const std::vector<std::string>& Arguments);
+    // Parse the arguments given to the application
+    static void ParseCommandLine(const std::vector<std::string>& Arguments);
 };

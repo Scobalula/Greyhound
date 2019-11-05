@@ -10,12 +10,12 @@
 class WraithButton
 {
 private:
-	// -- Custom events
+    // -- Custom events
 
-	// Handles painting the WraithButton
-	static void OnPaint(HWND hButton, HDC hDC, PAINTSTRUCT& pPaintStruct);
+    // Handles painting the WraithButton
+    static void OnPaint(HWND hButton, HDC hDC, PAINTSTRUCT& pPaintStruct);
 
 public:
-	// Handles the WNDPROC messages for the WraithButton
-	static LRESULT CALLBACK WndProcWraithButton(HWND hButton, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
+    // Handles the WNDPROC messages for the WraithButton
+    static LRESULT CALLBACK WndProcWraithButton(HWND hButton, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 };

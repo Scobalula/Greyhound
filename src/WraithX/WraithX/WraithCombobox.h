@@ -10,12 +10,12 @@
 class WraithCombobox
 {
 private:
-	// -- Custom events
+    // -- Custom events
 
-	// Handles painting the WraithCombobox
-	static void OnPaint(HWND hRadio, HDC hDC, PAINTSTRUCT& pPaintStruct);
+    // Handles painting the WraithCombobox
+    static void OnPaint(HWND hRadio, HDC hDC, PAINTSTRUCT& pPaintStruct);
 
 public:
-	// Handles the WNDPROC messages for the WraithCombobox
-	static LRESULT CALLBACK WndProcWraithCombobox(HWND hControl, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
+    // Handles the WNDPROC messages for the WraithCombobox
+    static LRESULT CALLBACK WndProcWraithCombobox(HWND hControl, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 };

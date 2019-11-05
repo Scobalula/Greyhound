@@ -10,16 +10,16 @@
 class WraithSplitButton : public CSplitButton
 {
 public:
-	// Constructors
-	WraithSplitButton();
-	virtual ~WraithSplitButton();
+    // Constructors
+    WraithSplitButton();
+    virtual ~WraithSplitButton();
 
 protected:
 
-	// Events
-	afx_msg void OnPaint();
-	afx_msg void OnDropDown(NMHDR* pNMHDR, LRESULT* pResult);
+    // Events
+    afx_msg void OnPaint();
+    afx_msg void OnDropDown(NMHDR* pNMHDR, LRESULT* pResult);
 
-	// Setup the message pump map
-	DECLARE_MESSAGE_MAP();
+    // Setup the message pump map
+    DECLARE_MESSAGE_MAP();
 };

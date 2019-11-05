@@ -291,13 +291,13 @@ IWICImagingFactory* DirectX::GetWICFactory(bool& iswic2)
 //-------------------------------------------------------------------------------------
 void DirectX::CleanupWICFactory()
 {
-	// Clean up if need be
-	if (g_Factory)
-	{
-		// Clean up
-		g_Factory->Release();
-		g_Factory = NULL;
-	}
+    // Clean up if need be
+    if (g_Factory)
+    {
+        // Clean up
+        g_Factory->Release();
+        g_Factory = NULL;
+    }
 }
 
 

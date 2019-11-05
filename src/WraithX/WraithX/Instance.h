@@ -12,14 +12,14 @@ class Instance
 {
 private:
 
-	// The handle to the current instance
-	static HANDLE AppInstance;
+    // The handle to the current instance
+    static HANDLE AppInstance;
 
 public:
-	// -- Instancing functions
+    // -- Instancing functions
 
-	// Begins a single instance, if successful, it returns true, otherwise, it attempts to bring forth the main window
-	static bool BeginSingleInstance(const std::string& MainWindowTitle);
-	// Ends a single instance
-	static void EndSingleInstance();
+    // Begins a single instance, if successful, it returns true, otherwise, it attempts to bring forth the main window
+    static bool BeginSingleInstance(const std::string& MainWindowTitle);
+    // Ends a single instance
+    static void EndSingleInstance();
 };
