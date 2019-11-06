@@ -561,12 +561,28 @@ void CoDXModelTranslator::PrepareVertexWeightsA(std::vector<WeightsData>& Weight
     for (uint32_t i = 0; i < Submesh.VertListcount; i++)
     {
         // Simple weights build, rigid, just apply the proper bone id
-        auto RigidInfo = CoDAssets::GameInstance->Read<GfxRigidVerts>(Submesh.RigidWeightsPtr + (i * sizeof(GfxRigidVerts)));
+        uint32_t VertexCount = 0;
+        uint32_t BoneIndex = 0;
+
+        // Read rigid struct, QS does not have the pointer
+        if (CoDAssets::GameID == SupportedGames::QuantumSolace)
+        {
+            auto RigidInfo = CoDAssets::GameInstance->Read<GfxRigidVertsQS>(Submesh.RigidWeightsPtr + (i * sizeof(GfxRigidVertsQS)));
+            VertexCount = RigidInfo.VertexCount;
+            BoneIndex = RigidInfo.BoneIndex / 64;
+        }
+        else
+        {
+            auto RigidInfo = CoDAssets::GameInstance->Read<GfxRigidVerts>(Submesh.RigidWeightsPtr + (i * sizeof(GfxRigidVerts)));
+            VertexCount = RigidInfo.VertexCount;
+            BoneIndex = RigidInfo.BoneIndex / 64;
+        }
+
         // Apply bone ids properly
-        for (uint32_t w = 0; w < RigidInfo.VertexCount; w++)
+        for (uint32_t w = 0; w < VertexCount; w++)
         {
             // Apply
-            Weights[WeightDataIndex].BoneValues[0] = (RigidInfo.BoneIndex / 64);
+            Weights[WeightDataIndex].BoneValues[0] = BoneIndex;
             // Advance
             WeightDataIndex++;
         }

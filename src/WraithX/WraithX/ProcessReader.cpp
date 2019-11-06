@@ -3,8 +3,9 @@
 // The class we are implementing
 #include "ProcessReader.h"
 
-// We require the patterns utility functions
+// We require the following WraithX classes
 #include "Patterns.h"
+#include "FileSystems.h"
 
 ProcessReader::ProcessReader()
 {
@@ -215,6 +216,58 @@ uintptr_t ProcessReader::GetMainModuleMemorySize()
 #endif
 }
 
+uintptr_t ProcessReader::GetModuleAddress(const std::string & ModuleName)
+{
+    // Get the main module if we are attached
+    if (ProcessHandle != NULL)
+    {
+        // Check if we're 32bit
+        BOOL IsWin32 = false;
+        if (!IsWow64Process(ProcessHandle, &IsWin32))
+            return 0;
+        // We can get it
+        DWORD ProcessID = GetProcessId(ProcessHandle);
+        // Handle Modules
+        HMODULE hMods[1024];
+        DWORD cbNeeded;
+        // Try and get the value
+        uintptr_t ModuleAddress = 0;
+        // Attempt to enum all modules
+        if (EnumProcessModulesEx(ProcessHandle, hMods, sizeof(hMods), &cbNeeded, IsWin32 ? LIST_MODULES_32BIT : LIST_MODULES_DEFAULT))
+        {
+            for (uint32_t i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+            {
+                // Module Name
+                TCHAR szModName[MAX_PATH];
+                // Get the name of the file
+                if (GetModuleFileNameEx(ProcessHandle, hMods[i], szModName, sizeof(szModName) / sizeof(TCHAR)))
+                {
+                    // Get as ASCII, and then get the file name
+                    auto FileName = Strings::ToLower(FileSystems::GetFileName(Strings::ToNormalString(szModName)));
+
+                    if (FileName == ModuleName)
+                    {
+                        ModuleAddress = (uintptr_t)hMods[i];
+                    }
+                }
+            }
+        }
+        // Return it
+        return ModuleAddress;
+    }
+    // Failed to perform read
+#ifdef _DEBUG
+    throw new std::exception("Not attached to any process");
+#else
+    throw new std::exception("");
+#endif
+}
+
+uintptr_t ProcessReader::GetModuleMemorySize(const std::string & ModuleName)
+{
+    return uintptr_t();
+}
+
 uintptr_t ProcessReader::GetSizeOfCode()
 {
     // Get the main module if we are attached
@@ -226,6 +279,26 @@ uintptr_t ProcessReader::GetSizeOfCode()
         // Now we must read the PE information, starting with DOS_Header, NT_Header, then finally the optional entry
         auto DOSHeader = Read<IMAGE_DOS_HEADER>(MainModuleAddress);
         auto NTHeader = Read<IMAGE_NT_HEADERS>(MainModuleAddress + DOSHeader.e_lfanew);
+
+        // Return code size
+        return (uintptr_t)NTHeader.OptionalHeader.SizeOfCode;
+    }
+    // Failed to perform read
+#ifdef _DEBUG
+    throw new std::exception("Not attached to any process");
+#else
+    throw new std::exception("");
+#endif
+}
+
+uintptr_t ProcessReader::GetSizeOfCode(uintptr_t Address)
+{
+    // Get the main module if we are attached
+    if (ProcessHandle != NULL)
+    {
+        // Now we must read the PE information, starting with DOS_Header, NT_Header, then finally the optional entry
+        auto DOSHeader = Read<IMAGE_DOS_HEADER>(Address);
+        auto NTHeader = Read<IMAGE_NT_HEADERS>(Address + DOSHeader.e_lfanew);
 
         // Return code size
         return (uintptr_t)NTHeader.OptionalHeader.SizeOfCode;

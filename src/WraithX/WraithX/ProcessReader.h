@@ -35,9 +35,15 @@ public:
     uintptr_t GetMainModuleAddress();
     // Gets the amount of memory required to load this module
     uintptr_t GetMainModuleMemorySize();
+    // Gets the address of the module for this process
+    uintptr_t GetModuleAddress(const std::string& ModuleName);
+    // Gets the amount of memory required to load this module
+    uintptr_t GetModuleMemorySize(const std::string& ModuleName);
 
     // Gets the size of 'code' the main module uses
     uintptr_t GetSizeOfCode();
+    // Gets the size of 'code' at the address
+    uintptr_t GetSizeOfCode(uintptr_t Address);
 
     // Gets the full path of the process
     std::string GetProcessPath();

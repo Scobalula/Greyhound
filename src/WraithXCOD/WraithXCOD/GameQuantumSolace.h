@@ -9,35 +9,35 @@
 #include "DBGameAssets.h"
 #include "CoDAssetType.h"
 
-// Handles reading from Modern Warfare
+// Handles reading from Quantum Solace
 class GameQuantumSolace
 {
 public:
     // -- Game functions
 
-    // Loads offsets for Modern Warfare
+    // Loads offsets for Quantum Solace
     static bool LoadOffsets();
-    // Loads assets for Modern Warfare
+    // Loads assets for Quantum Solace
     static bool LoadAssets();
 
-    // Reads an XAnim from Modern Warfare
+    // Reads an XAnim from Quantum Solace
     static std::unique_ptr<XAnim_t> ReadXAnim(const CoDAnim_t* Animation);
-    // Reads a XModel from Modern Warfare
+    // Reads a XModel from Quantum Solace
     static std::unique_ptr<XModel_t> ReadXModel(const CoDModel_t* Model);
 
-    // Reads an XImageDDS from a image reference from Modern Warfare
+    // Reads an XImageDDS from a image reference from Quantum Solace
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
 
-    // Reads a string via it's string index for Modern Warfare
+    // Reads a string via it's string index for Quantum Solace
     static std::string LoadStringEntry(uint64_t Index);
 
 private:
     // -- Game offsets databases
 
-    // A list of offsets for Modern Warfare single player
-    static std::array<DBGameInfo, 1> SinglePlayerOffsets;
-    // A list of offsets for Modern Warfare multi player
-    static std::array<DBGameInfo, 1> MultiPlayerOffsets;
+    // A list of offsets for Quantum Solace
+    static std::array<DBGameInfo, 2> Offsets;
+    // A list of library names for Quantum Solace
+    static std::array<std::string, 2> LibraryNames;
 
     // -- Game utilities
 

@@ -897,10 +897,6 @@ bool CoDAssets::LocateGameInfo()
         GameXImageHandler = GameQuantumSolace::LoadXImage;
         // Set game string handler
         GameStringHandler = GameQuantumSolace::LoadStringEntry;
-        // Allocate a new IWD Mega Cache
-        // GamePackageCache = std::make_unique<IWDCache>();
-        // Set the IWD path
-        // GamePackageCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "main"));
         break;
     case SupportedGames::WorldAtWar:
         // Load game offset info
@@ -1128,6 +1124,7 @@ std::string CoDAssets::BuildExportPath(const CoDAsset_t* Asset)
     // Append the game directory
     switch (GameID)
     {
+    case SupportedGames::QuantumSolace: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "quantum_solace"); break;
     case SupportedGames::WorldAtWar: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "world_at_war"); break;
     case SupportedGames::BlackOps: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "black_ops_1"); break;
     case SupportedGames::BlackOps2: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "black_ops_2"); break;

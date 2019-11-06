@@ -51,6 +51,14 @@ struct GfxRigidVerts
     uint32_t SurfaceCollisionPtr;
 };
 
+struct GfxRigidVertsQS
+{
+    uint16_t BoneIndex;
+    uint16_t VertexCount;
+    uint16_t FacesIndex;
+    uint16_t FacesCount;
+};
+
 struct GfxRigidVerts64
 {
     uint16_t BoneIndex;
