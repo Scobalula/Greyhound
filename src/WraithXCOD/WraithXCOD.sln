@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29318.209
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.489
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WraithXCOD", "WraithXCOD\WraithXCOD.vcxproj", "{948F6C8F-B11C-4E84-AC0E-8A8B1E94D119}"
 EndProject
@@ -141,7 +141,6 @@ Global
 		{6857F086-F6FE-4150-9ED7-7446F1C1C220}.ReleaseUS|x64.ActiveCfg = Release|x64
 		{6857F086-F6FE-4150-9ED7-7446F1C1C220}.ReleaseUS|x64.Build.0 = Release|x64
 		{78424708-1F6E-4D4B-920C-FB6D26847055}.Debug|x64.ActiveCfg = DebugAS|x64
-		{78424708-1F6E-4D4B-920C-FB6D26847055}.Debug|x64.Build.0 = DebugAS|x64
 		{78424708-1F6E-4D4B-920C-FB6D26847055}.DebugAD|x64.ActiveCfg = DebugAD|x64
 		{78424708-1F6E-4D4B-920C-FB6D26847055}.DebugAD|x64.Build.0 = DebugAD|x64
 		{78424708-1F6E-4D4B-920C-FB6D26847055}.DebugAS|x64.ActiveCfg = DebugAS|x64

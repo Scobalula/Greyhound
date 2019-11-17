@@ -113,18 +113,6 @@ struct MW4SoundAliasEntry
 // Verify that our pool data is exactly 0x20
 static_assert(sizeof(MW4XAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
 
-uint32_t ComputeSABEntryHash(const std::string Name)
-{
-    uint32_t Result = 0x1505;
-
-    for (auto& Char : Name)
-    {
-        Result = Char + (Result << 6) + (Result << 16) - Result;
-    }
-
-    return Result;
-}
-
 bool GameModernWarfare4::LoadOffsets()
 {
     // ----------------------------------------------------
@@ -136,8 +124,6 @@ bool GameModernWarfare4::LoadOffsets()
     //    Modern Warfare 4 stringtable, check entries, results may vary
     //    Reading is: (StringIndex * 28) + StringTablePtr + 8
     // ----------------------------------------------------
-
-    auto Thing = ComputeSABEntryHash("reloads\\iw8_scharlie\\wfoly_ar_scharlie_reload_gl_end.LN.75.44100.all");
 
     // Attempt to load the game offsets
     if (CoDAssets::GameInstance != nullptr)

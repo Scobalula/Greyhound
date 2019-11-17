@@ -541,7 +541,7 @@ uint32_t* DecryptionTable = new uint32_t[4082]
 // Black Ops 4 SP
 std::array<DBGameInfo, 1> GameBlackOps4::SinglePlayerOffsets =
 {{
-    { 0x8887ED0, 0x0, 0x750D4D0, 0x0 }
+    { 0x889AD50, 0x0, 0x7520300, 0x0 }
 }};
 
 // -- Finished with databases
@@ -662,87 +662,67 @@ bool GameBlackOps4::LoadOffsets()
             CoDAssets::GameOffsetInfos.clear();
         }
 
-        // In debug, print the info for easy additions later!
-        #if _DEBUG
         // Attempt to locate via heuristic searching
         auto DBAssetsScan = CoDAssets::GameInstance->Scan("48 89 5C 24 ?? 57 48 83 EC ?? 0F B6 F9 48 8D 05 ?? ?? ?? ??");
         auto StringTableScan = CoDAssets::GameInstance->Scan("48 8B 53 ?? 48 85 D2 74 ?? 48 8B 03 48 89 02");
 
-        // Load info and verify
-        auto GameOffsets = DBGameInfo(
-            // Resolve pool info from LEA
-            CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0x10) + (DBAssetsScan + 0x14),
-            // We don't use size offsets
-            0,
-            // Resolve strings from LEA
-            CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x12) + (StringTableScan + 0x16),
-            // We don't use package offsets
-            0
-        );
-        
-        // Format the output
-        printf("Heuristic: { 0x%llX, 0x0, 0x%llX, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
-        #endif
+        // Check that we had hits
+        if (DBAssetsScan > 0 && StringTableScan > 0)
+        {
+            // Load info and verify
+            auto GameOffsets = DBGameInfo(
+                // Resolve pool info from LEA
+                CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0x10) + (DBAssetsScan + 0x14),
+                // We don't use size offsets
+                0,
+                // Resolve strings from LEA
+                CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x12) + (StringTableScan + 0x16),
+                // We don't use package offsets
+                0
+            );
 
-        // All Bo4 Updates require a tool update
+            // In debug, print the info for easy additions later!
+#if _DEBUG
+            // Format the output
+            printf("Heuristic: { 0x%llX, 0x0, 0x%llX, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
+#endif
 
-//        // Check that we had hits
-//        if (DBAssetsScan > 0 && StringTableScan > 0)
-//        {
-//            // Load info and verify
-//            auto GameOffsets = DBGameInfo(
-//                // Resolve pool info from LEA
-//                CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0x10) + (DBAssetsScan + 0x14),
-//                // We don't use size offsets
-//                0,
-//                // Resolve strings from LEA
-//                CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x12) + (StringTableScan + 0x16),
-//                // We don't use package offsets
-//                0
-//            );
-//
-//            // In debug, print the info for easy additions later!
-//#if _DEBUG
-//            // Format the output
-//            printf("Heuristic: { 0x%X, 0x0, 0x%X, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
-//#endif
-//
-//
-//            // Read required offsets (XANIM, XMODEL, XIMAGE)
-//            auto AnimPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 3));
-//            auto ModelPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 4));
-//            auto ImagePoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x9));
-//
-//            // Apply game offset info
-//            CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
-//            CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
-//            CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-//
-//            // Verify via first xmodel asset, right now, we're using a hash
-//            auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
-//
-//            // Check
-//            if (FirstXModelHash == 0x04647533e968c910)
-//            {
-//                // Validate sizes
-//                if (
-//                    AnimPoolData.AssetSize  == sizeof(BO4XAnim) && 
-//                    ModelPoolData.AssetSize == sizeof(BO4XModel) && 
-//                    ImagePoolData.AssetSize == sizeof(BO4GfxImage))
-//                {
-//                    // Verify string table, otherwise we are all set
-//                    CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
-//
-//                    // Read and apply sizes
-//                    CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
-//                    CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
-//                    CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-//
-//                    // Return success
-//                    return true;
-//                }
-//            }
-//        }
+
+            // Read required offsets (XANIM, XMODEL, XIMAGE)
+            auto AnimPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 3));
+            auto ModelPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 4));
+            auto ImagePoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x9));
+
+            // Apply game offset info
+            CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
+
+            // Verify via first xmodel asset, right now, we're using a hash
+            auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
+
+            // Check
+            if (FirstXModelHash == 0x04647533e968c910)
+            {
+                // Validate sizes
+                if (
+                    AnimPoolData.AssetSize  == sizeof(BO4XAnim) && 
+                    ModelPoolData.AssetSize == sizeof(BO4XModel) && 
+                    ImagePoolData.AssetSize == sizeof(BO4GfxImage))
+                {
+                    // Verify string table, otherwise we are all set
+                    CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
+
+                    // Read and apply sizes
+                    CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
+                    CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
+                    CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
+
+                    // Return success
+                    return true;
+                }
+            }
+        }
     }
 
     // Failed
