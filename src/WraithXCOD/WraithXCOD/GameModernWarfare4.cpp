@@ -24,7 +24,7 @@
 // Modern Warfare 4 SP
 std::array<DBGameInfo, 1> GameModernWarfare4::SinglePlayerOffsets =
 {{
-    { 0xAE9CAF0, 0x0, 0xC89E300, 0x0 }
+    { 0xB56FF10, 0x0, 0xCE6AE00, 0x0 }
 }};
 
 // -- Finished with databases
@@ -82,7 +82,8 @@ struct MW4XAssetPoolData
 struct MW4SoundBankInfo
 {
     uint64_t BankNamePointer;
-    uint8_t Padding[0x20];
+    uint64_t StreamKey;
+    uint8_t Padding[0x14];
     uint64_t BankFilePointer;
     uint64_t UnkPointer;
     uint32_t BankFileSize;
@@ -198,7 +199,7 @@ bool GameModernWarfare4::LoadOffsets()
             auto ModelPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
             auto ImagePoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
             auto SoundPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
-            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
+            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 22));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
@@ -239,6 +240,7 @@ bool GameModernWarfare4::LoadAssets()
     bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
+    bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
 
     // Check if we need assets
     if (NeedsAnims)
@@ -332,10 +334,10 @@ bool GameModernWarfare4::LoadAssets()
             LoadedModel->AssetName = ModelName;
             LoadedModel->AssetPointer = ModelOffset;
             // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
-            if (ModelResult.NumBones > 0 && ModelResult.TranslationsPtr > 0 && ModelResult.RotationsPtr > 0 && ModelResult.ParentListPtr > 0)
-                LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
-            else
+            if ((ModelResult.NumBones + ModelResult.UnkBoneCount) > 1 && ModelResult.ParentListPtr == 0)
                 LoadedModel->BoneCount = 0;
+            else
+                LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
             LoadedModel->LodCount = ModelResult.NumLods;
 
             // Check placeholder configuration, "empty_model" is the base xmodel swap
@@ -419,129 +421,151 @@ bool GameModernWarfare4::LoadAssets()
     // Since MW now stores the entire SABL in Fast Files, we must essentially parse it in memory, SABS files can be loaded as usual.
     if (NeedsSounds)
     {
-        // MW has 2 soundbank pools, soundbank and soundbanktransient, weapons are in soundbanktransient, as far as we care, both are the same
-        for (size_t PoolIndex = 0; PoolIndex < 2; PoolIndex++)
+        // Images are the fourth offset and foruth pool
+        auto SoundOffset = CoDAssets::GameOffsetInfos[3];
+        auto SoundCount = CoDAssets::GamePoolSizes[3];
+
+        // Calculate maximum pool size
+        auto MaximumPoolOffset = (SoundCount * sizeof(MW4SoundBank)) + SoundOffset;
+        // Store original offset
+        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
+
+        // Loop and read
+        for (uint32_t i = 0; i < SoundCount; i++)
         {
-            // Images are the fourth offset and foruth pool
-            auto SoundOffset = CoDAssets::GameOffsetInfos[3 + PoolIndex];
-            auto SoundCount = CoDAssets::GamePoolSizes[3 + PoolIndex];
+            // Read
+            auto SoundResult = CoDAssets::GameInstance->Read<MW4SoundBank>(SoundOffset);
 
-            // Calculate maximum pool size
-            auto MaximumPoolOffset = (SoundCount * sizeof(MW4SoundBank)) + SoundOffset;
-            // Store original offset
-            auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3 + PoolIndex];
-
-            // Loop and read
-            for (uint32_t i = 0; i < SoundCount; i++)
+            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
+            if ((SoundResult.NamePtr > MinimumPoolOffset && SoundResult.NamePtr < MaximumPoolOffset) || SoundResult.NamePtr == 0)
             {
-                // Read
-                auto SoundResult = CoDAssets::GameInstance->Read<MW4SoundBank>(SoundOffset);
-
-                // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-                if ((SoundResult.NamePtr > MinimumPoolOffset && SoundResult.NamePtr < MaximumPoolOffset) || SoundResult.NamePtr == 0)
-                {
-                    // Advance
-                    SoundOffset += sizeof(MW4SoundBank);
-                    // Skip this asset
-                    continue;
-                }
-
-                auto SoundBankInfo = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(SoundResult.SoundBankPtr);
-
-                if (SoundBankInfo.BankFilePointer > 0)
-                {
-                    // Due to them being out of order, we must parse the aliases to get the hashes
-                    // Ideally I would like to figure out this hash so we don't need to do this, it's
-                    // not the same one used in Bo3 (SDBM)
-                    // The unordered lists do not seem to affect SABS files, just SABLs
-                    std::map<uint32_t, std::string> SABFileNames;
-
-                    for (uint64_t j = 0; j < SoundResult.AliasCount; j++)
-                    {
-                        auto Alias = CoDAssets::GameInstance->Read<MW4SoundAlias>(SoundResult.AliasesPtr + j * sizeof(MW4SoundAlias));
-
-                        for (uint64_t k = 0; k < Alias.EntriesCount; k++)
-                        {
-                            auto Entry = CoDAssets::GameInstance->Read<MW4SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW4SoundAliasEntry));
-
-                            SABFileNames[Entry.FileHash] = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
-                        }
-                    }
-
-                    // Parse the loaded header, and offset from the pointer to it
-                    auto Header = CoDAssets::GameInstance->Read<SABFileHeader>(SoundBankInfo.BankFilePointer);
-
-                    // Verify magic first, same for all SAB files
-                    // The magic is ('2UX#')
-                    if (Header.Magic != 0x23585532)
-                    {
-                        // Failed, invalid file
-                        return false;
-                    }
-
-                    // Get Settings
-                    auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
-
-                    // Prepare to loop and read entries
-                    for (uint32_t i = 0; i < Header.EntriesCount; i++)
-                    {
-                        // Read each entry
-                        auto Entry = CoDAssets::GameInstance->Read<SABv4Entry>(SoundBankInfo.BankFilePointer + Header.EntryTableOffset + i * sizeof(SABv4Entry));
-
-                        // Prepare to parse the information to our generic structure
-                        std::string EntryName = "";
-                        // Check our options
-                        if (SABFileNames.size() > 0)
-                        {
-                            // We have it in file
-                            EntryName = SABFileNames[Entry.Key];
-                        }
-                        //else if (NameIndex.NameDatabase.find(Entry.Key) != NameIndex.NameDatabase.end())
-                        //{
-                        //    // We have it in a database
-                        //    EntryName = NameIndex.NameDatabase.at(Entry.Key);
-                        //}
-                        else
-                        {
-                            // We don't have one
-                            EntryName = Strings::Format("_%llx", Entry.Key);
-                        }
-
-                        // Setup a new entry
-                        auto LoadedSound = new CoDSound_t();
-                        // Set the name, but remove all extensions first
-                        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
-                        LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
-
-                        // Set various properties
-                        LoadedSound->FrameRate = Entry.FrameRate;
-                        LoadedSound->FrameCount = Entry.FrameCount;
-                        LoadedSound->ChannelsCount = Entry.ChannelCount;
-                        // The offset should be after the seek table, since it is not required
-                        LoadedSound->AssetPointer = SoundBankInfo.BankFilePointer + (Entry.Offset + Entry.SeekTableLength);
-                        LoadedSound->AssetSize = Entry.Size;
-                        LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
-                        LoadedSound->IsFileEntry = false;
-                        LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
-                        // All Modern Warfare (v10) entries are FLAC's with no header
-                        LoadedSound->DataType = SoundDataTypes::FLAC_NeedsHeader;
-
-                        // Check do we want to skip this
-                        if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
-                        {
-                            delete LoadedSound;
-                            continue;
-                        }
-
-                        // Add
-                        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
-                    }
-                }
-
                 // Advance
                 SoundOffset += sizeof(MW4SoundBank);
+                // Skip this asset
+                continue;
             }
+
+            auto SoundBankInfo = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(SoundResult.SoundBankPtr);
+
+            if (SoundBankInfo.BankFilePointer > 0)
+            {
+                // Due to them being out of order, we must parse the aliases to get the hashes
+                // Ideally I would like to figure out this hash so we don't need to do this, it's
+                // not the same one used in Bo3 (SDBM)
+                // The unordered lists do not seem to affect SABS files, just SABLs
+                std::map<uint32_t, std::string> SABFileNames;
+
+                for (uint64_t j = 0; j < SoundResult.AliasCount; j++)
+                {
+                    auto Alias = CoDAssets::GameInstance->Read<MW4SoundAlias>(SoundResult.AliasesPtr + j * sizeof(MW4SoundAlias));
+
+                    for (uint64_t k = 0; k < Alias.EntriesCount; k++)
+                    {
+                        auto Entry = CoDAssets::GameInstance->Read<MW4SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW4SoundAliasEntry));
+
+                        SABFileNames[Entry.FileHash] = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
+                    }
+                }
+
+                // Parse the loaded header, and offset from the pointer to it
+                auto Header = CoDAssets::GameInstance->Read<SABFileHeader>(SoundBankInfo.BankFilePointer);
+
+                // Verify magic first, same for all SAB files
+                // The magic is ('2UX#')
+                if (Header.Magic != 0x23585532)
+                {
+                    // Failed, invalid file
+                    return false;
+                }
+
+                // Get Settings
+                auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
+
+                // Prepare to loop and read entries
+                for (uint32_t i = 0; i < Header.EntriesCount; i++)
+                {
+                    // Read each entry
+                    auto Entry = CoDAssets::GameInstance->Read<SABv4Entry>(SoundBankInfo.BankFilePointer + Header.EntryTableOffset + i * sizeof(SABv4Entry));
+
+                    // Prepare to parse the information to our generic structure
+                    std::string EntryName = "";
+                    // Check our options
+                    if (SABFileNames.size() > 0)
+                    {
+                        // We have it in file
+                        EntryName = SABFileNames[Entry.Key];
+                    }
+                    //else if (NameIndex.NameDatabase.find(Entry.Key) != NameIndex.NameDatabase.end())
+                    //{
+                    //    // We have it in a database
+                    //    EntryName = NameIndex.NameDatabase.at(Entry.Key);
+                    //}
+                    else
+                    {
+                        // We don't have one
+                        EntryName = Strings::Format("_%llx", Entry.Key);
+                    }
+
+                    // Setup a new entry
+                    auto LoadedSound = new CoDSound_t();
+                    // Set the name, but remove all extensions first
+                    LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
+                    LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
+
+                    // Set various properties
+                    LoadedSound->FrameRate = Entry.FrameRate;
+                    LoadedSound->FrameCount = Entry.FrameCount;
+                    LoadedSound->ChannelsCount = Entry.ChannelCount;
+                    // The offset should be after the seek table, since it is not required
+                    LoadedSound->AssetPointer = SoundBankInfo.BankFilePointer + (Entry.Offset + Entry.SeekTableLength);
+                    LoadedSound->AssetSize = Entry.Size;
+                    LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+                    LoadedSound->IsFileEntry = false;
+                    LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+                    // All Modern Warfare (v10) entries are FLAC's with no header
+                    LoadedSound->DataType = SoundDataTypes::FLAC_NeedsHeader;
+
+                    // Check do we want to skip this
+                    if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
+                    {
+                        delete LoadedSound;
+                        continue;
+                    }
+
+                    // Add
+                    CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+                }
+            }
+
+            // Advance
+            SoundOffset += sizeof(MW4SoundBank);
         }
+    }
+
+    if (NeedsRawFiles)
+    {
+        // Parse the Rawfile pool
+        CoDXPoolParser<uint64_t, MW4SoundBank>(CoDAssets::GameOffsetInfos[4], CoDAssets::GamePoolSizes[4], [](MW4SoundBank& Asset, uint64_t& AssetOffset)
+        {
+            // Validate and load if need be
+            auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr) + ".sabs";
+
+            // Note actually streamer info pool
+            auto Info = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(Asset.SoundBankPtr);
+
+            // Make and add
+            auto LoadedRawfile = new CoDRawFile_t();
+            // Set
+            LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
+            LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
+            LoadedRawfile->AssetPointer = Asset.SoundBankPtr;
+            LoadedRawfile->AssetSize = Info.BankFileSize;
+            LoadedRawfile->RawDataPointer = Info.BankFilePointer;
+            LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
+
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
+        });
     }
 
     // Success, error only on specific load
@@ -638,12 +662,16 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
         // Copy over default properties
         ModelAsset->ModelName = Model->AssetName;
         // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
-        if (ModelData.NumBones > 0 && ModelData.TranslationsPtr > 0 && ModelData.RotationsPtr > 0 && ModelData.ParentListPtr > 0)
+        if ((ModelData.NumBones + ModelData.UnkBoneCount) > 1 && ModelData.ParentListPtr == 0)
+        {
+            ModelAsset->BoneCount = 0;
+            ModelAsset->RootBoneCount = 0;
+        }
+        else
         {
             ModelAsset->BoneCount = ModelData.NumBones + ModelData.UnkBoneCount;
             ModelAsset->RootBoneCount = ModelData.NumRootBones;
         }
-
         // Bone data type
         ModelAsset->BoneRotationData = BoneDataTypes::DivideBySize;
 
@@ -739,6 +767,71 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::ReadXImage(const CoDImage_t* Imag
 {
     // Proxy off
     return LoadXImage(XImage_t(ImageUsageType::DiffuseMap, 0, Image->AssetPointer, Image->AssetName));
+}
+
+void GameModernWarfare4::TranslateRawfile(const CoDRawFile_t * Rawfile, const std::string & ExportPath)
+{
+    // Size read
+    uint32_t ResultSize = 0;
+
+    // Note actually streamer info pool
+    auto Info = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(Rawfile->AssetPointer);
+
+    // Buffer
+    std::unique_ptr<uint8_t[]> Data = CoDAssets::GamePackageCache->ExtractPackageObject(Info.StreamKey, ResultSize);
+
+    // Check if loaded
+    if (Info.BankFilePointer != 0)
+    {
+        // Result size
+        uintptr_t ResultSize = 0;
+        // The bank is already loaded, just read it
+        auto TemporaryBuffer = CoDAssets::GameInstance->Read(Info.BankFilePointer, Info.BankFileSize, ResultSize);
+
+        // Copy and clean up
+        if (TemporaryBuffer != nullptr)
+        {
+            // Allocate safe
+            Data = std::make_unique<uint8_t[]>(Info.BankFileSize);
+            // Copy over
+            std::memcpy(Data.get(), TemporaryBuffer, (size_t)ResultSize);
+
+            // Clean up
+            delete[] TemporaryBuffer;
+        }
+    }
+    else
+    {
+        // We have a streamed image, prepare to extract
+        Data = CoDAssets::GamePackageCache->ExtractPackageObject(Info.StreamKey, ResultSize);
+    }
+
+    // Prepare if we have it
+    if (Data != nullptr)
+    {
+        std::cout << "Not nullptr\n";
+        // Build the export path
+        std::string ExportFolder = ExportPath;
+
+        // Check to preserve the paths
+        if (SettingsManager::GetSetting("keeprawpath", "true") == "true")
+        {
+            // Apply the base path
+            ExportFolder = FileSystems::CombinePath(ExportFolder, Rawfile->RawFilePath);
+        }
+
+        // Make the directory
+        FileSystems::CreateDirectory(ExportFolder);
+
+        // New writer instance
+        auto Writer = BinaryWriter();
+        // Create the file
+        if (Writer.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName)))
+        {
+            // Write the raw data
+            Writer.Write(Data.get(), (uint32_t)ResultSize);
+        }
+    }
 }
 
 const XMaterial_t GameModernWarfare4::ReadXMaterial(uint64_t MaterialPointer)

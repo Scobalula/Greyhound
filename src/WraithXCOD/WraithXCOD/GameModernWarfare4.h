@@ -35,6 +35,8 @@ public:
     static std::unique_ptr<XModel_t> ReadXModel(const CoDModel_t* Model);
     // Reads a XImage from Modern Warfare 4
     static std::unique_ptr<XImageDDS> ReadXImage(const CoDImage_t* Image);
+    // Reads a XImage from Modern Warfare 4
+    static void TranslateRawfile(const CoDRawFile_t* Rawfile, const std::string& ExportPath);
 
     // Reads an XImageDDS from a image reference from Modern Warfare 4
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);

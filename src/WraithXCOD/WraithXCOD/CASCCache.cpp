@@ -221,16 +221,8 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
     // Prepare to extract if found
     if (CacheObjects.find(CacheID) != CacheObjects.end())
     {
-        //try
-        //{
-        //    // Aquire lock
-        //    std::lock_guard<std::shared_mutex> Gaurd(ReadMutex);
-        //}
-        //catch (std::exception & e)
-        //{
-        //    std::cout << e.what() << "\n";
-        //}
-
+        // Aquire lock
+        // std::lock_guard<std::shared_mutex> Gaurd(ReadMutex);
 
         // Take cache data, and extract from the XPAK (Uncompressed size = offset of data segment!)
         auto& CacheInfo = CacheObjects[CacheID];
@@ -317,17 +309,14 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     uint64_t ReadSize = 0;
                     // Read the block
                     auto DataBlock = Reader.Read(BlockSize, ReadSize);
-                    // Pad the Block Size
-                    BlockSize = (BlockSize + 3) & 0xFFFFFFFC;
+                    // Check if we're at the end of the block/less than the max block size, if so, use that
+                    uint64_t RawBlockSize = DecompressedSize < 262112 ? DecompressedSize : 262112;
+                    // Subtract from our total size
+                    DecompressedSize -= RawBlockSize;
 
                     // Check if we read data
                     if (DataBlock != nullptr)
                     {
-                        // Check if we're at the end of the block/less than the max block size, if so, use that
-                        uint64_t RawBlockSize = DecompressedSize < 262112 ? DecompressedSize : 262112;
-                        // Subtract from our total size
-                        DecompressedSize -= RawBlockSize;
-
                         // Decompress the Oodle block
                         auto Result = Siren::Decompress((const uint8_t*)DataBlock.get(), (uint32_t)BlockSize, (uint8_t*)DataTemporaryBuffer + TotalDataSize, RawBlockSize);
 
@@ -341,6 +330,8 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     uint64_t ReadSize = 0;
                     // Read the block
                     auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    // Subtract from our total size
+                    DecompressedSize -= BlockSize;
 
                     // Check if we read data
                     if (DataBlock != nullptr)
@@ -357,6 +348,10 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     // As far as we care, any other flag value is padding (0xCF is one of them)
                     Reader.Advance(BlockSize);
                 }
+
+                // Pad for MW
+                if (CoDAssets::GameID == SupportedGames::ModernWarfare4)
+                    BlockSize = (BlockSize + 3) & 0xFFFFFFFC;
 
                 // We must append the block size and pad it properly (If it's the last block)
                 uint64_t NextSegmentOffset = 0;

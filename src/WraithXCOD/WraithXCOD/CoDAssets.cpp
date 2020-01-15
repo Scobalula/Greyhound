@@ -1643,6 +1643,7 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
         case SupportedGames::ModernWarfare2:
         case SupportedGames::ModernWarfare3:
             SoundData = GameWorldWar2::ReadXSound(Sound);
+            break;
         case SupportedGames::ModernWarfare4:
             if(Sound->IsFileEntry)
                 SoundData = SABSupport::LoadSound(Sound);
@@ -1729,6 +1730,10 @@ ExportGameResult CoDAssets::ExportRawfileAsset(const CoDRawFile_t* Rawfile, cons
     case SupportedGames::BlackOps4:
         // Send to generic translator, these games compress the anim trees
         CoDRawfileTranslator::TranslateRawfile(Rawfile, ExportPath, true, false);
+        break;
+    case SupportedGames::ModernWarfare4:
+        // Send to MW Raw File Extractor (SAB Files)
+        GameModernWarfare4::TranslateRawfile(Rawfile, ExportPath);
         break;
     }
 
