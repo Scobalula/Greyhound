@@ -187,6 +187,8 @@ struct XModelSubmesh_t
     uint64_t FacesPtr;
     // Pointer to verticies
     uint64_t VertexPtr;
+    // Pointer to vertex colors
+    uint64_t VertexColorPtr;
 
     // A list of weights
     uint16_t WeightCounts[8];

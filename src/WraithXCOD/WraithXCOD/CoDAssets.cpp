@@ -1098,7 +1098,9 @@ bool CoDAssets::LocateGameInfo()
         // Allocate a new XPAK Mega Cache
         GamePackageCache = std::make_unique<CASCCache>();
         // Set the XPAK path
+#ifndef DEBUG
         GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+#endif // DEBUG
         break;
     }
 

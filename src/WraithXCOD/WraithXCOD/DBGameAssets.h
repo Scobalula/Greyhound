@@ -3384,11 +3384,11 @@ struct MW4XMaterial
 {
     uint64_t NamePtr;
 
-    uint8_t Padding[19];
+    uint8_t Padding[20];
 
     uint8_t ImageCount;
 
-    uint8_t Padding2[44];
+    uint8_t Padding2[43];
 
     uint64_t ImageTablePtr;
 };

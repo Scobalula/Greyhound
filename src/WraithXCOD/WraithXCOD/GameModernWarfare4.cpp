@@ -699,10 +699,6 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
         // Global matricies
         ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
 
-        std::cout << Model->AssetPointer << "\n";
-        std::cout << ModelAsset->TranslationsPtr << "\n";
-        std::cout << ModelAsset->BaseMatriciesPtr << "\n";
-
         // Prepare to parse lods
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
         {
@@ -738,6 +734,7 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
                 SubmeshReference.FaceCount       = SurfaceInfo.FacesCount;
                 SubmeshReference.VertexPtr       = SurfaceInfo.Offsets[0];
                 SubmeshReference.FacesPtr        = SurfaceInfo.Offsets[1];
+                SubmeshReference.VertexColorPtr  = SurfaceInfo.Offsets[3];
                 SubmeshReference.Scale           = fmaxf(fmaxf(SurfaceInfo.Min, SurfaceInfo.Scale), SurfaceInfo.Max);
                 SubmeshReference.XOffset         = SurfaceInfo.XOffset;
                 SubmeshReference.YOffset         = SurfaceInfo.YOffset;
@@ -1032,7 +1029,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
 // Transforms a Normal by the Rotation
 Vector3 TransformNormal(Quaternion quat, Vector3 up)
 {
-    // Generated the normal by rotating up around the normal value
+    // Generate the normal by rotating up around the normal value
     const Vector3 a(
         quat.Y * up.Z - quat.Z * up.Y + up.X * quat.W,
         quat.Z * up.X - quat.X * up.Z + up.Y * quat.W,
@@ -1054,9 +1051,9 @@ Vector3 UnpackNormalQuat(uint32_t packedQuat)
     auto LargestComponent = packedQuat >> 30;
 
     // Unpack the values and compute the largest component
-    auto x = ((((packedQuat >> 00) & 0x3FF) / 511.0f) - 1.0f) / 1.4142135f;
-    auto y = ((((packedQuat >> 10) & 0x3FF) / 511.0f) - 1.0f) / 1.4142135f;
-    auto z = ((((packedQuat >> 20) & 0x1FF) / 255.0f) - 1.0f) / 1.4142135f;
+    auto x = ((((packedQuat >> 00) & 0x3FF) / 511.5f) - 1.0f) / 1.4142135f;
+    auto y = ((((packedQuat >> 10) & 0x3FF) / 511.5f) - 1.0f) / 1.4142135f;
+    auto z = ((((packedQuat >> 20) & 0x1FF) / 255.5f) - 1.0f) / 1.4142135f;
     auto w = sqrtf(1 - x * x - y * y - z * z);
 
     // Determine largest
@@ -1194,7 +1191,21 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             }
 
             // Jump to color data, if it's stored and we want it
-            //if(ExportColors && Submesh)
+            if (ExportColors && Submesh.VertexColorPtr != 0xFFFFFFFF)
+            {
+                // Jump to vertex position data, advance to this submeshes verticies
+                MeshReader.SetPosition(Submesh.VertexColorPtr);
+
+                // Iterate over verticies
+                for (uint32_t i = 0; i < Submesh.VertexCount; i++)
+                {
+                    // Apply Color (some models don't store colors, so we need to check ptr below)
+                    Mesh.Verticies[i].Color[0] = MeshReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[1] = MeshReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[2] = MeshReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[3] = MeshReader.Read<uint8_t>();
+                }
+            }
 
             // Jump to face data, advance to this submeshes faces
             MeshReader.SetPosition(Submesh.FacesPtr);
