@@ -1340,9 +1340,9 @@ bool CoDAssets::ShouldExportModel(std::string ExportPath)
     // Check it
     if (SettingsManager::GetSetting("export_semodel") == "true" && !FileSystems::FileExists(ExportPath + ".semodel"))
         Result = true;
-    // Check it
-    if (SettingsManager::GetSetting("export_fbx") == "true" && !FileSystems::FileExists(ExportPath + ".fbx"))
-        Result = true;
+    //// Check it
+    //if (SettingsManager::GetSetting("export_fbx") == "true" && !FileSystems::FileExists(ExportPath + ".fbx"))
+    //    Result = true;
 
     // Done
     return Result;
@@ -2045,7 +2045,7 @@ void CoDAssets::ExportSelectedAssets(void* Caller, const std::unique_ptr<std::ve
     auto NumberOfCores = SystemInfo.dwNumberOfProcessors;
     
     // Clamp it, no less than 1, no more than 3
-    auto DegreeOfConverter = VectorMath::Clamp<uint32_t>(NumberOfCores, 1, 8);
+    auto DegreeOfConverter = VectorMath::Clamp<uint32_t>(NumberOfCores, 1, 3);
 
     // Prepare to convert the assets in async
     CoDXConverter([&AssetIndex, &Caller, &Assets, &AssetsToConvert]

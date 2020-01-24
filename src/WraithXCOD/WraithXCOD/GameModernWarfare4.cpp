@@ -16,6 +16,7 @@
 #include "Strings.h"
 #include "FileSystems.h"
 #include "MemoryReader.h"
+#include "TextWriter.h"
 #include "SettingsManager.h"
 #include "HalfFloats.h"
 
@@ -24,7 +25,7 @@
 // Modern Warfare 4 SP
 std::array<DBGameInfo, 1> GameModernWarfare4::SinglePlayerOffsets =
 {{
-    { 0xB56FF10, 0x0, 0xCE6AE00, 0x0 }
+    { 0xBF34520, 0x0, 0xD8A6800, 0x0 }
 }};
 
 // -- Finished with databases
@@ -43,13 +44,10 @@ struct MW4GfxRigidVerts
 struct MW4GfxStreamVertex
 {
     uint64_t PackedPosition; // Packed 21bits, scale + offset in Mesh Info
-    uint32_t BiNormal; // Not vertex normal, value matches IW
+    uint32_t BiNormal;
     uint16_t UVUPosition;
     uint16_t UVVPosition;
-    // Check Offsets 4 and 5 in the Submesh, not always present but are 4 bytes per 
-    // vertex chunks of data, Offset 4 seems to be a UV but 4 is worth checking more
-    // This could be the normal, value is the same across vertices that are the same in IW
-    int32_t VertexNormal;
+    uint32_t NormalQuaternion;
 };
 #pragma pack(pop)
 
@@ -103,7 +101,7 @@ struct MW4SoundAliasEntry
 {
     uint64_t NamePtr;
     uint64_t Unk;
-    uint64_t Unk2;
+    uint64_t SecondaryPtr;
     uint64_t FilePtr;
     uint32_t NameHash;
     uint32_t Padding;
@@ -474,8 +472,10 @@ bool GameModernWarfare4::LoadAssets()
                 // The magic is ('2UX#')
                 if (Header.Magic != 0x23585532)
                 {
-                    // Failed, invalid file
-                    return false;
+                    // Advance
+                    SoundOffset += sizeof(MW4SoundBank);
+                    // Skip this asset
+                    continue;
                 }
 
                 // Get Settings
@@ -558,7 +558,7 @@ bool GameModernWarfare4::LoadAssets()
             // Set
             LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
             LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
-            LoadedRawfile->AssetPointer = Asset.SoundBankPtr;
+            LoadedRawfile->AssetPointer = AssetOffset;
             LoadedRawfile->AssetSize = Info.BankFileSize;
             LoadedRawfile->RawDataPointer = Info.BankFilePointer;
             LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
@@ -596,6 +596,12 @@ std::unique_ptr<XAnim_t> GameModernWarfare4::ReadXAnim(const CoDAnim_t* Animatio
         //    Anim->ViewModelAnimation = true;
         //}
 
+        // Check for additive animations
+        if (AnimData.AssetType == 0x6)
+        {
+            // This is a additive animation
+            Anim->AdditiveAnimation = true;
+        }
         // Check for looping
         Anim->LoopingAnimation = (AnimData.Flags & 1);
 
@@ -693,6 +699,10 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
         // Global matricies
         ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
 
+        std::cout << Model->AssetPointer << "\n";
+        std::cout << ModelAsset->TranslationsPtr << "\n";
+        std::cout << ModelAsset->BaseMatriciesPtr << "\n";
+
         // Prepare to parse lods
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
         {
@@ -771,65 +781,69 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::ReadXImage(const CoDImage_t* Imag
 
 void GameModernWarfare4::TranslateRawfile(const CoDRawFile_t * Rawfile, const std::string & ExportPath)
 {
-    // Size read
-    uint32_t ResultSize = 0;
+    // Build the export path
+    std::string ExportFolder = ExportPath;
 
-    // Note actually streamer info pool
-    auto Info = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(Rawfile->AssetPointer);
-
-    // Buffer
-    std::unique_ptr<uint8_t[]> Data = CoDAssets::GamePackageCache->ExtractPackageObject(Info.StreamKey, ResultSize);
-
-    // Check if loaded
-    if (Info.BankFilePointer != 0)
+    // Check to preserve the paths
+    if (SettingsManager::GetSetting("keeprawpath", "true") == "true")
     {
-        // Result size
-        uintptr_t ResultSize = 0;
-        // The bank is already loaded, just read it
-        auto TemporaryBuffer = CoDAssets::GameInstance->Read(Info.BankFilePointer, Info.BankFileSize, ResultSize);
+        // Apply the base path
+        ExportFolder = FileSystems::CombinePath(ExportFolder, Rawfile->RawFilePath);
+    }
 
-        // Copy and clean up
-        if (TemporaryBuffer != nullptr)
+    // Make the directory
+    FileSystems::CreateDirectory(ExportFolder);
+
+    // Read Bank
+    auto Bank = CoDAssets::GameInstance->Read<MW4SoundBank>(Rawfile->AssetPointer);
+
+    // Text writer for aliases
+    TextWriter AliasWriter;
+
+    // Create the file
+    if (AliasWriter.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName + ".csv")))
+    {
+        // Write head
+        AliasWriter.WriteLine("Name,Secondary,File");
+        AliasWriter.WriteLine("# Note: Secondary is triggered by this alias, so a chain of secondaries are played at the same time");
+        AliasWriter.WriteLine("# Note: There are other settings that cannot be pulled, so these sounds may not sound the same as in-game without editing");
+
+        for (uint64_t j = 0; j < Bank.AliasCount; j++)
         {
-            // Allocate safe
-            Data = std::make_unique<uint8_t[]>(Info.BankFileSize);
-            // Copy over
-            std::memcpy(Data.get(), TemporaryBuffer, (size_t)ResultSize);
+            auto Alias = CoDAssets::GameInstance->Read<MW4SoundAlias>(Bank.AliasesPtr + j * sizeof(MW4SoundAlias));
 
-            // Clean up
-            delete[] TemporaryBuffer;
+            for (uint64_t k = 0; k < Alias.EntriesCount; k++)
+            {
+                auto Entry = CoDAssets::GameInstance->Read<MW4SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW4SoundAliasEntry));
+
+                auto Name      = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.NamePtr);
+                auto Secondary = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.SecondaryPtr);
+                auto FileName  = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
+
+                AliasWriter.WriteLineFmt("%s,%s,%s", Name.c_str(), Secondary.c_str(), FileName.c_str());
+            }
         }
     }
-    else
-    {
-        // We have a streamed image, prepare to extract
-        Data = CoDAssets::GamePackageCache->ExtractPackageObject(Info.StreamKey, ResultSize);
-    }
+
+    // Note actually streamer info pool
+    auto Info = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(Bank.SoundBankPtr);
+
+    // Always stream, data in memory gets bamboozled like Thomas Cat's death
+    // Size read
+    uint32_t ResultSize = 0;
+    // Buffer
+    std::unique_ptr<uint8_t[]> Data = CoDAssets::GamePackageCache->ExtractPackageObject(Info.StreamKey, ResultSize);
 
     // Prepare if we have it
     if (Data != nullptr)
     {
-        std::cout << "Not nullptr\n";
-        // Build the export path
-        std::string ExportFolder = ExportPath;
-
-        // Check to preserve the paths
-        if (SettingsManager::GetSetting("keeprawpath", "true") == "true")
-        {
-            // Apply the base path
-            ExportFolder = FileSystems::CombinePath(ExportFolder, Rawfile->RawFilePath);
-        }
-
-        // Make the directory
-        FileSystems::CreateDirectory(ExportFolder);
-
         // New writer instance
         auto Writer = BinaryWriter();
         // Create the file
         if (Writer.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName)))
         {
             // Write the raw data
-            Writer.Write(Data.get(), (uint32_t)ResultSize);
+            Writer.Write(Data.get(), (uint32_t)Info.BankFileSize);
         }
     }
 }
@@ -1015,6 +1029,47 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     return nullptr;
 }
 
+// Transforms a Normal by the Rotation
+Vector3 TransformNormal(Quaternion quat, Vector3 up)
+{
+    // Generated the normal by rotating up around the normal value
+    const Vector3 a(
+        quat.Y * up.Z - quat.Z * up.Y + up.X * quat.W,
+        quat.Z * up.X - quat.X * up.Z + up.Y * quat.W,
+        quat.X * up.Y - quat.Y * up.X + up.Z * quat.W);
+    const Vector3 b(
+        quat.Y * a.Z - quat.Z * a.Y,
+        quat.Z * a.X - quat.X * a.Z,
+        quat.X * a.Y - quat.Y * a.X);
+    return Vector3(
+        up.X + b.X + b.X,
+        up.Y + b.Y + b.Y,
+        up.Z + b.Z + b.Z);
+}
+
+// Unpacks a 4-D Quaternion Normal
+Vector3 UnpackNormalQuat(uint32_t packedQuat)
+{
+    auto Up = Vector3(0, 0, 1.0f);
+    auto LargestComponent = packedQuat >> 30;
+
+    // Unpack the values and compute the largest component
+    auto x = ((((packedQuat >> 00) & 0x3FF) / 511.0f) - 1.0f) / 1.4142135f;
+    auto y = ((((packedQuat >> 10) & 0x3FF) / 511.0f) - 1.0f) / 1.4142135f;
+    auto z = ((((packedQuat >> 20) & 0x1FF) / 255.0f) - 1.0f) / 1.4142135f;
+    auto w = sqrtf(1 - x * x - y * y - z * z);
+
+    // Determine largest
+    switch (LargestComponent)
+    {
+    case 0: return TransformNormal(Quaternion(w, x, y, z), Up);
+    case 1: return TransformNormal(Quaternion(x, w, y, z), Up);
+    case 2: return TransformNormal(Quaternion(x, y, w, z), Up);
+    case 3: return TransformNormal(Quaternion(x, y, z, w), Up);
+    default: return Vector3(1.0f, 0.0f, 0.0f);
+    }
+}
+
 void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Scale to use
@@ -1099,11 +1154,6 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             // Jump to vertex position data, advance to this submeshes verticies
             MeshReader.SetPosition(Submesh.VertexPtr);
 
-            // Values for DirectX
-            auto Positions = std::make_unique<DirectX::XMFLOAT3[]>((size_t)Submesh.VertexCount);
-            auto Indices = std::make_unique<uint32_t[]>((size_t)Submesh.FaceCount * 3);
-            auto Normals = std::make_unique<DirectX::XMFLOAT3[]>((size_t)Submesh.VertexCount);
-
             // Iterate over verticies
             for (uint32_t i = 0; i < Submesh.VertexCount; i++)
             {
@@ -1112,19 +1162,19 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 
                 auto StreamVertex = MeshReader.Read<MW4GfxStreamVertex>();
 
+
                 // Read and assign position
                 Vertex.Position = Vector3(
                     (((((StreamVertex.PackedPosition >> 0)  & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.XOffset,
                     (((((StreamVertex.PackedPosition >> 21) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.YOffset,
                     (((((StreamVertex.PackedPosition >> 42) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.ZOffset);
 
-                // Set position for DirectX
-                Positions[i].x = Vertex.Position.X;
-                Positions[i].y = Vertex.Position.Y;
-                Positions[i].z = Vertex.Position.Z;
 
                 // Add UV layer
                 Vertex.AddUVLayer(HalfFloats::ToFloat(StreamVertex.UVUPosition), HalfFloats::ToFloat(StreamVertex.UVVPosition));
+
+                // Add normal
+                Vertex.Normal = UnpackNormalQuat(StreamVertex.NormalQuaternion);
 
                 // Apply Color (some models don't store colors, so we need to check ptr below)
                 Vertex.Color[0] = 255;
@@ -1157,31 +1207,6 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 
                 // Add the face
                 Mesh.AddFace(Face.Index1, Face.Index2, Face.Index3);
-
-                // Assign Face Indices for DirectX
-                Indices[((size_t)i * 3) + 0] = Face.Index1;
-                Indices[((size_t)i * 3) + 1] = Face.Index3;
-                Indices[((size_t)i * 3) + 2] = Face.Index2;
-            }
-
-            // Last Step for Normals, generate them via DirectX, by area gives the best results
-            // TODO: Figure out how to unpack normals, this works pretty well for now and my brain is too fucking fried
-            // Either the value defined in MW4GfxStreamFace or check some of the ptrs in the submesh
-            DirectX::ComputeNormals(Indices.get(), Submesh.FaceCount, Positions.get(), Submesh.VertexCount, DirectX::CNORM_WEIGHT_BY_AREA, Normals.get());
-
-            // Iterate over verticies
-            for (uint32_t i = 0; i < Submesh.VertexCount; i++)
-            {
-                if ((std::abs(Normals[i].x) + std::abs(Normals[i].y) + std::abs(Normals[i].z)) < 0.00001)
-                {
-                    // Set to 1.0
-                    Mesh.Verticies[i].Normal = Vector3(1.0f, 0.0f, 0.0f);
-                }
-                else
-                {
-                    // Set new Normal
-                    Mesh.Verticies[i].Normal = Vector3(Normals[i].x, Normals[i].y, Normals[i].z);
-                }
             }
         }
     }

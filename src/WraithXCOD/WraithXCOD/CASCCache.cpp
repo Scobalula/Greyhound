@@ -222,7 +222,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
     if (CacheObjects.find(CacheID) != CacheObjects.end())
     {
         // Aquire lock
-        // std::lock_guard<std::shared_mutex> Gaurd(ReadMutex);
+        std::lock_guard<std::shared_mutex> Gaurd(ReadMutex);
 
         // Take cache data, and extract from the XPAK (Uncompressed size = offset of data segment!)
         auto& CacheInfo = CacheObjects[CacheID];
