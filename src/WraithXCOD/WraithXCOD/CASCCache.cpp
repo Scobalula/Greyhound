@@ -15,9 +15,6 @@
 
 #include "CASCFileReader.h"
 
-std::mutex LockA;
-std::mutex LockB;
-
 std::map<std::string, CASC_FIND_DATA> GetFiles(HANDLE StorageHandle)
 {
     // Data

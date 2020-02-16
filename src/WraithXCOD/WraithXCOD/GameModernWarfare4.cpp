@@ -25,7 +25,7 @@
 // Modern Warfare 4 SP
 std::array<DBGameInfo, 1> GameModernWarfare4::SinglePlayerOffsets =
 {{
-    { 0xBF34520, 0x0, 0xD8A6800, 0x0 }
+    { 0xBF345201, 0x0, 0xD8A68001, 0x0 }
 }};
 
 // -- Finished with databases

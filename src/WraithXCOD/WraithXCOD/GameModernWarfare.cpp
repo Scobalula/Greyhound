@@ -53,7 +53,7 @@ bool GameModernWarfare::LoadOffsets()
             // Verify via first xmodel asset
             auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
             // Check (Differs on SP/MP)
-            if (FirstXModelName == "void" || FirstXModelName == "defaultactor" || FirstXModelName == "defaultweapon")
+            if (FirstXModelName == "void" || FirstXModelName == "defaultactor" || FirstXModelName == "defaultweapon" || FirstXModelName == "defaultvehicle")
             {
                 // Verify string table, otherwise we are all set
                 CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
@@ -88,7 +88,7 @@ bool GameModernWarfare::LoadOffsets()
             // Verify via first xmodel asset
             auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameOffsetInfos[1] + 4));
             // Check (Differs on SP/MP)
-            if (FirstXModelName == "void" || FirstXModelName == "defaultactor" || FirstXModelName == "defaultweapon")
+            if (FirstXModelName == "void" || FirstXModelName == "defaultactor" || FirstXModelName == "defaultweapon" || FirstXModelName == "defaultvehicle")
             {
                 // Verify string table, otherwise we are all set
                 CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);

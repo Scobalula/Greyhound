@@ -36,6 +36,8 @@ private:
 
     // Handle reading entries for a v4 SAB file (0x4)
     static void HandleSABv4(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex);
+    // Handle reading entries for a v10 SAB file (0xA)
+    static void HandleSABv10(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex);
     // Handle reading entries for a v14 SAB file (0xE)
     static void HandleSABv14(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex);
     // Handle reading entries for a v15 SAB file (0xF)

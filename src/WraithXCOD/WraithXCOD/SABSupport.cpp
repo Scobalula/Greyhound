@@ -17,6 +17,17 @@
 #include "CoDAssets.h"
 #include "DBGameFiles.h"
 
+// Calculates the hash of a sound string
+uint32_t HashSoundString(const std::string& Value)
+{
+    uint32_t Result = 5381;
+
+    for (auto& Character : Value)
+        Result = (uint32_t)(tolower(Character) + (Result << 6) + (Result << 16)) - Result;
+
+    return Result;
+}
+
 bool SABSupport::ParseSAB(const std::string& FilePath)
 {
     // Prepare to parse and load entries from this file
@@ -142,8 +153,8 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
     case 0xA:
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::ModernWarfare4;
-        // Load (Version 10 is the same as Version 4)
-        HandleSABv4(Reader, Header, SABFileNames, SABNames); break;
+        // Load
+        HandleSABv10(Reader, Header, SABFileNames, SABNames); break;
     case 0xE: 
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::BlackOps2;
@@ -287,6 +298,70 @@ void SABSupport::HandleSABv4(BinaryReader& Reader, const SABFileHeader& Header, 
 
         // Check do we want to skip this
         if(SkipBlankAudio && LoadedSound->AssetSize <= 0)
+        {
+            delete LoadedSound;
+            continue;
+        }
+
+        // Add
+        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+    }
+}
+
+void SABSupport::HandleSABv10(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex)
+{
+    // Get Settings
+    auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
+
+    // Names (sound names are not in order)
+    std::unordered_map<uint32_t, std::string> SoundNames;
+
+    // Loop and build hash table
+    for (auto& Name : NameList)
+        SoundNames[HashSoundString(Name)] = Name;
+
+    // Prepare to loop and read entries
+    for (uint32_t i = 0; i < Header.EntriesCount; i++)
+    {
+        // Read each entry
+        auto Entry = Reader.Read<SABv4Entry>();
+
+        // Prepare to parse the information to our generic structure
+        std::string EntryName = "";
+
+        // Override if we find it
+        if (SoundNames.find(Entry.Key) != SoundNames.end())
+        {
+            // We have it in a database
+            EntryName = SoundNames.at(Entry.Key);
+        }
+        else
+        {
+            // We don't have one
+            EntryName = Strings::Format("_%llx", Entry.Key);
+        }
+
+        // Setup a new entry
+        auto LoadedSound = new CoDSound_t();
+        // Set the name, but remove all extensions first
+        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
+        LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
+
+        // Set various properties
+        LoadedSound->FrameRate = Entry.FrameRate;
+        LoadedSound->FrameCount = Entry.FrameCount;
+        LoadedSound->ChannelsCount = Entry.ChannelCount;
+        // The offset should be after the seek table, since it is not required
+        LoadedSound->AssetPointer = (Entry.Offset + Entry.SeekTableLength);
+        LoadedSound->AssetSize = Entry.Size;
+        LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+        LoadedSound->IsFileEntry = true;
+        LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+        // All Infinite Warfare (v4) entries are FLAC's with no header
+        LoadedSound->DataType = SoundDataTypes::FLAC_NeedsHeader;
+
+        // Check do we want to skip this
+        if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
         {
             delete LoadedSound;
             continue;

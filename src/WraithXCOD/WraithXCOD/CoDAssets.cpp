@@ -543,11 +543,29 @@ LoadGameResult CoDAssets::LoadGame()
         case SupportedGames::BlackOps: Success = GameBlackOps::LoadAssets(); break;
         case SupportedGames::BlackOps2: Success = GameBlackOps2::LoadAssets(); break;
         case SupportedGames::BlackOps3: Success = GameBlackOps3::LoadAssets(); break;
-        case SupportedGames::BlackOps4: Success = GameBlackOps4::LoadAssets(); break;
+        case SupportedGames::BlackOps4:
+            // Allocate a new XPAK Mega Cache (Must reload CASC as the game can affect it if rerunning, etc. and result in corrupt exports)
+            // TODO: Find a better solution to this, a good trigger for it to occur is relaunching the game, moving to different parts or Blizzard editing the CASC while
+            // we have a handle, then try export an image, it'll probably come out black
+            CleanupPackageCache();
+            GamePackageCache = std::make_unique<CASCCache>();
+            // Set the XPAK path
+            GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+            // Load as normally
+            Success = GameBlackOps4::LoadAssets(); break;
         case SupportedGames::ModernWarfare: Success = GameModernWarfare::LoadAssets(); break;
         case SupportedGames::ModernWarfare2: Success = GameModernWarfare2::LoadAssets(); break;
         case SupportedGames::ModernWarfare3: Success = GameModernWarfare3::LoadAssets(); break;
-        case SupportedGames::ModernWarfare4: Success = GameModernWarfare4::LoadAssets(); break;
+        case SupportedGames::ModernWarfare4:
+            // Allocate a new XPAK Mega Cache (Must reload CASC as the game can affect it if rerunning, etc. and result in corrupt exports)
+            // TODO: Find a better solution to this, a good trigger for it to occur is relaunching the game, moving to different parts or Blizzard editing the CASC while
+            // we have a handle, then try export an image, it'll probably come out black
+            CleanupPackageCache();
+            GamePackageCache = std::make_unique<CASCCache>();
+            // Set the XPAK path
+            GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+            // Load as normally
+            Success = GameModernWarfare4::LoadAssets(); break;
         case SupportedGames::Ghosts: Success = GameGhosts::LoadAssets(); break;
         case SupportedGames::AdvancedWarfare: Success = GameAdvancedWarfare::LoadAssets(); break;
         case SupportedGames::ModernWarfareRemastered: Success = GameModernWarfareRM::LoadAssets(); break;
@@ -966,10 +984,6 @@ bool CoDAssets::LocateGameInfo()
         GameXImageHandler = GameBlackOps4::LoadXImage;
         // Set game string handler
         GameStringHandler = GameBlackOps4::LoadStringEntry;
-        // Allocate a new XPAK Mega Cache
-        GamePackageCache = std::make_unique<CASCCache>();
-        // Set the XPAK path
-        GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
         break;
     }
     case SupportedGames::ModernWarfare:
@@ -1095,12 +1109,6 @@ bool CoDAssets::LocateGameInfo()
         GameXImageHandler = GameModernWarfare4::LoadXImage;
         //// Set game string handler
         GameStringHandler = GameModernWarfare4::LoadStringEntry;
-        // Allocate a new XPAK Mega Cache
-        GamePackageCache = std::make_unique<CASCCache>();
-        // Set the XPAK path
-#ifndef DEBUG
-        GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
-#endif // DEBUG
         break;
     }
 
@@ -2068,7 +2076,9 @@ void CoDAssets::ExportSelectedAssets(void* Caller, const std::unique_ptr<std::ve
             // Get the asset we need
             auto& Asset = Assets->at(AssetToConvert);
             // Make sure it's not a placeholder
-            // if (Asset->AssetStatus != WraithAssetStatus::Placeholder)
+#ifndef DEBUG
+            if (Asset->AssetStatus != WraithAssetStatus::Placeholder)
+#endif
             {
                 // Set the status
                 Asset->AssetStatus = WraithAssetStatus::Processing;
