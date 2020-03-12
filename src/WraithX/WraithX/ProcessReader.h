@@ -79,6 +79,8 @@ public:
 
     // Read a block of memory from the process with the given length
     int8_t* Read(uintptr_t Offset, uintptr_t Length, uintptr_t& Result);
+    // Read a block of memory from the process with the given length
+    size_t Read(uint8_t* Buffer, uintptr_t Offset, uintptr_t Length);
 
     // Scan the process for a pattern (In the main modules code, or full memory if specified)
     intptr_t Scan(const std::string& Pattern, bool UseExtendedMemoryScan = false);

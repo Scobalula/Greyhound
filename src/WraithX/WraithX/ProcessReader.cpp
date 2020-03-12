@@ -344,22 +344,35 @@ std::string ProcessReader::ReadNullTerminatedString(uintptr_t Offset)
     // Get the string if we are attached
     if (ProcessHandle != NULL)
     {
-        // We can read
-        std::stringstream ResultBuffer;
-        // First char
-        char CurrentChar = Read<char>(Offset);
-        // Loop until null or EOF
-        while (CurrentChar != 0)
+        // Keep track of address and preallocate our result
+        uintptr_t Address = Offset;
+        std::string Result;
+        Result.reserve(256);
+        // Keep a buffer, and null it, most strings won't be larger than this
+        char Buffer[256];
+        std::memset(Buffer, 0, sizeof(Buffer));
+
+        while (true)
         {
-            // Increase
-            Offset++;
-            // Add
-            ResultBuffer << CurrentChar;
-            // Read again
-            CurrentChar = Read<char>(Offset);
+            // Read a buffer from the memory instead of 1 char at a time
+            auto size = Read((uint8_t*)&Buffer, Address, sizeof(Buffer));
+            // Check if we got anything back (invalid address, so just return what we have
+            if (size == 0)
+                break;
+            // Loop over buffer
+            for (size_t i = 0; i < size; i++)
+            {
+                // Validate string
+                if (Buffer[i] == 0)
+                    return Result;
+                // Add to string
+                Result += Buffer[i];
+            }
+            // Add address
+            Address += size;
         }
-        // Return it
-        return ResultBuffer.str();
+        // Return
+        return Result;
     }
     // Failed to perform read
 #ifdef _DEBUG
@@ -389,6 +402,18 @@ int8_t* ProcessReader::Read(uintptr_t Offset, uintptr_t Length, uintptr_t& Resul
     }
     // Failed to read it
     return nullptr;
+}
+
+size_t ProcessReader::Read(uint8_t * Buffer, uintptr_t Offset, uintptr_t Length)
+{
+    size_t Result = 0;
+
+    if (ProcessHandle != NULL)
+    {
+        ReadProcessMemory(ProcessHandle, (LPCVOID)Offset, Buffer, (SIZE_T)Length, (SIZE_T*)&Result);
+    }
+
+    return Result;
 }
 
 intptr_t ProcessReader::Scan(const std::string& Pattern, bool UseExtendedMemoryScan)
