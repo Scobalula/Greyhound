@@ -597,11 +597,12 @@ std::unique_ptr<XAnim_t> GameModernWarfare4::ReadXAnim(const CoDAnim_t* Animatio
         //}
 
         // Check for additive animations
-        if (AnimData.AssetType == 0x6)
-        {
-            // This is a additive animation
-            Anim->AdditiveAnimation = true;
-        }
+        // No point, breaks it in SETools, wait for Cast to implement full Additive support
+        //if (AnimData.AssetType == 0x6)
+        //{
+        //    // This is a additive animation
+        //    Anim->AdditiveAnimation = true;
+        //}
         // Check for looping
         Anim->LoopingAnimation = (AnimData.Flags & 1);
 
@@ -1226,7 +1227,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((36 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((40 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
 }
 void GameModernWarfare4::PerformInitialSetup()
 {
