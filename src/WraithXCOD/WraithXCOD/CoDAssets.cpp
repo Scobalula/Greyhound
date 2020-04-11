@@ -1625,7 +1625,7 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
 ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std::string& ExportPath, const std::string& SoundExtension)
 {
     // Grab the full sound path, if it doesn't exist convert it!
-    auto FullSoundPath = FileSystems::CombinePath(ExportPath, Sound->AssetName + SoundExtension);
+    auto FullSoundPath = FileSystems::CombinePath(ExportPath, FileSystems::GetFileNamePurgeExtensions(Sound->AssetName) + SoundExtension);
     // Check if we want to skip previous Sounds
     auto SkipPrevSound = SettingsManager::GetSetting("skipprevsound") == "true";
 
