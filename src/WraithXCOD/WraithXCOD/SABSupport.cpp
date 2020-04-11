@@ -61,12 +61,6 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
     // And checking the first value, if it has names, we read them first
     std::vector<std::string> SABFileNames;
 
-    // Get File name for Bo4
-    auto FileName = FileSystems::GetFileName(FilePath);
-
-    // Get Settings
-    auto UseIndex = SettingsManager::GetSetting("usesabindexbo4", "false") == "true";
-
     // Check if we have an offset, and the first entry is not blank
     bool HasNames = (NameTableOffset > 0) && (Reader.Read<uint64_t>(NameTableOffset) != 0);
 
@@ -98,24 +92,17 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
             {
                 // Read and mask it
                 auto Hash = Reader.Read<uint64_t>() & 0xFFFFFFFFFFFFFFF;
-                // Format Hash
-                auto Name = Strings::Format("xsound_%llx", Hash);
                 // Check for an override in the name DB
                 if (SABNames.NameDatabase.find(Hash) != SABNames.NameDatabase.end())
                 {
-                    Name = SABNames.NameDatabase[Hash];
+                    SABFileNames.emplace_back(SABNames.NameDatabase[Hash]);
                 }
                 else
                 {
-                    if (UseIndex)
-                    {
-                        Name = Strings::Format("%s.%i", FileName.c_str(), i);
-                    }
+                    SABFileNames.emplace_back(Strings::Format("xsound_%llx", Hash));
                 }
                 // Calculate jump
                 auto PositionAdvance = (Header.SizeOfNameEntry * 2) - 8;
-                // Emplace it back
-                SABFileNames.emplace_back(Name);
                 // Advance size of name entry * 2 - string size
                 Reader.Advance(PositionAdvance);
             }
@@ -169,7 +156,7 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::BlackOps4;
         // Load
-        HandleSABv21(Reader, Header, SABFileNames, SABNames); break;
+        HandleSABv21(Reader, Header, SABFileNames, SABNames, FileSystems::GetFileName(FilePath)); break;
     }
 
     // Clean up names
@@ -524,16 +511,19 @@ void SABSupport::HandleSABv15(BinaryReader& Reader, const SABFileHeader& Header,
     }
 }
 
-void SABSupport::HandleSABv21(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex)
+void SABSupport::HandleSABv21(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex, const std::string FileName)
 {
     // Get Settings
     auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
+    auto UseIndex = SettingsManager::GetSetting("usesabindexbo4", "false") == "true";
 
     // Prepare to loop and read entries
     for (uint32_t i = 0; i < Header.EntriesCount; i++)
     {
         // Read each entry
         auto Entry = Reader.Read<SABv21Entry>();
+        // Setup a new entry
+        auto LoadedSound = new CoDSound_t();
 
         // Prepare to parse the information to our generic structure
         std::string EntryName = "";
@@ -542,23 +532,38 @@ void SABSupport::HandleSABv21(BinaryReader& Reader, const SABFileHeader& Header,
         {
             // We have it in file
             EntryName = NameList[i];
+
+            if (Strings::StartsWith(EntryName, "xsound_") && UseIndex)
+            {
+                // Set the name, but remove all extensions first
+                LoadedSound->AssetName = Strings::Format("%s.%i", FileName.c_str(), i);
+                LoadedSound->FullPath = "";
+            }
+            else
+            {
+                // Set the name, but remove all extensions first
+                LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
+                LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
+            }
         }
         else if (NameIndex.NameDatabase.find(Entry.Key) != NameIndex.NameDatabase.end())
         {
             // We have it in a database
             EntryName = NameIndex.NameDatabase.at(Entry.Key);
+
+            // Set the name, but remove all extensions first
+            LoadedSound->AssetName = EntryName;
+            LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
         }
         else
         {
             // We don't have one
             EntryName = Strings::Format("_%llx", Entry.Key);
-        }
 
-        // Setup a new entry
-        auto LoadedSound = new CoDSound_t();
-        // Set the name, but remove all extensions first
-        LoadedSound->AssetName = EntryName;
-        LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
+            // Set the name, but remove all extensions first
+            LoadedSound->AssetName = EntryName;
+            LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
+        }
 
         // Determine framerate
         switch (Entry.FrameRateIndex)
