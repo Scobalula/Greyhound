@@ -25,7 +25,7 @@
 // Modern Warfare 4 SP
 std::array<DBGameInfo, 1> GameModernWarfare4::SinglePlayerOffsets =
 {{
-    { 0xBF345201, 0x0, 0xD8A68001, 0x0 }
+    { 0xC9634C0, 0x0, 0xE638F00, 0x0 }
 }};
 
 // -- Finished with databases
@@ -169,7 +169,7 @@ bool GameModernWarfare4::LoadOffsets()
 
         // Attempt to locate via heuristic searching (Note: As of right now, none of the functions got inlined)
         auto DBAssetsScan      = CoDAssets::GameInstance->Scan("48 8D 04 40 4C 8D 8E ?? ?? ?? ?? 4D 8D 0C C1 8D 42 FF");
-        auto StringTableScan   = CoDAssets::GameInstance->Scan("4C 8B C2 48 8D 1D ?? ?? ?? ?? 48 2B CB");
+        auto StringTableScan   = CoDAssets::GameInstance->Scan("4D 8B C7 48 03 1D ?? ?? ?? ?? 49 8B D5");
 
         // Check that we had hits
         if (DBAssetsScan > 0 && StringTableScan > 0)
@@ -181,7 +181,7 @@ bool GameModernWarfare4::LoadOffsets()
                 // We don't use size offsets
                 0,
                 // Resolve strings from LEA
-                CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x6) + (StringTableScan + 0xA),
+                CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x6) + (StringTableScan + 0xA)),
                 // We don't use package offsets
                 0
             );
@@ -728,6 +728,8 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
                 // Read the surface data
                 auto SurfaceInfo = CoDAssets::GameInstance->Read<MW4XModelSurface>(XSurfacePtr);
 
+                sizeof(MW4XModelSurface);
+
                 // Apply surface info
                 SubmeshReference.RigidWeightsPtr = SurfaceInfo.RigidWeightsPtr;
                 SubmeshReference.VertListcount   = SurfaceInfo.VertListCount;
@@ -1227,7 +1229,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((40 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
 }
 void GameModernWarfare4::PerformInitialSetup()
 {

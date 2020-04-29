@@ -521,6 +521,9 @@ std::unique_ptr<XModel_t> GameBlackOps3::ReadXModel(const CoDModel_t* Model)
         // Global matricies
         ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
 
+        // Bone info ptr
+        ModelAsset->BoneInfoPtr = ModelData.BoneInfoPtr;
+
         // Prepare to parse lods
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
         {

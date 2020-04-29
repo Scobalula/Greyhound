@@ -1495,6 +1495,7 @@ ExportGameResult CoDAssets::ExportModelAsset(const CoDModel_t* Model, const std:
             // Check the game
             switch (CoDAssets::GameID)
             {
+            case SupportedGames::BlackOps3:
             case SupportedGames::BlackOps: Result = CoDXModelTranslator::TranslateXModelHitbox(GenericModel); break;
             }
 

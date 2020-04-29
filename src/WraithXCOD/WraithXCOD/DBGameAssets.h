@@ -927,7 +927,11 @@ struct BO3XModel
 
     uint64_t MaterialHandlesPtr;
 
-    uint8_t Padding3[0xB8];
+    uint8_t Padding3[0x18];
+
+    uint64_t BoneInfoPtr;
+
+    uint8_t Padding4[0x98];
 };
 #pragma pack(pop)
 
