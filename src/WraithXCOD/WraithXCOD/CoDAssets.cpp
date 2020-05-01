@@ -38,6 +38,7 @@
 #include "GameGhosts.h"
 #include "GameAdvancedWarfare.h"
 #include "GameModernWarfareRM.h"
+#include "GameModernWarfare2RM.h"
 #include "GameInfiniteWarfare.h"
 #include "GameWorldWar2.h"
 #include "GameQuantumSolace.h"
@@ -420,6 +421,8 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
     // Modern Warfare 4
     { "modernwarfare.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
+    // Modern Warfare 2 Remastered
+    { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
     // 007 Quantum Solace
     { "jb_liveengine_s.exe", SupportedGames::QuantumSolace, SupportedGameFlags::SP },
 };
@@ -569,6 +572,7 @@ LoadGameResult CoDAssets::LoadGame()
         case SupportedGames::Ghosts: Success = GameGhosts::LoadAssets(); break;
         case SupportedGames::AdvancedWarfare: Success = GameAdvancedWarfare::LoadAssets(); break;
         case SupportedGames::ModernWarfareRemastered: Success = GameModernWarfareRM::LoadAssets(); break;
+        case SupportedGames::ModernWarfare2Remastered: Success = GameModernWarfare2RM::LoadAssets(); break;
         case SupportedGames::InfiniteWarfare: Success = GameInfiniteWarfare::LoadAssets(); break;
         case SupportedGames::WorldWar2: Success = GameWorldWar2::LoadAssets(); break;
         }
@@ -1070,6 +1074,20 @@ bool CoDAssets::LocateGameInfo()
         // Set the PAK path
         GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
         break;
+    case SupportedGames::ModernWarfare2Remastered:
+        // Load game offset info
+        Success = GameModernWarfare2RM::LoadOffsets();
+        // Set shorthand
+        GDTShorthand = "MW2R";
+        // Set game ximage handler
+        GameXImageHandler = GameModernWarfare2RM::LoadXImage;
+        // Set game string handler
+        GameStringHandler = GameModernWarfare2RM::LoadStringEntry;
+        // Allocate a new PAK Mega Cache
+        GamePackageCache = std::make_unique<CASCCache>();
+        // Set the PAK path
+        GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+        break;
     case SupportedGames::InfiniteWarfare:
         // Load game offset info
         Success = GameInfiniteWarfare::LoadOffsets();
@@ -1147,6 +1165,7 @@ std::string CoDAssets::BuildExportPath(const CoDAsset_t* Asset)
     case SupportedGames::Ghosts: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "ghosts"); break;
     case SupportedGames::AdvancedWarfare: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "advanced_warfare"); break;
     case SupportedGames::ModernWarfareRemastered: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_rm"); break;
+    case SupportedGames::ModernWarfare2Remastered: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_2_rm"); break;
     case SupportedGames::InfiniteWarfare: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "infinite_warfare"); break;
     case SupportedGames::WorldWar2: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "world_war_2"); break;
     }
@@ -1208,6 +1227,7 @@ std::unique_ptr<XAnim_t> CoDAssets::LoadGenericAnimAsset(const CoDAnim_t* Animat
     case SupportedGames::Ghosts: return GameGhosts::ReadXAnim(Animation); break;
     case SupportedGames::AdvancedWarfare: return GameAdvancedWarfare::ReadXAnim(Animation); break;
     case SupportedGames::ModernWarfareRemastered: return GameModernWarfareRM::ReadXAnim(Animation); break;
+    case SupportedGames::ModernWarfare2Remastered: return GameModernWarfare2RM::ReadXAnim(Animation); break;
     case SupportedGames::InfiniteWarfare: return GameInfiniteWarfare::ReadXAnim(Animation); break;
     case SupportedGames::WorldWar2: return GameWorldWar2::ReadXAnim(Animation); break;
     }
@@ -1289,6 +1309,7 @@ std::unique_ptr<XModel_t> CoDAssets::LoadGenericModelAsset(const CoDModel_t* Mod
     case SupportedGames::Ghosts: return GameGhosts::ReadXModel(Model); break;
     case SupportedGames::AdvancedWarfare: return GameAdvancedWarfare::ReadXModel(Model); break;
     case SupportedGames::ModernWarfareRemastered: return GameModernWarfareRM::ReadXModel(Model); break;
+    case SupportedGames::ModernWarfare2Remastered: return GameModernWarfare2RM::ReadXModel(Model); break;
     case SupportedGames::InfiniteWarfare: return GameInfiniteWarfare::ReadXModel(Model); break;
     case SupportedGames::WorldWar2: return GameWorldWar2::ReadXModel(Model); break;
     }
@@ -1565,6 +1586,7 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
             case SupportedGames::Ghosts: ImageData = GameGhosts::ReadXImage(Image); break;
             case SupportedGames::AdvancedWarfare: ImageData = GameAdvancedWarfare::ReadXImage(Image); break;
             case SupportedGames::ModernWarfareRemastered: ImageData = GameModernWarfareRM::ReadXImage(Image); break;
+            case SupportedGames::ModernWarfare2Remastered: ImageData = GameModernWarfare2RM::ReadXImage(Image); break;
             case SupportedGames::InfiniteWarfare: ImageData = GameInfiniteWarfare::ReadXImage(Image); break;
             case SupportedGames::ModernWarfare4: ImageData = GameModernWarfare4::ReadXImage(Image); break;
             case SupportedGames::WorldWar2: ImageData = GameWorldWar2::ReadXImage(Image); break;

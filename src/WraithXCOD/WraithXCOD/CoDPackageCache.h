@@ -48,6 +48,9 @@ public:
     // Returns a cache object (nullptr if not found)
     virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize) { return nullptr; }
 
+    // Returns a cache object (nullptr if not found)
+    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(const std::string& PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t& ResultSize) { return nullptr; }
+
     // Hashes a cache object id if needed
     virtual uint64_t HashPackageID(const std::string& Value) { return 0; }
 

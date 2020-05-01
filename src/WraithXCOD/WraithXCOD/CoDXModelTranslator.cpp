@@ -311,6 +311,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
             case SupportedGames::Ghosts:
             case SupportedGames::AdvancedWarfare:
             case SupportedGames::ModernWarfareRemastered:
+            case SupportedGames::ModernWarfare2Remastered:
                 PrepareVertexWeightsB(VertexWeights, Submesh);
                 break;
             case SupportedGames::InfiniteWarfare:
@@ -362,6 +363,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
                     case SupportedGames::Ghosts:
                     case SupportedGames::AdvancedWarfare:
                     case SupportedGames::ModernWarfareRemastered:
+                    case SupportedGames::ModernWarfare2Remastered:
                     case SupportedGames::InfiniteWarfare:
                         // Apply UV layer
                         Vertex.AddUVLayer(HalfFloats::ToFloat(VertexInfo.UVUPos), HalfFloats::ToFloat(VertexInfo.UVVPos));

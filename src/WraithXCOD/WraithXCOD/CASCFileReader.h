@@ -15,6 +15,8 @@ public:
     uint64_t GetLength() const;
     // Gets the current position of the file
     uint64_t GetPosition() const;
+    // Checks if the current file is value
+    const bool IsValid() const;
 
     // Sets the position of the file
     void SetPosition(uint64_t Offset);

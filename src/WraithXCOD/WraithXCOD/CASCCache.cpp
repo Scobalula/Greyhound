@@ -400,3 +400,64 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
     // Failed to find data
     return nullptr;
 }
+
+std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(const std::string & PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t & ResultSize)
+{
+    // Prepare to extract an image asset (AW, MWR)
+    ResultSize = 0;
+
+    // Open CASC File
+    auto Reader = CASCFileReader(StorageHandle, PackageName);
+
+    // Check if the file handle is valid
+    if (Reader.IsValid())
+        return nullptr;
+
+    // Jump to the offset
+    Reader.SetPosition(AssetOffset);
+
+    // Read total uncompressed size
+    auto TotalUncompressedSize = Reader.Read<uint64_t>();
+    // Skip 4 bytes
+    Reader.Advance(4);
+
+    // Allocate the result buffer
+    auto ResultBuffer = std::make_unique<uint8_t[]>((uint32_t)TotalUncompressedSize);
+
+    // Total uncompressed size read
+    uint64_t TotalReadUncompressedSize = 0;
+
+    // Loop until we have all data
+    while (TotalUncompressedSize != TotalReadUncompressedSize)
+    {
+        // Read compressed and uncompressed size
+        auto CompressedSize = Reader.Read<uint32_t>();
+        auto UncompressedSize = Reader.Read<uint32_t>();
+
+        // Read size
+        uint64_t ReadCompress = 0;
+        // Read compressed data
+        auto CompressedData = Reader.Read(CompressedSize, ReadCompress);
+
+        // Make sure we read it
+        if (CompressedData != nullptr)
+        {
+            // Decompress it
+            auto DecompressResult = Compression::DecompressLZ4Block((const int8_t*)CompressedData.get(), (int8_t*)ResultBuffer.get() + TotalReadUncompressedSize, CompressedSize, UncompressedSize);
+        }
+
+        // Skip over padding
+        auto CurrentPosition = Reader.GetPosition();
+        // Skip it
+        Reader.SetPosition(((CurrentPosition + 0x3) & 0xFFFFFFFFFFFFFFC));
+
+        // Advance the stream
+        TotalReadUncompressedSize += UncompressedSize;
+    }
+
+    // Set result size
+    ResultSize = (uint32_t)TotalUncompressedSize;
+
+    // Return result
+    return ResultBuffer;
+}

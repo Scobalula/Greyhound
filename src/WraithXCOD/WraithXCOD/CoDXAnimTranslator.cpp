@@ -46,6 +46,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::ModernWarfare3:
         case SupportedGames::AdvancedWarfare:
         case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
         case SupportedGames::WorldWar2:
             Anim->AddBoneModifier("j_gun", WraithAnimationType::Relative);
             Anim->AddBoneModifier("j_gun1", WraithAnimationType::Relative);
@@ -623,6 +624,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             case SupportedGames::Ghosts:
             case SupportedGames::AdvancedWarfare:
             case SupportedGames::ModernWarfareRemastered:
+            case SupportedGames::ModernWarfare2Remastered:
             case SupportedGames::InfiniteWarfare:
             case SupportedGames::BlackOps3:
             case SupportedGames::BlackOps4:
@@ -654,6 +656,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             case SupportedGames::Ghosts:
             case SupportedGames::AdvancedWarfare:
             case SupportedGames::ModernWarfareRemastered:
+            case SupportedGames::ModernWarfare2Remastered:
             case SupportedGames::InfiniteWarfare:
             case SupportedGames::BlackOps3:
             case SupportedGames::BlackOps4:
@@ -682,6 +685,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::Ghosts:
         case SupportedGames::AdvancedWarfare:
         case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
         case SupportedGames::InfiniteWarfare:
         case SupportedGames::BlackOps3:
         case SupportedGames::BlackOps4:
@@ -707,6 +711,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::Ghosts:
         case SupportedGames::AdvancedWarfare:
         case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
         case SupportedGames::InfiniteWarfare:
         case SupportedGames::WorldWar2:
         case SupportedGames::QuantumSolace:

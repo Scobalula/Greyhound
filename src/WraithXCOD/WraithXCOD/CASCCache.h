@@ -24,5 +24,7 @@ public:
     virtual bool LoadPackage(const std::string& FilePath);
     // Implement the extract function
     virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize);
+    // Extracts a resource from an image package (AW / MWR)
+    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(const std::string& PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t& ResultSize);
 };
 
