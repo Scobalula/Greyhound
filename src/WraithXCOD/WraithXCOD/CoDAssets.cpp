@@ -1670,6 +1670,7 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
         case SupportedGames::Ghosts:
         case SupportedGames::AdvancedWarfare:
         case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
         case SupportedGames::WorldWar2:
         case SupportedGames::WorldAtWar:
         case SupportedGames::ModernWarfare:
