@@ -1028,7 +1028,7 @@ struct BO4XMaterialImage
 #pragma pack(push, 1)
 struct BO4XMaterial
 {
-    uint64_t Hash;
+    uint64_t NamePtr;
     uint64_t Unk01;
 
     uint8_t Padding[0x28];
@@ -1038,6 +1038,8 @@ struct BO4XMaterial
     uint8_t Padding2[0xF0];
 
     uint8_t ImageCount;
+
+    uint8_t Padding3[7];
 };
 #pragma pack(pop)
 
@@ -3387,14 +3389,12 @@ struct MW4XAnimDeltaParts
 struct MW4XMaterial
 {
     uint64_t NamePtr;
-
     uint8_t Padding[20];
-
     uint8_t ImageCount;
-
-    uint8_t Padding2[43];
-
+    uint8_t Padding2[35];
+    uint64_t TechsetPtr;
     uint64_t ImageTablePtr;
+    uint8_t Padding3[40];
 };
 #pragma pack(pop)
 

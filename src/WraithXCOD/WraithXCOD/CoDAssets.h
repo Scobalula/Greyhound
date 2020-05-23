@@ -227,6 +227,8 @@ private:
     static ExportGameResult ExportEffectAsset(const CoDEffect_t* Effect, const std::string& ExportPath);
     // Exports a game rawfile asset
     static ExportGameResult ExportRawfileAsset(const CoDRawFile_t* Rawfile, const std::string& ExportPath);
+    // Exports a game rawfile asset
+    static ExportGameResult ExportMaterialAsset(const CoDMaterial_t* Material, const std::string& ExportPath, const std::string& ImagesPath, const std::string& ImageRelativePath, const std::string& ImageExtension);
 
     // Exports Material Image Names
     static void ExportMaterialImageNames(const XMaterial_t& Material, const std::string& ExportPath);

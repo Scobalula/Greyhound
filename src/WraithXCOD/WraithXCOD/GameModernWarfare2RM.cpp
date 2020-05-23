@@ -18,7 +18,7 @@
 // Modern Warfare 2 RM SP
 std::array<DBGameInfo, 1> GameModernWarfare2RM::SinglePlayerOffsets =
 {{
-    { 0xC24620, 0xC23E40, 0xB1FA800, 0x4300A80 }
+    { 0xBF2620, 0xBF1E40, 0xB157800, 0x425DA80 }
 }};
 // Modern Warfare 2 RM MP
 std::array<DBGameInfo, 1> GameModernWarfare2RM::MultiPlayerOffsets =

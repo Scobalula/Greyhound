@@ -93,9 +93,10 @@ BEGIN
     CONTROL         "Load 'XEffects' from the game",IDC_SHOWEFFECTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,80,127,11
     CONTROL         "Load 'Raw Files' from the game",IDC_SHOWXRAW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,96,127,11
     CONTROL         "Load 'Sounds' from the game",IDC_SHOWXSOUNDS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,112,127,11
+    CONTROL         "Load 'Materials' from the game",IDC_SHOWXMTL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,128,127,11
     LTEXT           "Tip: When you change one of these, click 'Load Game' again to see changes",IDC_TIP,17,168,312,8
     LTEXT           "Notice: Not all asset types are supported by every game",IDC_NOTICE,17,180,312,8
-    CONTROL         "Sort Assets by Details",IDC_SORTBYDATA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,146,127,11
+    CONTROL         "Sort Assets by Details",IDC_SORTBYDATA,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,153,127,11
 END
 
 IDD_MODELSETTINGS DIALOGEX 0, 0, 350, 230
@@ -361,8 +362,8 @@ IDI_CHECKMARK           ICON                    "..\\..\\WraithX\\Resources\\Che
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,5,1,0
- PRODUCTVERSION 1,5,1,0
+ FILEVERSION 1,5,5,0
+ PRODUCTVERSION 1,5,5,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -379,12 +380,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "DTZxPorter / Scobalula"
             VALUE "FileDescription", "Greyhound"
-            VALUE "FileVersion", "1.5.1.0"
+            VALUE "FileVersion", "1.5.5.0"
             VALUE "InternalName", "Greyhound"
-            VALUE "LegalCopyright", "Copyright (C) 2019 DTZxPorter / Scobalula"
+            VALUE "LegalCopyright", "Copyright (C) 2020 DTZxPorter / Scobalula"
             VALUE "OriginalFilename", "Greyhound.exe"
             VALUE "ProductName", "Greyhound"
-            VALUE "ProductVersion", "1.5.1.0"
+            VALUE "ProductVersion", "1.5.5.0"
         END
     END
     BLOCK "VarFileInfo"

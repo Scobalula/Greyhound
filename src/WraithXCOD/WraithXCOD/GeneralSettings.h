@@ -29,6 +29,7 @@ private:
     void OnXEffects();
     void OnXRawFiles();
     void OnXSounds();
+    void OnXMTL();
     void OnSortByData();
 
 protected:

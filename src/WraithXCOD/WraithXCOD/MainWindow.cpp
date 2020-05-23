@@ -280,6 +280,7 @@ void MainWindow::GetListViewInfo(LV_ITEM* ListItem, CWnd* Owner)
                 case WraithAssetType::Sound: AssetTypeStr = L"Sound"; break;
                 case WraithAssetType::RawFile: AssetTypeStr = L"Rawfile"; break;
                 case WraithAssetType::Effect: AssetTypeStr = L"Effect"; break;
+                case WraithAssetType::Material: AssetTypeStr = L"Material"; break;
                 }
 
                 // Set the type
@@ -329,8 +330,12 @@ void MainWindow::GetListViewInfo(LV_ITEM* ListItem, CWnd* Owner)
                         // Sound info not available
                         DetailsFmt = "N/A";
                     }
+                    break;
                 }
-                break;
+                case WraithAssetType::Material:
+                    // Rawfile info
+                    DetailsFmt.Format(L"Images: %d", ((CoDMaterial_t*)Asset)->ImageCount);
+                    break;
                 case WraithAssetType::RawFile:
                     // Rawfile info
                     DetailsFmt.Format(L"Size: 0x%lX", Asset->AssetSize);

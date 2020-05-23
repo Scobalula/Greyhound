@@ -31,7 +31,8 @@ public:
     static std::unique_ptr<XModel_t> ReadXModel(const CoDModel_t* Model);
     // Reads a XImage from Black Ops 4
     static std::unique_ptr<XImageDDS> ReadXImage(const CoDImage_t* Image);
-
+    // Reads an XMaterial from it's logical offset in memory
+    static const XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
     // Reads an XImageDDS from a image reference from Black Ops 4
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
     // Loads a streamed XModel lod, streaming from cache if need be
@@ -51,7 +52,4 @@ private:
     static std::array<DBGameInfo, 1> SinglePlayerOffsets;
 
     // -- Game utilities
-
-    // Reads an XMaterial from it's logical offset in memory
-    static const XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
 };

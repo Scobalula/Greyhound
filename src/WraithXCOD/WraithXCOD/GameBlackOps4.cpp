@@ -631,11 +631,13 @@ bool GameBlackOps4::LoadOffsets()
             auto AnimPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 3));
             auto ModelPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 4));
             auto ImagePoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x9));
+            auto MaterialPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 6));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
 
             // Verify via first xmodel asset, right now, we're using a hash
             auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
@@ -654,6 +656,7 @@ bool GameBlackOps4::LoadOffsets()
                     CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
                     CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
                     CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
+                    CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
                     // Return success
                     return true;
                 }
@@ -692,11 +695,13 @@ bool GameBlackOps4::LoadOffsets()
             auto AnimPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 3));
             auto ModelPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 4));
             auto ImagePoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 0x9));
+            auto MaterialPoolData = CoDAssets::GameInstance->Read<BO4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BO4XAssetPoolData) * 6));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
 
             // Verify via first xmodel asset, right now, we're using a hash
             auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
@@ -717,6 +722,7 @@ bool GameBlackOps4::LoadOffsets()
                     CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
                     CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
                     CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
+                    CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
 
                     // Return success
                     return true;
@@ -736,6 +742,7 @@ bool GameBlackOps4::LoadAssets()
     bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
+    bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
 
     /*
         This was implemented as a fix for a specific user who requested it, as the search box is capped at 32767 by Windows
@@ -824,7 +831,6 @@ bool GameBlackOps4::LoadAssets()
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
         });
     }
-    sizeof(BO4GfxImage);
 
     if (NeedsImages)
     {
@@ -849,8 +855,8 @@ bool GameBlackOps4::LoadAssets()
             auto ImageName = Strings::Format("ximage_%llx", Asset.NamePtr);
 
             // Check for an override in the name DB
-            //if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-            //    ImageName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
+                ImageName = AssetNameCache.NameDatabase[Asset.NamePtr];
 
             // Check for loaded images
             // if (Asset.GfxMipsPtr != 0)
@@ -867,6 +873,44 @@ bool GameBlackOps4::LoadAssets()
                 // Add
                 CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
             }
+        });
+    }
+
+    if (NeedsMaterials)
+    {
+        // Parse the XModel pool
+        CoDXPoolParser<uint64_t, BO4XMaterial>((CoDAssets::GameOffsetInfos[3]), CoDAssets::GamePoolSizes[3], [Filters](BO4XMaterial& Asset, uint64_t& AssetOffset)
+        {
+            // Mask the name as hashes are 60Bit
+            Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
+
+            // Check for filters
+            if (Filters.NameDatabase.size() > 0)
+            {
+                // Check for this asset in DB
+                if (Filters.NameDatabase.find(Asset.NamePtr) != Filters.NameDatabase.end())
+                {
+                    // Skip this asset
+                    return;
+                }
+            }
+
+            // Validate and load if need be
+            auto MaterialName = Strings::Format("xmaterial_%llx", Asset.NamePtr);
+
+            // Check for an override in the name DB
+            if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
+                MaterialName = AssetNameCache.NameDatabase[Asset.NamePtr];
+
+            // Make and add
+            auto LoadedImage = new CoDMaterial_t();
+            // Set
+            LoadedImage->AssetName = MaterialName;
+            LoadedImage->AssetPointer = AssetOffset;
+            LoadedImage->ImageCount = Asset.ImageCount;
+            LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
         });
     }
 
@@ -1071,15 +1115,15 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
     auto MaterialData = CoDAssets::GameInstance->Read<BO4XMaterial>(MaterialPointer);
 
     // Mask the name (some bits are used for other stuffs)
-    MaterialData.Hash &= 0xFFFFFFFFFFFFFFF;
+    MaterialData.NamePtr &= 0xFFFFFFFFFFFFFFF;
     // Allocate a new material with the given image count
     XMaterial_t Result(MaterialData.ImageCount);
     // Clean the name, then apply it
-    Result.MaterialName = Strings::Format("xmaterial_%llx", MaterialData.Hash);
+    Result.MaterialName = Strings::Format("xmaterial_%llx", MaterialData.NamePtr);
 
     // Check for an override in the name DB
-    if (AssetNameCache.NameDatabase.find(MaterialData.Hash) != AssetNameCache.NameDatabase.end())
-        Result.MaterialName = AssetNameCache.NameDatabase[MaterialData.Hash];
+    if (AssetNameCache.NameDatabase.find(MaterialData.NamePtr) != AssetNameCache.NameDatabase.end())
+        Result.MaterialName = AssetNameCache.NameDatabase[MaterialData.NamePtr];
 
     // Iterate over material images, assign proper references if available
     for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
@@ -2293,7 +2337,7 @@ std::string GameBlackOps4::DecryptString(uint8_t* InputBuffer, uint8_t InputLeng
 std::string GameBlackOps4::LoadStringEntry(uint64_t Index)
 {
     // Calculate Offset to String (Offsets[3] = StringTable)
-    auto Offset = CoDAssets::GameOffsetInfos[3] + (Index * 20);
+    auto Offset = CoDAssets::GameOffsetInfos[4] + (Index * 20);
     // Read Result
     uint64_t BytesRead = 0;
     // Read Info

@@ -264,3 +264,14 @@ XSound::~XSound()
         delete[] DataBuffer;
     }
 }
+
+CoDMaterial_t::CoDMaterial_t()
+{
+    ImageCount = 0;
+    // Set type
+    AssetType = WraithAssetType::Material;
+}
+
+CoDMaterial_t::~CoDMaterial_t()
+{
+}

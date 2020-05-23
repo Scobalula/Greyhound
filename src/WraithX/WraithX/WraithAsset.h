@@ -18,6 +18,8 @@ enum class WraithAssetType
     Effect,
     // A raw file asset
     RawFile,
+    // A raw file asset
+    Material,
     // A custom asset
     Custom,
     // An unknown asset, not loaded

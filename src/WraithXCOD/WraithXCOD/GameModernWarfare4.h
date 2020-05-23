@@ -35,6 +35,8 @@ public:
     static std::unique_ptr<XModel_t> ReadXModel(const CoDModel_t* Model);
     // Reads a XImage from Modern Warfare 4
     static std::unique_ptr<XImageDDS> ReadXImage(const CoDImage_t* Image);
+    // Reads an XMaterial from it's logical offset in memory
+    static const XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
     // Reads a XImage from Modern Warfare 4
     static void TranslateRawfile(const CoDRawFile_t* Rawfile, const std::string& ExportPath);
 
@@ -57,8 +59,6 @@ private:
 
     // -- Game utilities
 
-    // Reads an XMaterial from it's logical offset in memory
-    static const XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
     // Prepares Vertex Weights
     static void PrepareVertexWeights(std::vector<WeightsData>& Weights, const XModelSubmesh_t& Submesh);
 };

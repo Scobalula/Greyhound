@@ -157,6 +157,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "showefx", "false" },
             { "showxrawfiles", "false" },
             { "showxsounds", "false" },
+            { "showxmtl", "false" },
             { "exportgdt_bo3", "true" },
             { "exportgdt_waw", "false" },
             { "cleargdt_exit", "true" },

@@ -25,7 +25,7 @@
 // Modern Warfare 4 SP
 std::array<DBGameInfo, 1> GameModernWarfare4::SinglePlayerOffsets =
 {{
-    { 0xC9634C0, 0x0, 0xE638F00, 0x0 }
+    { 0xCFA24C0, 0x0, 0xEC77F00, 0x0 }
 }};
 
 // -- Finished with databases
@@ -134,11 +134,12 @@ bool GameModernWarfare4::LoadOffsets()
         for (auto& GameOffsets : SinglePlayerOffsets)
         {
             // Read required offsets (XANIM, XMODEL, XIMAGE, RAWFILE RELATED...)
-            auto AnimPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
-            auto ModelPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
-            auto ImagePoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
-            auto SoundPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
+            auto AnimPoolData           = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
+            auto ModelPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
+            auto ImagePoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
+            auto SoundPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
             auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 22));
+            auto MaterialPoolData       = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 11));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
@@ -146,6 +147,7 @@ bool GameModernWarfare4::LoadOffsets()
             CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(SoundPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(SoundTransientPoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
 
             // Verify via first xmodel asset
             auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]));
@@ -160,6 +162,7 @@ bool GameModernWarfare4::LoadOffsets()
                 CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
                 CoDAssets::GamePoolSizes.emplace_back(SoundPoolData.PoolSize);
                 CoDAssets::GamePoolSizes.emplace_back(SoundTransientPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
                 // Return success
                 return true;
             }
@@ -193,11 +196,12 @@ bool GameModernWarfare4::LoadOffsets()
 #endif
 
             // Read required offsets (XANIM, XMODEL, XIMAGE)
-            auto AnimPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
-            auto ModelPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
-            auto ImagePoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
-            auto SoundPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
+            auto AnimPoolData           = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
+            auto ModelPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
+            auto ImagePoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
+            auto SoundPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
             auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 22));
+            auto MaterialPoolData       = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 11));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
@@ -205,6 +209,7 @@ bool GameModernWarfare4::LoadOffsets()
             CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(SoundPoolData.PoolPtr);
             CoDAssets::GameOffsetInfos.emplace_back(SoundTransientPoolData.PoolPtr);
+            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
 
             // Verify via first xmodel asset
             auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]));
@@ -219,6 +224,7 @@ bool GameModernWarfare4::LoadOffsets()
                 CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
                 CoDAssets::GamePoolSizes.emplace_back(SoundPoolData.PoolSize);
                 CoDAssets::GamePoolSizes.emplace_back(SoundTransientPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
                 // Return success
                 return true;
             }
@@ -239,6 +245,7 @@ bool GameModernWarfare4::LoadAssets()
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
     bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
+    bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
 
     // Check if we need assets
     if (NeedsAnims)
@@ -568,6 +575,27 @@ bool GameModernWarfare4::LoadAssets()
         });
     }
 
+    if (NeedsMaterials)
+    {
+        // Parse the Rawfile pool
+        CoDXPoolParser<uint64_t, MW4XMaterial>(CoDAssets::GameOffsetInfos[5], CoDAssets::GamePoolSizes[5], [](MW4XMaterial& Asset, uint64_t& AssetOffset)
+        {
+            // Validate and load if need be
+            auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
+
+            // Make and add
+            auto LoadedMaterial = new CoDMaterial_t();
+            // Set
+            LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
+            LoadedMaterial->AssetPointer = AssetOffset;
+            LoadedMaterial->ImageCount = Asset.ImageCount;
+            LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
+
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
+        });
+    }
+
     // Success, error only on specific load
     return true;
 }
@@ -882,6 +910,7 @@ const XMaterial_t GameModernWarfare4::ReadXMaterial(uint64_t MaterialPointer)
         // Advance
         MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
     }
+
     // Return it
     return Result;
 }
@@ -1229,7 +1258,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
 }
 void GameModernWarfare4::PerformInitialSetup()
 {

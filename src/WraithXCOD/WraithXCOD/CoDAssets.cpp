@@ -831,6 +831,19 @@ bool CoDAssets::SortAssets(const CoDAsset_t* lhs, const CoDAsset_t* rhs)
             // Done
             break;
         }
+        case WraithAssetType::Material:
+        {
+            // Materials
+            auto Compare1 = (CoDMaterial_t*)lhs;
+            auto Compare2 = (CoDMaterial_t*)rhs;
+
+            // Sort by Image Count
+            if (Compare1->ImageCount < Compare2->ImageCount) return false;
+            if (Compare2->ImageCount < Compare1->ImageCount) return true;
+
+            // Done
+            break;
+        }
         default:
             // Default, match by name
             break;
@@ -879,6 +892,8 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
     case WraithAssetType::Effect: Result = ExportEffectAsset((CoDEffect_t*)Asset, ExportPath); break;
         // Export a rawfile
     case WraithAssetType::RawFile: Result = ExportRawfileAsset((CoDRawFile_t*)Asset, ExportPath); break;
+        // Export a material
+    case WraithAssetType::Material: Result = ExportMaterialAsset((CoDMaterial_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;
     }
 
     // Success, unless specific error
@@ -1202,6 +1217,10 @@ std::string CoDAssets::BuildExportPath(const CoDAsset_t* Asset)
     case WraithAssetType::RawFile:
         // Default directory
         ApplicationPath = FileSystems::CombinePath(ApplicationPath, "xrawfiles");
+        break;
+    case WraithAssetType::Material:
+        // Directory with asset name
+        ApplicationPath = FileSystems::CombinePath(FileSystems::CombinePath(ApplicationPath, "xmaterials"), Asset->AssetName);
         break;
     }
 
@@ -1770,6 +1789,49 @@ ExportGameResult CoDAssets::ExportRawfileAsset(const CoDRawFile_t* Rawfile, cons
         GameModernWarfare4::TranslateRawfile(Rawfile, ExportPath);
         break;
     }
+
+    // Success, unless specific error
+    return ExportGameResult::Success;
+}
+
+ExportGameResult CoDAssets::ExportMaterialAsset(const CoDMaterial_t* Material, const std::string& ExportPath, const std::string& ImagesPath, const std::string& ImageRelativePath, const std::string& ImageExtension)
+{
+    // Grab the image format type
+    auto ImageFormatType = ImageFormat::Standard_PNG;
+    // Check setting
+    auto ImageSetting = SettingsManager::GetSetting("exportimg", "PNG");
+
+    // Check it
+    if (ImageSetting == "DDS")
+    {
+        ImageFormatType = ImageFormat::DDS_WithHeader;
+    }
+    else if (ImageSetting == "TGA")
+    {
+        ImageFormatType = ImageFormat::Standard_TGA;
+    }
+    else if (ImageSetting == "TIFF")
+    {
+        ImageFormatType = ImageFormat::Standard_TIFF;
+    }
+
+    XMaterial_t XMaterial(0);
+
+    // Attempt to load it based on game
+    switch (CoDAssets::GameID)
+    {
+    case SupportedGames::BlackOps4:
+        XMaterial = GameBlackOps4::ReadXMaterial(Material->AssetPointer);
+        break;
+    case SupportedGames::ModernWarfare4:
+        XMaterial = GameModernWarfare4::ReadXMaterial(Material->AssetPointer);
+        break;
+    }
+
+    // Process Image Names
+    ExportMaterialImageNames(XMaterial, ExportPath);
+    // Process the material
+    ExportMaterialImages(XMaterial, ExportPath, ImageExtension, ImageFormatType);
 
     // Success, unless specific error
     return ExportGameResult::Success;

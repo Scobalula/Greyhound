@@ -435,3 +435,16 @@ struct XSound
     // The sound format, WAV/FLAC
     SoundDataTypes DataType;
 };
+
+// A class that represents a material asset
+class CoDMaterial_t : public CoDAsset_t
+{
+public:
+    CoDMaterial_t();
+    virtual ~CoDMaterial_t();
+
+    // -- Material properties
+
+    // The number of images
+    size_t ImageCount;
+};
