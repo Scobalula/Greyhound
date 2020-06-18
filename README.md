@@ -1,5 +1,5 @@
 # Greyhound - A fork of Wraith Archon, Call of Duty Asset Extractor
-[![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/fGVpV39)
+[![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/RyqyThu)
 
 Greyhound is a fork of the famous [Wraith Archon](https://github.com/dtzxporter/WraithXArchon/) by DTZxPorter. It is an extraction tool for Call of Duty, supporting XModels, XAnims, Images, and more depending on the game. With Greyhound I hope to ensure updates to the tool for both current and future titles, and bring more features to aid in working with the games.
 
