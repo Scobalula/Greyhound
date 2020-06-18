@@ -22,6 +22,8 @@ public:
     std::string TagName;
     // The index of this bones parent in the WraithModel bone list (-1 means connected to the root)
     int32_t BoneParent;
+    // Whether or not this bone is cosmetic or not
+    bool IsCosmetic;
     // The localized position of this bone
     Vector3 LocalPosition;
     // The localized rotation of this bone

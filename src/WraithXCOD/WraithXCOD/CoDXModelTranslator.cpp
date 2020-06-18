@@ -128,6 +128,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
             {
                 // Absolute position
                 BoneParent = BoneParent;
+                NewBone.IsCosmetic = true;
             }
 
             // Advance

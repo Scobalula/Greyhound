@@ -822,10 +822,11 @@ bool GameBlackOps4::LoadAssets()
             // Make and add
             auto LoadedModel = new CoDModel_t();
             // Set
-            LoadedModel->AssetName = ModelName;
-            LoadedModel->AssetPointer = AssetOffset;
-            LoadedModel->BoneCount = (Asset.NumBones + Asset.NumCosmeticBones);
-            LoadedModel->LodCount = Asset.NumLods;
+            LoadedModel->AssetName         = ModelName;
+            LoadedModel->AssetPointer      = AssetOffset;
+            LoadedModel->BoneCount         = Asset.NumBones;
+            LoadedModel->LodCount          = Asset.NumLods;
+            LoadedModel->CosmeticBoneCount = Asset.NumCosmeticBones;
             LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);

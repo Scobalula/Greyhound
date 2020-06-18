@@ -71,6 +71,8 @@ public:
 
     // The bone count
     uint32_t BoneCount;
+    // The cosmetic bone count
+    uint32_t CosmeticBoneCount;
     // The lod count
     uint16_t LodCount;
 };

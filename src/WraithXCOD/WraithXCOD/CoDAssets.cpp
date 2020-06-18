@@ -1839,6 +1839,18 @@ ExportGameResult CoDAssets::ExportMaterialAsset(const CoDMaterial_t* Material, c
 
 void CoDAssets::ExportWraithModel(const std::unique_ptr<WraithModel>& Model, const std::string& ExportPath)
 {
+    // Write Cosmetic List
+    TextWriter Cosmetics;
+    Cosmetics.Create(FileSystems::CombinePath(ExportPath, Model->AssetName + "_cosmetics.mel"));
+
+    for (auto& Bone : Model->Bones)
+    {
+        if (Bone.IsCosmetic)
+        {
+            Cosmetics.WriteLineFmt("select -add %s;", Bone.TagName.c_str());
+        }
+    }
+
     // Prepare to export to the formats specified in settings
 
     // Check for XME format

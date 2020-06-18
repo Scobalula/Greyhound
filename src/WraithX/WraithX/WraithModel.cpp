@@ -13,6 +13,7 @@ WraithBone::WraithBone()
     GlobalPosition = Vector3(0, 0, 0);
     GlobalRotation = Quaternion::Identity();
     BoneScale = Vector3(1, 1, 1);
+    IsCosmetic = false;
 }
 
 WraithBone::~WraithBone()

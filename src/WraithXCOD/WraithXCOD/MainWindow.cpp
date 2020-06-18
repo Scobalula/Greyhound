@@ -296,7 +296,10 @@ void MainWindow::GetListViewInfo(LV_ITEM* ListItem, CWnd* Owner)
                 {
                 case WraithAssetType::Model:
                     // Model info
-                    DetailsFmt.Format(L"Bones: %d, LODs: %d", ((CoDModel_t*)Asset)->BoneCount, ((CoDModel_t*)Asset)->LodCount);
+                    if(((CoDModel_t*)Asset)->CosmeticBoneCount == 0)
+                        DetailsFmt.Format(L"Bones: %d, LODs: %d", ((CoDModel_t*)Asset)->BoneCount, ((CoDModel_t*)Asset)->LodCount);
+                    else
+                        DetailsFmt.Format(L"Bones: %d, Cosmetics: %d, LODs: %d", ((CoDModel_t*)Asset)->BoneCount, ((CoDModel_t*)Asset)->CosmeticBoneCount, ((CoDModel_t*)Asset)->LodCount);
                     break;
                 case WraithAssetType::Animation:
                     // Anim info
