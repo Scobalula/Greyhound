@@ -119,6 +119,7 @@ CoDModel_t::CoDModel_t()
     // Defaults
     BoneCount = 0;
     LodCount = 0;
+    CosmeticBoneCount = 0;
     // Set type
     AssetType = WraithAssetType::Model;
     // Size
