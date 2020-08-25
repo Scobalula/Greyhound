@@ -99,6 +99,12 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
     // Open CASC File
     auto Reader = CASCFileReader(StorageHandle, FilePath);
 
+    // Validate
+    if (!Reader.IsValid())
+    {
+        return false;
+    }
+
     // Read the header
     auto Header = Reader.Read<BO3XPakHeader>();
 
