@@ -1,4 +1,4 @@
-```Due to a lack of interest and a recent game ban on Modern Warfare, Greyhound is no longer receiving feature updates, including adding new game titles, or minor bug fixes. Major bug fixes for issues such as game breaking updates or crashes that affects existing titles may be provided at my convience.```
+```Due to a lack of interest and a recent game ban on Modern Warfare, Greyhound is no longer receiving feature updates, including adding new game titles, or minor bug fixes. Major bug fixes for issues such as game breaking updates or crashes that affects existing titles may be provided at my convenience.```
 
 ```Greyhound and Wraith are, to my knowledge, perfectly safe to use on current titles, including Modern Warfare. It does not "interact" with the games besides calling basic APIs to read memory, and does not edit game memory under any circumstance.```
 
