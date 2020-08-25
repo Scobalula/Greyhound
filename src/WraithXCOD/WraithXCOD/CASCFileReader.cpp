@@ -33,7 +33,7 @@ uint64_t CASCFileReader::GetPosition() const
 
 const bool CASCFileReader::IsValid() const
 {
-    return FileHandle == nullptr;
+    return FileHandle != nullptr;
 }
 
 void CASCFileReader::SetPosition(uint64_t Offset)
