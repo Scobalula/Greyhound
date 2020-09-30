@@ -2,15 +2,14 @@
 // We need the package cache
 #include "CoDAssets.h"
 #include "CoDPackageCache.h"
-#include "CascLib.h"
+#include "Casc.h"
 #include <shared_mutex>
 
 // A class that handles reading, caching and extracting CASC Resources
 class CASCCache : public CoDPackageCache
 {
 private:
-    // Storage Handle
-    HANDLE StorageHandle;
+    Casc::Container Container;
     // Cache Mutex
     std::shared_mutex ReadMutex;
 public:

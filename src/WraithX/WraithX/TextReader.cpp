@@ -139,15 +139,17 @@ void TextReader::SetPosition(uint64_t Offset)
     }
 }
 
-std::string TextReader::ReadLine()
+std::string TextReader::ReadLine(bool& Success)
 {
+    Success = true;
     // Make sure we have a file
     if (FileHandle != nullptr)
     {
         // Get the next line from the stream
         char LineBuffer[0x2000];
         // Read
-        fgets(LineBuffer, 0x2000, FileHandle);
+        if(fgets(LineBuffer, 0x2000, FileHandle) == NULL)
+            Success = false;
         // Return
         return Strings::EndTrim(std::string(LineBuffer));
     }

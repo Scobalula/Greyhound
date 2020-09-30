@@ -9,9 +9,6 @@
 #include "CoDXPoolParser.h"
 #include "DBGameFiles.h"
 
-// We need the DirectX Mesh Class
-#include "..\..\DirectXMesh\DirectXMesh.h"
-
 // We need the following WraithX classes
 #include "Strings.h"
 #include "FileSystems.h"

@@ -13,34 +13,10 @@
 #include "MemoryReader.h"
 #include "Siren.h"
 
-#include "CASCFileReader.h"
+// We need Casc
+#include "Casc.h"
 
-std::map<std::string, CASC_FIND_DATA> GetFiles(HANDLE StorageHandle)
-{
-    // Data
-    HANDLE FoundHandle;
-    CASC_FIND_DATA CASCFindData;
-    std::map<std::string, CASC_FIND_DATA> CASCFiles;
-    FoundHandle = CascFindFirstFile(StorageHandle, "*", &CASCFindData, NULL);
-
-    if (FoundHandle != NULL)
-    {
-        do
-        {
-            // Check if this is a local file
-            if (CASCFindData.bFileAvailable == 1)
-            {
-                CASCFiles[CASCFindData.szFileName] = CASCFindData;
-            }
-        } while (CascFindNextFile(FoundHandle, &CASCFindData));
-    }
-
-    CascFindClose(FoundHandle);
-    return CASCFiles;
-
-}
-
-CASCCache::CASCCache() : StorageHandle(nullptr)
+CASCCache::CASCCache()
 {
     // Default, attempt to load the siren lib
     Siren::Initialize(L"oo2core_6_win64.dll");
@@ -51,7 +27,7 @@ CASCCache::~CASCCache()
     // Clean up if need be
     Siren::Shutdown();
     // Close Handle
-    CascCloseStorage(StorageHandle);
+    
 }
 
 void CASCCache::LoadPackageCache(const std::string& BasePath)
@@ -59,25 +35,30 @@ void CASCCache::LoadPackageCache(const std::string& BasePath)
     // Call Base function first!
     CoDPackageCache::LoadPackageCache(BasePath);
 
-    if (!CascOpenStorage(Strings::ToUnicodeString(BasePath).c_str(), NULL, &StorageHandle))
+    try
     {
-#if _DEBUG
-        std::cout << "Failed to open CASC Storage\n";
-#endif
-        return;
-    }
+        // Open Storage
+        Container.Open(BasePath);
 
-    // Find Files in CASC
-    auto Files = GetFiles(StorageHandle);
-
-    // Iterate over file paths
-    for (auto& File : Files)
-    {
-        // We only want XPAKs
-        if (FileSystems::GetExtension(File.first) == ".xpak")
+        for (auto& File : Container.GetFileEntries())
         {
-            this->LoadPackage(File.first);
+            // We only want XPAKs
+            if (FileSystems::GetExtension(File.first) == ".xpak" && File.second.Exists)
+            {
+                try
+                {
+                    this->LoadPackage(File.first);
+                }
+                catch (...)
+                {
+
+                }
+            }
         }
+    }
+    catch (...)
+    {
+
     }
 
     // We've finished loading, set status
@@ -97,13 +78,7 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
     auto PackageIndex = (uint32_t)PackageFilePaths.size();
     
     // Open CASC File
-    auto Reader = CASCFileReader(StorageHandle, FilePath);
-
-    // Validate
-    if (!Reader.IsValid())
-    {
-        return false;
-    }
+    auto Reader = Container.OpenFile(FilePath);
 
     // Read the header
     auto Header = Reader.Read<BO3XPakHeader>();
@@ -112,14 +87,13 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
     if (Header.Version == 0xD)
     {
         Reader.SetPosition(0);
-        uint64_t Result;
-        Reader.Read((uint8_t*)&Header, 24, Result);
+        Reader.Read((uint8_t*)&Header, 0, 24);
         Reader.Advance(288);
-        Reader.Read((uint8_t*)&Header + 24, 96, Result);
+        Reader.Read((uint8_t*)&Header + 24, 0, 96);
     }
 
     // Verify the magic and offset
-    if (Header.Magic == 0x4950414b && Header.HashOffset < Reader.GetLength())
+    if (Header.Magic == 0x4950414b && (int64_t)Header.HashOffset < Reader.GetLength())
     {
         // Jump to hash offset
         Reader.SetPosition(Header.HashOffset);
@@ -232,7 +206,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
         // Get the XPAK name
         auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
         // Open CASC File
-        auto Reader = CASCFileReader(StorageHandle, XPAKFileName);
+        auto Reader = Container.OpenFile(XPAKFileName);
 
 #if _DEBUG
         printf("CASCCache::ExtractPackageObject(): Streaming Object: 0x%llx from CASC File: %s\n", CacheID, XPAKFileName.c_str());
@@ -413,11 +387,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(const std::string & P
     ResultSize = 0;
 
     // Open CASC File
-    auto Reader = CASCFileReader(StorageHandle, PackageName);
-
-    // Check if the file handle is valid
-    if (Reader.IsValid())
-        return nullptr;
+    auto Reader = Container.OpenFile(PackageName);
 
     // Jump to the offset
     Reader.SetPosition(AssetOffset);

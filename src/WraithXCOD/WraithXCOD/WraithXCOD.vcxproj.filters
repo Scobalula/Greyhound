@@ -180,14 +180,14 @@
     <ClCompile Include="CASCCache.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
-    <ClCompile Include="CASCFileReader.cpp">
-      <Filter>Source Files\Helpers</Filter>
-    </ClCompile>
     <ClCompile Include="GameQuantumSolace.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
     <ClCompile Include="GameModernWarfare2RM.cpp">
       <Filter>Source Files\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="Casc.cpp">
+      <Filter>Source Files\Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -353,7 +353,7 @@
     <ClInclude Include="GameModernWarfare2RM.h">
       <Filter>Header Files\Games</Filter>
     </ClInclude>
-    <ClInclude Include="CASCFileReader.h">
+    <ClInclude Include="Casc.h">
       <Filter>Header Files\Helpers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -81,20 +81,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CascLib\CascLib_vs17.vcxproj">
-      <Project>{78424708-1f6e-4d4b-920c-fb6d26847055}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\DirectXMesh\DirectXMesh_Desktop_2017.vcxproj">
-      <Project>{6857f086-f6fe-4150-9ed7-7446f1c1c220}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\WraithX\WraithX\WraithX.vcxproj">
       <Project>{bff7e83b-acd0-447f-a4de-a11d726acae1}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AnimSettings.cpp" />
+    <ClCompile Include="Casc.cpp" />
     <ClCompile Include="CASCCache.cpp" />
-    <ClCompile Include="CASCFileReader.cpp" />
     <ClCompile Include="CoDAssets.cpp" />
     <ClCompile Include="CoDAssetType.cpp" />
     <ClCompile Include="CoDEffectTranslator.cpp" />
@@ -146,8 +140,8 @@
   <ItemGroup>
     <ClInclude Include="AboutWindow.h" />
     <ClInclude Include="AnimSettings.h" />
+    <ClInclude Include="Casc.h" />
     <ClInclude Include="CASCCache.h" />
-    <ClInclude Include="CASCFileReader.h" />
     <ClInclude Include="CoDAssets.h" />
     <ClInclude Include="CoDAssetType.h" />
     <ClInclude Include="CoDEffectTranslator.h" />

@@ -37,7 +37,7 @@ public:
     void SetPosition(uint64_t Offset);
 
     // Read the next line from the file
-    std::string ReadLine();
+    std::string ReadLine(bool& Success);
     // Reads the entire file to the end
     std::string ReadToEnd();
     // Parse the next line from the file
