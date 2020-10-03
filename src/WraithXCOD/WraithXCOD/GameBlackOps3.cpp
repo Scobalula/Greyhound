@@ -956,12 +956,12 @@ void GameBlackOps3::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
                 auto& StreamBone = ResultModel->AddBone();
 
                 // Set name and parent
-                StreamBone.TagName = Strings::Format("smod_bone%d", i);
-                StreamBone.BoneParent = 0;
+                StreamBone.TagName = Strings::Format("smod_bone%d", i + 1);
+                StreamBone.BoneParent = -1;
             }
 
             // Ensure root is tag_origin
-            ResultModel->Bones[0].TagName = "tag_origin";
+            ResultModel->Bones[0].TagName = "smod_bone0";
         }
     }
 }
