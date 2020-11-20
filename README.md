@@ -1,7 +1,3 @@
-```Due to a lack of interest and a recent game ban on Modern Warfare, Greyhound is no longer receiving feature updates, including adding new game titles, or minor bug fixes. Major bug fixes for issues such as game breaking updates or crashes that affects existing titles may be provided at my convenience.```
-
-```Greyhound and Wraith are, to my knowledge, perfectly safe to use on current titles, including Modern Warfare. It does not "interact" with the games besides calling basic APIs to read memory, and does not edit game memory under any circumstance.```
-
 # Greyhound - A fork of Wraith Archon, Call of Duty Asset Extractor
 [![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/RyqyThu)
 
@@ -41,6 +37,7 @@ Greyhound is distributed with an automatic updater that will check for updates e
 ## Credits/Contributors
 
 * Scobalula - Developer/Maintainer/Research
+* Eric Maynard - Help on BOCW from ModelGetter, ZM Hashes for BOCW Base
 * DTZxPorter - Original Developer of the entire Wraith Project, Game Research
 * ID-Daemon - Game Research
 
