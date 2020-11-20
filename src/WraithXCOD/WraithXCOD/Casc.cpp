@@ -78,21 +78,21 @@ void Casc::Container::LoadIndexFiles()
 
 void Casc::Container::LoadDataFiles()
 {
-    // TODO: This needs a different implementation, destructor is called each time...
     auto DataFileNames = FileSystems::GetFiles(DataPath, "data.*");
 
-    DataFiles.resize(DataFileNames.size());
+    DataFiles.reserve(DataFileNames.size());
 
     for (auto DataFileName : DataFileNames)
     {
-        DataFile DataFile(DataFileName);
+        auto IndexSplit = Strings::SplitString(DataFileName, '.');
 
-        if (DataFile.GetIndex() == -1)
-            continue;
-        if (DataFile.GetFileHandle() == INVALID_HANDLE_VALUE)
-            continue;
+        if (IndexSplit.size() >= 2)
+        {
+            auto ArchiveIndex = std::stoi(IndexSplit.back());
 
-        DataFiles[DataFile.GetIndex()] = DataFile;
+            DataFiles.insert(DataFiles.begin() + ArchiveIndex, std::make_shared<DataFile>(DataFileName));
+        }
+
     }
 }
 
@@ -317,23 +317,23 @@ Casc::FileReader Casc::Container::OpenFile(const std::string& FileName)
     for (auto& KeyEntry : File.KeyEntries)
     {
         IndexEntry& Entry = DataEntries.at(KeyEntry);
-        DataFile& DataFile = DataFiles.at(Entry.ArchiveIndex);
+        auto DataFile = DataFiles.at(Entry.ArchiveIndex);
 
         FileSpan Span(Entry.ArchiveIndex);
 
-        DataFile.SetPosition(Entry.Offset);
+        DataFile->SetPosition(Entry.Offset);
 
         BlockTableHeader BLTEHeader{};
 
-        if (DataFile.Read((void*)&BLTEHeader, sizeof(BLTEHeader)) == sizeof(BlockTableHeader) && BLTEHeader.HeaderSize > 0)
+        if (DataFile->Read((void*)&BLTEHeader, sizeof(BLTEHeader)) == sizeof(BlockTableHeader) && BLTEHeader.HeaderSize > 0)
         {
             auto FrameCount = BLTEHeader.GetFrameCount();
 
             auto BLTEntries = std::make_unique<BlockTableEntry[]>(FrameCount);
 
-            DataFile.Read((void*)BLTEntries.get(), FrameCount * sizeof(BlockTableEntry));
+            DataFile->Read((void*)BLTEntries.get(), FrameCount * sizeof(BlockTableEntry));
 
-            auto ArchiveOffset = DataFile.GetPosition();
+            auto ArchiveOffset = DataFile->GetPosition();
 
             Span.ArchiveOffset = ArchiveOffset;
             Span.VirtualStartOffset = VirtualOffset;
@@ -383,23 +383,23 @@ Casc::FileReader Casc::Container::OpenFile(IndexEntry Entry)
 
     FileReader Reader(*this);
 
-    DataFile& DataFile = DataFiles.at(Entry.ArchiveIndex);
+    auto DataFile = DataFiles.at(Entry.ArchiveIndex);
 
     FileSpan Span(Entry.ArchiveIndex);
 
-    DataFile.SetPosition(Entry.Offset);
+    DataFile->SetPosition(Entry.Offset);
 
     BlockTableHeader BLTEHeader{};
 
-    if (DataFile.Read((void*)&BLTEHeader, sizeof(BLTEHeader)) == sizeof(BlockTableHeader) && BLTEHeader.HeaderSize > 0)
+    if (DataFile->Read((void*)&BLTEHeader, sizeof(BLTEHeader)) == sizeof(BlockTableHeader) && BLTEHeader.HeaderSize > 0)
     {
         auto FrameCount = BLTEHeader.GetFrameCount();
 
         auto BLTEntries = std::make_unique<BlockTableEntry[]>(FrameCount);
 
-        DataFile.Read((void*)BLTEntries.get(), FrameCount * sizeof(BlockTableEntry));
+        DataFile->Read((void*)BLTEntries.get(), FrameCount * sizeof(BlockTableEntry));
 
-        auto ArchiveOffset = DataFile.GetPosition();
+        auto ArchiveOffset = DataFile->GetPosition();
 
         Span.ArchiveOffset = ArchiveOffset;
         Span.VirtualStartOffset = VirtualOffset;
@@ -446,11 +446,11 @@ const int32_t Casc::Container::ReadDataFile(const size_t ArchiveIndex, void * Po
         return 0;
 
 
-    DataFile& File = DataFiles[ArchiveIndex];
+    auto File = DataFiles[ArchiveIndex];
 
-    File.SetPosition(Offset);
+    File->SetPosition(Offset);
 
-    return File.Read(Pointer, Size);
+    return File->Read(Pointer, Size);
 }
 
 const std::map<std::string, Casc::FileSystem::Entry>& Casc::Container::GetFileEntries() const
@@ -465,6 +465,7 @@ void Casc::Container::Close()
 {
     // Lock for multithreading
     std::lock_guard<std::mutex> Guard(Mutex);
+
     // Check if storage is closed
     if (Closed)
         return;
@@ -550,19 +551,8 @@ Casc::IndexKey::IndexKey(const std::string& Key, const size_t KeySize)
     };
 }
 
-Casc::DataFile::DataFile() : FileHandle(INVALID_HANDLE_VALUE), ArchiveIndex(-1)
+Casc::DataFile::DataFile(const std::string& Path) : FileHandle(INVALID_HANDLE_VALUE)
 {
-}
-
-Casc::DataFile::DataFile(const std::string& Path)
-{
-    auto Index = Strings::SplitString(Path, '.');
-
-    if (Index.size() < 2)
-        ArchiveIndex = -1;
-    else
-        ArchiveIndex = std::stoi(Index[1]);
-
     FileHandle = CreateFileA(Path.c_str(),
         FILE_READ_DATA | FILE_READ_ATTRIBUTES,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -574,10 +564,10 @@ Casc::DataFile::DataFile(const std::string& Path)
 
 Casc::DataFile::~DataFile()
 {
-    //if (FileHandle != INVALID_HANDLE_VALUE)
-    //{
-    //    CloseHandle(FileHandle);
-    //}
+    if (FileHandle != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(FileHandle);
+    }
 }
 
 const int32_t Casc::DataFile::Read(void * Pointer, int32_t Size)
@@ -593,11 +583,6 @@ const int32_t Casc::DataFile::Read(void * Pointer, int32_t Size)
 const HANDLE Casc::DataFile::GetFileHandle() const
 {
     return FileHandle;
-}
-
-const int64_t Casc::DataFile::GetIndex() const
-{
-    return ArchiveIndex;
 }
 
 const uint64_t Casc::DataFile::SetPosition(uint64_t Position)

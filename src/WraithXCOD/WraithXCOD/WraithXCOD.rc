@@ -119,10 +119,10 @@ BEGIN
     CONTROL         "Export .SMD (Valve)",IDC_EXPORTSMD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,170,133,11
     CONTROL         "Export .XMODEL_EXPORT",IDC_EXPORTXME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,186,133,11
     CONTROL         "Export .SEMODEL",IDC_EXPORTSEMODEL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,122,109,11
-    CONTROL         "Export .FBX (Soon)",IDC_EXPORTFBX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,138,109,11
-    CONTROL         "Export .XMODEL_BIN (Soon)",IDC_EXPORTXMB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,154,109,11
+    CONTROL         "Export Images into Material Folders",IDC_MDLMTLFOLDERS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,64,168,11
     CONTROL         "Skip previously exported models",IDC_SKIPPREVMODEL,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,64,145,11
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,80,145,11
 END
 
 IDD_ANIMSETTINGS DIALOGEX 0, 0, 350, 230
@@ -362,8 +362,8 @@ IDI_CHECKMARK           ICON                    "..\\..\\WraithX\\Resources\\Che
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,6,0,1
- PRODUCTVERSION 1,6,0,1
+ FILEVERSION 1,7,0,0
+ PRODUCTVERSION 1,7,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -380,12 +380,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "DTZxPorter / Scobalula"
             VALUE "FileDescription", "Greyhound"
-            VALUE "FileVersion", "1.6.0.1"
+            VALUE "FileVersion", "1.7.0.0"
             VALUE "InternalName", "Greyhound"
             VALUE "LegalCopyright", "Copyright (C) 2020 DTZxPorter / Scobalula"
             VALUE "OriginalFilename", "Greyhound.exe"
             VALUE "ProductName", "Greyhound"
-            VALUE "ProductVersion", "1.6.0.1"
+            VALUE "ProductVersion", "1.7.0.0"
         END
     END
     BLOCK "VarFileInfo"

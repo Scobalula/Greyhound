@@ -34,14 +34,14 @@ protected:
         this->AddColorText(" - Maintained by ", RGB(255, 255, 255), 13);
         this->AddColorText("Scobalula", RGB(52, 152, 219), 13, true);
         this->AddColorText(" - Some game research by ", RGB(255, 255, 255), 13);
-        this->AddColorText("id-daemon", RGB(52, 152, 219), 13, true);
+        this->AddColorText("id-daemon and help from Eric Maynard's ModelGetter", RGB(52, 152, 219), 13, true);
         this->AddColorText(".\n", RGB(255, 255, 255), 13);
         this->AddColorText("\n", RGB(255, 255, 255), 13);
         // Provided warning
         this->AddColorText("You must take note that EVERY asset exported using this tool is property of the game you extracted it from. Therefore you may not use them in any commercial environment and or profit off of them.\n\n", RGB(255, 255, 255), 13);
         // Rehost
         this->AddColorText("Greyhound, like Wraith Archon and its library, is licensed under the General Public License 3.0. You may distribute it and use it under the terms of the GPL 3.0, however these tools are provided as-is with no warranty provided. ", RGB(255, 255, 255), 13);
-        this->AddColorText("You are responsible for any damages caused.\n\nEpstein didn't kill himself.\n\n", RGB(255, 255, 255), 13, true, false, true);
+        this->AddColorText("You are responsible for any damages caused.", RGB(255, 255, 255), 13, true, false, true);
         // Changelog
         this->AddColorText("-- Changelog is available on the Github Repo --", RGB(0, 102, 255), 13);
     }

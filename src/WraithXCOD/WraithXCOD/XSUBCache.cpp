@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "CASCCache.h"
+#include "XSUBCache.h"
 #include "Strings.h"
 #include "FileSystems.h"
 // We need the game files structs
@@ -13,16 +13,46 @@
 #include "MemoryReader.h"
 #include "Siren.h"
 
-// We need Casc
-#include "Casc.h"
+#pragma pack(push, 1)
+struct BOCWXSubHeader
+{
+    uint32_t Magic;
+    uint16_t Unknown1;
+    uint16_t Version;
+    uint64_t Unknown;
+    uint64_t Type;
+    uint64_t Size;
+    uint8_t UnknownHashes[1896];
+    int64_t FileCount;
+    int64_t DataOffset;
+    int64_t DataSize;
+    int64_t HashCount;
+    int64_t HashOffset;
+    int64_t HashSize;
+    int64_t Unknown3;
+    int64_t UnknownOffset;
+    int64_t Unknown4;
+    int64_t IndexCount;
+    int64_t IndexOffset;
+    int64_t IndexSize;
+};
+#pragma pack(pop)
 
-CASCCache::CASCCache()
+#pragma pack(push, 1)
+struct BOCWXSubHashEntry
+{
+    uint64_t Key;
+    uint64_t PackedInfo;
+};
+#pragma pack(pop)
+
+XSUBCache::XSUBCache()
 {
     // Default, attempt to load the siren lib
-    Siren::Initialize(L"oo2core_6_win64.dll");
+    Siren::Initialize(L"oo2core_8_win64.dll");
 }
 
-CASCCache::~CASCCache()
+XSUBCache::~XSUBCache()
 {
     // Clean up if need be
     Siren::Shutdown();
@@ -30,7 +60,7 @@ CASCCache::~CASCCache()
     Container.Close();
 }
 
-void CASCCache::LoadPackageCache(const std::string& BasePath)
+void XSUBCache::LoadPackageCache(const std::string& BasePath)
 {
     // Call Base function first!
     CoDPackageCache::LoadPackageCache(BasePath);
@@ -43,7 +73,7 @@ void CASCCache::LoadPackageCache(const std::string& BasePath)
         for (auto& File : Container.GetFileEntries())
         {
             // We only want XPAKs
-            if (FileSystems::GetExtension(File.first) == ".xpak" && File.second.Exists)
+            if (FileSystems::GetExtension(File.first) == ".xsub" && File.second.Exists)
             {
                 try
                 {
@@ -58,17 +88,16 @@ void CASCCache::LoadPackageCache(const std::string& BasePath)
     }
     catch (...)
     {
-
     }
 
     // We've finished loading, set status
     this->SetLoadedState();
 }
 
-bool CASCCache::LoadPackage(const std::string& FilePath)
+bool XSUBCache::LoadPackage(const std::string& FilePath)
 {
 #ifdef _DEBUG
-    std::cout << "CASCCache::LoadPackage(): Parsing " << FilePath << "\n";
+    std::cout << "XSUBCache::LoadPackage(): Parsing " << FilePath << "\n";
 #endif
 
     // Call Base function first
@@ -76,47 +105,43 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
 
     // Add to package files
     auto PackageIndex = (uint32_t)PackageFilePaths.size();
-    
+
     // Open CASC File
     auto Reader = Container.OpenFile(FilePath);
 
     // Read the header
-    auto Header = Reader.Read<BO3XPakHeader>();
+    auto Header = Reader.Read<BOCWXSubHeader>();
 
-    // If MW4 we need to skip the new bytes
-    if (Header.Version == 0xD)
-    {
-        Reader.SetPosition(0);
-        Reader.Read((uint8_t*)&Header, 0, 24);
-        Reader.Advance(288);
-        Reader.Read((uint8_t*)&Header + 24, 0, 96);
-    }
+    // Check if we have data (Type 3 is data, others are just metadata and refs)
+    if (Header.Type != 3)
+        return true;
+
 
     // Verify the magic and offset
-    if (Header.Magic == 0x4950414b && (int64_t)Header.HashOffset < Reader.GetLength())
+    if (Header.Magic == 0x4950414b && Header.HashOffset < Reader.GetLength())
     {
         // Jump to hash offset
         Reader.SetPosition(Header.HashOffset);
         // Hash result size
         uint64_t HashResult = 0;
         // Read Buffer
-        auto Buffer = Reader.Read(Header.HashCount * sizeof(BO3XPakHashEntry), HashResult);
+        auto Buffer = Reader.Read(Header.HashCount * sizeof(BOCWXSubHashEntry), HashResult);
 
 
         // Read the hash data into a buffer
         auto HashData = MemoryReader((int8_t*)Buffer.release(), HashResult);
 
         // Loop and setup entries
-        for (uint64_t i = 0; i < Header.HashCount; i++)
+        for (int64_t i = 0; i < Header.HashCount; i++)
         {
             // Read it
-            auto Entry = HashData.Read<BO3XPakHashEntry>();
+            auto Entry = HashData.Read<BOCWXSubHashEntry>();
 
             // Prepare a cache entry
             PackageCacheObject NewObject;
             // Set data
-            NewObject.Offset = Header.DataOffset + Entry.Offset;
-            NewObject.CompressedSize = Entry.Size & 0xFFFFFFFFFFFFFF; // 0x80 in last 8 bits in some entries in new XPAKs
+            NewObject.Offset = (Entry.PackedInfo >> 32) << 7;
+            NewObject.CompressedSize = (Entry.PackedInfo >> 1) & 0x3FFFFFFF;
             NewObject.UncompressedSize = 0;
             NewObject.PackageFileIndex = PackageIndex;
 
@@ -124,61 +149,11 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
             CacheObjects.insert(std::make_pair(Entry.Key, NewObject));
         }
 
-        // For MW we must parse the entries
-        if (CoDAssets::GameID == SupportedGames::ModernWarfare4)
-        {
-            // Jump to index offset
-            Reader.SetPosition(Header.IndexOffset);
-
-            // Loop and setup entries
-            for (uint64_t i = 0; i < Header.IndexCount; i++)
-            {
-                // Read hash and properties size
-                auto Hash = Reader.Read<uint64_t>();
-                auto Properties = Reader.Read<uint64_t>();
-                auto Entry = CacheObjects.find(Hash);
-
-                if (Entry == CacheObjects.end())
-                {
-                    // Skip properties
-                    Reader.Advance(Properties);
-                }
-                else
-                {
-                    // Result
-                    uint64_t ReadSize = 0;
-                    // Read buffer and parse
-                    auto PropertiesBuffer = Reader.Read(Properties, ReadSize);
-
-                    // Check if valid
-                    if (PropertiesBuffer != nullptr)
-                    {
-                        // Results
-                        auto ResultBuffer = Strings::SplitString(std::string((char*)PropertiesBuffer.get(), (char*)PropertiesBuffer.get() + ReadSize), '\n');
-
-                        // Loop and take the ones we need
-                        for (auto& KeyValue : ResultBuffer)
-                        {
-                            auto KeyValuePair = Strings::SplitString(KeyValue, ':');
-
-                            if (KeyValuePair.size() == 2)
-                            {
-                                if (KeyValuePair[0] == "size0")
-                                {
-                                    Entry->second.UncompressedSize = std::strtoull(KeyValuePair[1].c_str(), 0, 0);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         // Append the file path
         PackageFilePaths.push_back(FilePath);
 
 #ifdef _DEBUG
-        std::cout << "CASCCache::LoadPackage(): Added " << FilePath << " to cache.\n";
+        std::cout << "XSUBCache::LoadPackage(): Added " << FilePath << " to cache.\n";
 #endif
 
         // No issues
@@ -186,14 +161,14 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
     }
 
 #ifdef _DEBUG
-    std::cout << "CASCCache::LoadPackage(): Failed to parse package.\n";
+    std::cout << "XSUBCache::LoadPackage(): Failed to parse package.\n";
 #endif
 
-    // Failed 
+    // Failed
     return false;
 }
 
-std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize)
+std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObjectRaw(uint64_t CacheID, uint32_t & ResultSize)
 {
     // Prepare to extract if found
     if (CacheObjects.find(CacheID) != CacheObjects.end())
@@ -207,9 +182,42 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
         auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
         // Open CASC File
         auto Reader = Container.OpenFile(XPAKFileName);
+        // A buffer for data read
+        uint64_t DataRead = 0;
+        // Hop to the beginning offset
+        Reader.SetPosition(CacheInfo.Offset);
 
+        // Allocate just the raw size of the buffer, that's all we're returning
+        auto ResultBuffer = Reader.Read(CacheInfo.CompressedSize, DataRead);
+
+        // Set result size
+        ResultSize = (uint32_t)CacheInfo.CompressedSize;
+        // Return the safe buffer
+        return ResultBuffer;
+    }
+
+    // Set
+    ResultSize = 0;
+    // Failed to find data
+    return nullptr;
+}
+
+std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize)
+{
+    // Prepare to extract if found
+    if (CacheObjects.find(CacheID) != CacheObjects.end())
+    {
+        // Aquire lock
+        std::lock_guard<std::shared_mutex> Gaurd(ReadMutex);
+
+        // Take cache data, and extract from the XPAK (Uncompressed size = offset of data segment!)
+        auto& CacheInfo = CacheObjects[CacheID];
+        // Get the XPAK name
+        auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
+        // Open CASC File
+        auto Reader = Container.OpenFile(XPAKFileName);
 #if _DEBUG
-        printf("CASCCache::ExtractPackageObject(): Streaming Object: 0x%llx from CASC File: %s\n", CacheID, XPAKFileName.c_str());
+        printf("XSUBCache::ExtractPackageObject(): Streaming Object: 0x%llx from CASC File: %s\n", CacheID, XPAKFileName.c_str());
 #endif // _DEBUG
 
 
@@ -223,21 +231,34 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
         // Decompressed Size
         uint64_t DecompressedSize = CacheInfo.UncompressedSize;
 
-        // A buffer for the data, this will eventually be shipped off, it's 36MB of memory
+        // A buffer for the data, this will eventually be shipped off, it's 50MB of memory
         auto DataTemporaryBuffer = new int8_t[0x2400000];
+        auto DataTemporaryBufferSize = 0x2400000;
 
         // Loop until we have all our data
         while (DataRead < CacheInfo.CompressedSize)
         {
             // Read the block header
-            auto BlockHeader = Reader.Read<BO3XPakDataHeader>();
+            auto Count = Reader.Read<uint32_t>();
+            auto Offset = Reader.Read<uint32_t>();
+            // I think there are uncompressed blocks with no info
+            // for now skip them, very rare, need to see how to check for them
+            if (Count > 256)
+                break;
+            // Read Variable Length Commands Buffer
+            uint32_t Commands[256];
+            Reader.Read((uint8_t*)&Commands, 0, Count <= 30 ? 120 : Count * 4);
+#if _DEBUG
+            std::cout << "XSUBCache::LoadPackage(): Block Begin " << Reader.GetPosition() << ".\n";
+            std::cout << "XSUBCache::LoadPackage(): Block Count " << Count * 4 << ".\n";
+#endif
 
             // Loop for block count
-            for (uint32_t i = 0; i < BlockHeader.Count; i++)
+            for (uint32_t i = 0; i < Count; i++)
             {
                 // Unpack the command information
-                uint64_t BlockSize = (BlockHeader.Commands[i] & 0xFFFFFF);
-                uint32_t CompressedFlag = (BlockHeader.Commands[i] >> 24);
+                uint64_t BlockSize = (Commands[i] & 0xFFFFFF);
+                uint32_t CompressedFlag = (Commands[i] >> 24);
 
                 // Get current position
                 uint64_t CurrentPosition = Reader.GetPosition();
@@ -260,7 +281,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                         TotalDataSize += Result;
                     }
                 }
-                else if (CompressedFlag == 0x8)
+                else if (CompressedFlag == 0x8 || CompressedFlag == 0x9)
                 {
                     // Read result
                     uint64_t ReadSize = 0;
@@ -272,10 +293,14 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     {
                         // Read oodle decompressed size
                         uint32_t DecompressedSize = *(uint32_t*)(DataBlock.get());
-
+                        // Realloc if needed
+                        if (TotalDataSize + DecompressedSize >= DataTemporaryBufferSize)
+                        {
+                            DataTemporaryBufferSize += 0x2400000 + DecompressedSize;
+                            DataTemporaryBuffer = (int8_t*)std::realloc(DataTemporaryBuffer, DataTemporaryBufferSize);
+                        }
                         // Decompress the Oodle block
                         auto Result = Siren::Decompress((const uint8_t*)DataBlock.get() + 4, (uint32_t)BlockSize - 4, (uint8_t*)DataTemporaryBuffer + TotalDataSize, DecompressedSize);
-
                         // Append size
                         TotalDataSize += Result;
                     }
@@ -296,7 +321,6 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     {
                         // Decompress the Oodle block
                         auto Result = Siren::Decompress((const uint8_t*)DataBlock.get(), (uint32_t)BlockSize, (uint8_t*)DataTemporaryBuffer + TotalDataSize, RawBlockSize);
-
                         // Append size
                         TotalDataSize += RawBlockSize;
                     }
@@ -313,9 +337,14 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     // Check if we read data
                     if (DataBlock != nullptr)
                     {
+                        // Realloc if needed
+                        if (TotalDataSize + BlockSize >= DataTemporaryBufferSize)
+                        {
+                            DataTemporaryBufferSize += 0x2400000 + BlockSize;
+                            DataTemporaryBuffer = (int8_t*)std::realloc(DataTemporaryBuffer, DataTemporaryBufferSize);
+                        }
                         // We just need to append it
                         std::memcpy(DataTemporaryBuffer + TotalDataSize, DataBlock.get(), BlockSize);
-
                         // Append size
                         TotalDataSize += BlockSize;
                     }
@@ -326,16 +355,12 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     Reader.Advance(BlockSize);
                 }
 
-                // Pad for MW
-                if (CoDAssets::GameID == SupportedGames::ModernWarfare4)
-                    BlockSize = (BlockSize + 3) & 0xFFFFFFFC;
-
                 // We must append the block size and pad it properly (If it's the last block)
                 uint64_t NextSegmentOffset = 0;
                 uint64_t TotalBlockSize = 0;
 
                 // Calculate
-                if ((i + 1) < BlockHeader.Count)
+                if ((i + 1) < Count)
                 {
                     // Not the last, standard
                     TotalBlockSize = BlockSize;
@@ -355,8 +380,13 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                 Reader.SetPosition(NextSegmentOffset);
             }
 
+#if _DEBUG
+            std::cout << "XSUBCache::LoadPackage(): Block End " << Reader.GetPosition() << ".\n";
+            std::cout << "XSUBCache::LoadPackage(): Block Count " << Count * 4 << ".\n";
+#endif
+
             // We must append the size of a header
-            DataRead += sizeof(BO3XPakDataHeader);
+            DataRead += Count <= 30 ? 128 : 8 + (4 * Count);
         }
 
         // If we got here, the result size is totaldatasize, we need to allocate a safe buffer, copy, then clean up properly
@@ -379,61 +409,4 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
 
     // Failed to find data
     return nullptr;
-}
-
-std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(const std::string & PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t & ResultSize)
-{
-    // Prepare to extract an image asset (AW, MWR)
-    ResultSize = 0;
-
-    // Open CASC File
-    auto Reader = Container.OpenFile(PackageName);
-
-    // Jump to the offset
-    Reader.SetPosition(AssetOffset);
-
-    // Read total uncompressed size
-    auto TotalUncompressedSize = Reader.Read<uint64_t>();
-    // Skip 4 bytes
-    Reader.Advance(4);
-
-    // Allocate the result buffer
-    auto ResultBuffer = std::make_unique<uint8_t[]>((uint32_t)TotalUncompressedSize);
-
-    // Total uncompressed size read
-    uint64_t TotalReadUncompressedSize = 0;
-
-    // Loop until we have all data
-    while (TotalUncompressedSize != TotalReadUncompressedSize)
-    {
-        // Read compressed and uncompressed size
-        auto CompressedSize = Reader.Read<uint32_t>();
-        auto UncompressedSize = Reader.Read<uint32_t>();
-
-        // Read size
-        uint64_t ReadCompress = 0;
-        // Read compressed data
-        auto CompressedData = Reader.Read(CompressedSize, ReadCompress);
-
-        // Make sure we read it
-        if (CompressedData != nullptr)
-        {
-            // Decompress it
-            auto DecompressResult = Compression::DecompressLZ4Block((const int8_t*)CompressedData.get(), (int8_t*)ResultBuffer.get() + TotalReadUncompressedSize, CompressedSize, UncompressedSize);
-        }
-
-        // Skip over padding
-        auto CurrentPosition = Reader.GetPosition();
-        // Skip it
-        Reader.SetPosition(((CurrentPosition + 0x3) & 0xFFFFFFFFFFFFFFC));
-
-        // Advance the stream
-        TotalReadUncompressedSize += UncompressedSize;
-    }
-
-    // Set result size
-    ResultSize = (uint32_t)TotalUncompressedSize;
-
-    // Return result
-    return ResultBuffer;
 }

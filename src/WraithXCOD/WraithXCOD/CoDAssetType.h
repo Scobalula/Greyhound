@@ -55,6 +55,8 @@ public:
     float Framerate;
     // The number of frames
     uint32_t FrameCount;
+    // The number of frames
+    uint32_t BoneCount;
 
     // Modern games
     bool isSiegeAnim;
@@ -242,6 +244,8 @@ struct XMaterial_t
 
     // The material name
     std::string MaterialName;
+    // The techset name
+    std::string TechsetName;
 
     // A list of images
     std::vector<XImage_t> Images;

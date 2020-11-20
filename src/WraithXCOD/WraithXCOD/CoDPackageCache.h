@@ -44,10 +44,12 @@ public:
 
     // Waits for the package cache to load, blocking the current thread
     void WaitForPackageCacheLoad();
-
+    // Returns if a cache object exists
+    virtual bool Exists(uint64_t CacheID) { return CacheObjects.find(CacheID) != CacheObjects.end(); }
+    // Returns the literal cache object with no /decompression applied (nullptr if not found)
+    virtual std::unique_ptr<uint8_t[]> ExtractPackageObjectRaw(uint64_t CacheID, uint32_t& ResultSize) { return nullptr; }
     // Returns a cache object (nullptr if not found)
     virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize) { return nullptr; }
-
     // Returns a cache object (nullptr if not found)
     virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(const std::string& PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t& ResultSize) { return nullptr; }
 

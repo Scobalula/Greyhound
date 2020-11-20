@@ -246,6 +246,9 @@
     <ClCompile Include="XXHash.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\External\Opus\win32\VS2015\opus.vcxproj">
+      <Project>{219ec965-228a-1824-174d-96449d05f88a}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\ExternalDeps\DirectXTexApril17\DirectXTex\DirectXTex_Desktop_2013.vcxproj">
       <Project>{371b9fa9-4c90-4ac6-a123-aced756d6c77}</Project>
     </ProjectReference>

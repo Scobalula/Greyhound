@@ -6,7 +6,7 @@
 #include <shared_mutex>
 
 // A class that handles reading, caching and extracting CASC Resources
-class CASCCache : public CoDPackageCache
+class XSUBCache : public CoDPackageCache
 {
 private:
     // Container
@@ -15,16 +15,15 @@ private:
     std::shared_mutex ReadMutex;
 public:
     // Constructors
-    CASCCache();
-    virtual ~CASCCache();
+    XSUBCache();
+    virtual ~XSUBCache();
 
     // Implement the load function
     virtual void LoadPackageCache(const std::string& BasePath);
     // Implement the load package
     virtual bool LoadPackage(const std::string& FilePath);
+    // Implement the extract raw function
+    virtual std::unique_ptr<uint8_t[]> ExtractPackageObjectRaw(uint64_t CacheID, uint32_t& ResultSize);
     // Implement the extract function
     virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize);
-    // Extracts a resource from an image package (AW / MWR)
-    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(const std::string& PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t& ResultSize);
 };
-

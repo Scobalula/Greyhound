@@ -81,6 +81,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\External\Opus\win32\VS2015\opus.vcxproj">
+      <Project>{219ec965-228a-1824-174d-96449d05f88a}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\WraithX\WraithX\WraithX.vcxproj">
       <Project>{bff7e83b-acd0-447f-a4de-a11d726acae1}</Project>
     </ProjectReference>
@@ -105,6 +108,7 @@
     <ClCompile Include="GameBlackOps2.cpp" />
     <ClCompile Include="GameBlackOps3.cpp" />
     <ClCompile Include="GameBlackOps4.cpp" />
+    <ClCompile Include="GameBlackOpsCW.cpp" />
     <ClCompile Include="GameGhosts.cpp" />
     <ClCompile Include="GameInfiniteWarfare.cpp" />
     <ClCompile Include="GameModernWarfare.cpp" />
@@ -136,6 +140,7 @@
     <ClCompile Include="XPAKCache.cpp" />
     <ClCompile Include="XPAKSupport.cpp" />
     <ClCompile Include="XPTOCCache.cpp" />
+    <ClCompile Include="XSUBCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutWindow.h" />
@@ -162,6 +167,7 @@
     <ClInclude Include="GameBlackOps2.h" />
     <ClInclude Include="GameBlackOps3.h" />
     <ClInclude Include="GameBlackOps4.h" />
+    <ClInclude Include="GameBlackOpsCW.h" />
     <ClInclude Include="GameGhosts.h" />
     <ClInclude Include="GameInfiniteWarfare.h" />
     <ClInclude Include="GameModernWarfare.h" />
@@ -193,6 +199,7 @@
     <ClInclude Include="XPAKCache.h" />
     <ClInclude Include="XPAKSupport.h" />
     <ClInclude Include="XPTOCCache.h" />
+    <ClInclude Include="XSUBCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WraithXCOD.rc" />

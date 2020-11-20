@@ -136,12 +136,8 @@ namespace Casc
     private:
         // Data File Handle
         HANDLE FileHandle;
-        // Index
-        int64_t ArchiveIndex;
     public:
         // Creates a new Data File
-        DataFile();
-        // Creates a new Data File from the given Path
         DataFile(const std::string& Path);
         // Closes the Data File
         ~DataFile();
@@ -155,8 +151,6 @@ namespace Casc
 
         // Gets the File Handle of this Data File
         const HANDLE GetFileHandle() const;
-        // Gets the index of this Data File
-        const int64_t GetIndex() const;
     };
 
     // A class to hold a File Frame
@@ -416,7 +410,7 @@ namespace Casc
         // Data Entries
         std::unordered_map<IndexKey, IndexEntry, IndexKeyHasher> DataEntries;
         // Data Files
-        std::vector<DataFile> DataFiles;
+        std::vector<std::shared_ptr<DataFile>> DataFiles;
         // File System Handler
         std::unique_ptr<FileSystem> FileSystemHandler;
         // Container Mutex
@@ -433,10 +427,7 @@ namespace Casc
 
         void LoadConfigInfo();
     public:
-        Container()
-        {
-
-        }
+        Container() { }
         Container(const std::string& path);
         ~Container();
 

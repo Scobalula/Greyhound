@@ -17,6 +17,7 @@ BEGIN_MESSAGE_MAP(ModelSettings, WraithWindow)
     ON_COMMAND(IDC_EXPORTHITBOX, OnExportHitbox)
     ON_COMMAND(IDC_EXPORTVTXCOLOR, OnExportVTXColor)
     ON_COMMAND(IDC_EXPORTIMGNAMES, OnExportIMGNames)
+    ON_COMMAND(IDC_MDLMTLFOLDERS, OnMDLMTLFolders)
     ON_COMMAND(IDC_SKIPPREVMODEL, OnSkipPrevModels)
     ON_COMMAND(IDC_EXPORTMA, OnExportMA)
     ON_COMMAND(IDC_EXPORTOBJ, OnExportOBJ)
@@ -24,7 +25,6 @@ BEGIN_MESSAGE_MAP(ModelSettings, WraithWindow)
     ON_COMMAND(IDC_EXPORTSMD, OnExportSMD)
     ON_COMMAND(IDC_EXPORTXME, OnExportXME)
     ON_COMMAND(IDC_EXPORTSEMODEL, OnExportSEModel)
-    ON_COMMAND(IDC_EXPORTFBX, OnExportFBX)
 END_MESSAGE_MAP()
 
 void ModelSettings::OnBeforeLoad()
@@ -63,6 +63,7 @@ void ModelSettings::OnBeforeLoad()
     ((CButton*)GetDlgItem(IDC_EXPORTHITBOX))->SetCheck(SettingsManager::GetSetting("exporthitbox", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTVTXCOLOR))->SetCheck(SettingsManager::GetSetting("exportvtxcolor", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTIMGNAMES))->SetCheck(SettingsManager::GetSetting("exportimgnames", "false") == "true");
+    ((CButton*)GetDlgItem(IDC_MDLMTLFOLDERS))->SetCheck(SettingsManager::GetSetting("mdlmtlfolders", "false") == "true");
     ((CButton*)GetDlgItem(IDC_SKIPPREVMODEL))->SetCheck(SettingsManager::GetSetting("skipprevmodel", "true") == "true");
 
     ((CButton*)GetDlgItem(IDC_EXPORTMA))->SetCheck(SettingsManager::GetSetting("export_ma", "true") == "true");
@@ -71,7 +72,6 @@ void ModelSettings::OnBeforeLoad()
     ((CButton*)GetDlgItem(IDC_EXPORTSMD))->SetCheck(SettingsManager::GetSetting("export_smd", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTXME))->SetCheck(SettingsManager::GetSetting("export_xmexport", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTSEMODEL))->SetCheck(SettingsManager::GetSetting("export_semodel", "false") == "true");
-    ((CButton*)GetDlgItem(IDC_EXPORTFBX))->SetCheck(SettingsManager::GetSetting("export_fbx", "false") == "true");
 }
 
 void ModelSettings::OnGlobalImages()
@@ -177,6 +177,15 @@ void ModelSettings::OnExportIMGNames()
     // Set it
     SettingsManager::SetSetting("exportimgnames", (CheckboxChecked) ? "true" : "false");
 }
+
+void ModelSettings::OnMDLMTLFolders()
+{
+    // Whether or not we are checked
+    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_MDLMTLFOLDERS))->GetState() & BST_CHECKED) == BST_CHECKED);
+    // Set it
+    SettingsManager::SetSetting("mdlmtlfolders", (CheckboxChecked) ? "true" : "false");
+}
+
 
 void ModelSettings::OnSkipPrevModels()
 {

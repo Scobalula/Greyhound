@@ -1,0 +1,6 @@
+[submodule "src/cppkore"]
+	path = src/cppkore
+	url = https://github.com/dtzxporter/cppkore
+[submodule "src/External/Opus"]
+	path = src/External/Opus
+	url = https://github.com/xiph/opus

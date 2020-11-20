@@ -189,6 +189,12 @@
     <ClCompile Include="Casc.cpp">
       <Filter>Source Files\Helpers</Filter>
     </ClCompile>
+    <ClCompile Include="GameBlackOpsCW.cpp">
+      <Filter>Source Files\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="XSUBCache.cpp">
+      <Filter>Source Files\Packages</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoDAssets.h">
@@ -355,6 +361,12 @@
     </ClInclude>
     <ClInclude Include="Casc.h">
       <Filter>Header Files\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="GameBlackOpsCW.h">
+      <Filter>Header Files\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="XSUBCache.h">
+      <Filter>Header Files\Packages</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

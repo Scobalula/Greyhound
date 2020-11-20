@@ -25,6 +25,7 @@ enum class SupportedGames
     BlackOps2,
     BlackOps3,
     BlackOps4,
+    BlackOpsCW,
     ModernWarfare,
     ModernWarfare2,
     ModernWarfare3,

@@ -53,6 +53,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             break;
         case SupportedGames::BlackOps3:
         case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
             Anim->AddBoneModifier("tag_weapon", WraithAnimationType::Relative);
             Anim->AddBoneModifier("tag_weapon_le", WraithAnimationType::Relative);
             break;
@@ -397,7 +398,6 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         auto SizeVec = CoDAssets::GameInstance->Read<Vector3>(Animation->DataIntsPtr);
         // Advance 12 bytes
         Animation->DataIntsPtr += 12;
-
         // Result size
         uintptr_t ResultSize = 0;
         // Calculated size
@@ -628,6 +628,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             case SupportedGames::InfiniteWarfare:
             case SupportedGames::BlackOps3:
             case SupportedGames::BlackOps4:
+            case SupportedGames::BlackOpsCW:
             case SupportedGames::WorldWar2:
             case SupportedGames::ModernWarfare4:
                 // Build translations for 64bit games
@@ -660,6 +661,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             case SupportedGames::InfiniteWarfare:
             case SupportedGames::BlackOps3:
             case SupportedGames::BlackOps4:
+            case SupportedGames::BlackOpsCW:
             case SupportedGames::WorldWar2:
             case SupportedGames::ModernWarfare4:
                 // Build 2d rotations for 64bit games
@@ -689,6 +691,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::InfiniteWarfare:
         case SupportedGames::BlackOps3:
         case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
         case SupportedGames::WorldWar2:
         case SupportedGames::ModernWarfare4:
             // Build 3d rotations for 64bit games
@@ -723,6 +726,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             NotetracksBO3(Anim, Animation);
             break;
         case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
             // Black Ops 4 has a new format
             NotetracksBO4(Anim, Animation);
             break;
@@ -813,7 +817,7 @@ void CoDXAnimTranslator::NotetracksBO4(const std::unique_ptr<WraithAnim>& Anim, 
         uint32_t NotificationFrame = (uint32_t)((float)Animation->FrameCount * CoDAssets::GameInstance->Read<float>(Animation->NotificationsPtr + 0x20));
 
         // Append the removed prefixes to the notetrack
-        if (NotificationType == "sound" || NotificationType == "xstring_e13a32253e1bbfc")
+        if (NotificationType == "sound")
             NotificationTag = Strings::Format("sndnt#%llx", NotificaionHash);
         else if (NotificationType == "rumble")
             NotificationTag = Strings::Format("rmbnt#%llx", NotificaionHash);

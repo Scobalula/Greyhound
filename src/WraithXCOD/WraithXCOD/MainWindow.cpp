@@ -853,7 +853,7 @@ void MainWindow::OnSearch()
                 }
 
                 // Second pass for Bo4, hash
-                if (CoDAssets::GameID == SupportedGames::BlackOps4)
+                if (CoDAssets::GameID == SupportedGames::BlackOps4 || CoDAssets::GameID == SupportedGames::BlackOpsCW)
                 {
                     // Convert to hex string
                     std::stringstream HashValue;

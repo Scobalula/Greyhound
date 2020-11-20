@@ -29,6 +29,7 @@ private:
     void OnExportHitbox();
     void OnExportVTXColor();
     void OnExportIMGNames();
+    void OnMDLMTLFolders();
     void OnSkipPrevModels();
 
     void OnExportMA();

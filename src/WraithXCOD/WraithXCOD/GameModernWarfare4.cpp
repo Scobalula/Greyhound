@@ -106,6 +106,17 @@ struct MW4SoundAliasEntry
     uint8_t Padding2[188];
 };
 
+// Calculates the hash of a sound string
+uint32_t MW4HashSoundString(const std::string& Value)
+{
+    uint32_t Result = 5381;
+
+    for (auto& Character : Value)
+        Result = (uint32_t)(tolower(Character) + (Result << 6) + (Result << 16)) - Result;
+
+    return Result;
+}
+
 // Verify that our pool data is exactly 0x20
 static_assert(sizeof(MW4XAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
 
@@ -451,23 +462,8 @@ bool GameModernWarfare4::LoadAssets()
 
             if (SoundBankInfo.BankFilePointer > 0)
             {
-                // Due to them being out of order, we must parse the aliases to get the hashes
-                // Ideally I would like to figure out this hash so we don't need to do this, it's
-                // not the same one used in Bo3 (SDBM)
-                // The unordered lists do not seem to affect SABS files, just SABLs
+                // Names by Hash
                 std::map<uint32_t, std::string> SABFileNames;
-
-                for (uint64_t j = 0; j < SoundResult.AliasCount; j++)
-                {
-                    auto Alias = CoDAssets::GameInstance->Read<MW4SoundAlias>(SoundResult.AliasesPtr + j * sizeof(MW4SoundAlias));
-
-                    for (uint64_t k = 0; k < Alias.EntriesCount; k++)
-                    {
-                        auto Entry = CoDAssets::GameInstance->Read<MW4SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW4SoundAliasEntry));
-
-                        SABFileNames[Entry.FileHash] = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
-                    }
-                }
 
                 // Parse the loaded header, and offset from the pointer to it
                 auto Header = CoDAssets::GameInstance->Read<SABFileHeader>(SoundBankInfo.BankFilePointer);
@@ -485,6 +481,16 @@ bool GameModernWarfare4::LoadAssets()
                 // Get Settings
                 auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
 
+                // Name offset
+                auto NamesOffset = CoDAssets::GameInstance->Read<uint64_t>(SoundBankInfo.BankFilePointer + 0x250);
+
+                // Prepare to loop and read entries
+                for (uint32_t i = 0; i < Header.EntriesCount; i++)
+                {
+                    auto Name = CoDAssets::GameInstance->ReadNullTerminatedString(SoundBankInfo.BankFilePointer + NamesOffset + i * 128);
+                    SABFileNames[MW4HashSoundString(Name)] = Name;
+                }
+
                 // Prepare to loop and read entries
                 for (uint32_t i = 0; i < Header.EntriesCount; i++)
                 {
@@ -499,11 +505,6 @@ bool GameModernWarfare4::LoadAssets()
                         // We have it in file
                         EntryName = SABFileNames[Entry.Key];
                     }
-                    //else if (NameIndex.NameDatabase.find(Entry.Key) != NameIndex.NameDatabase.end())
-                    //{
-                    //    // We have it in a database
-                    //    EntryName = NameIndex.NameDatabase.at(Entry.Key);
-                    //}
                     else
                     {
                         // We don't have one
@@ -996,7 +997,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     for (uint32_t i = 0; i < 4; i++)
     {
         // Compare widths
-        if (ImageInfo.MipLevels[i].Width > LargestWidth)
+        if (ImageInfo.MipLevels[i].Width > LargestWidth && CoDAssets::GamePackageCache->Exists(ImageInfo.MipLevels[i].HashID))
         {
             LargestMip = i;
             LargestWidth = ImageInfo.MipLevels[i].Width;

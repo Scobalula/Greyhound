@@ -133,6 +133,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "exporthitbox", "false" },
             { "exportvtxcolor", "false" },
             { "exportimgnames", "false"},
+            { "mdlmtlfolders", "false"},
             { "skipprevmodel", "true"},
             { "skipprevimg", "true"},
             { "skipprevsound", "true"},
