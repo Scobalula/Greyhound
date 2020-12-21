@@ -1256,7 +1256,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((20 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
 }
 void GameModernWarfare4::PerformInitialSetup()
 {

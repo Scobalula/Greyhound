@@ -189,6 +189,7 @@ std::map<uint32_t, std::string> SemanticHashes =
     { 0x389DD40F, "thermalHeatmap" },
     { 0x7176BF2 , "aoMap" },
     { 0x6D0A6C98, "glossMap" },
+    { 0xE9817F0D, "glossMap" },
     { 0xEC443804, "specColorMap" },
     { 0x9A97E4B1, "customizeMask" },
     { 0xEB529B4D, "detailMap" },

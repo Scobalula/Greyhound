@@ -881,12 +881,14 @@ void Casc::TVFSHandler::Parse(FileReader& Reader)
     Reader.SetPosition(0);
     Reader.Read((uint8_t*)&Header, 0, sizeof(Header));
 
-    if (
-        Header.FormatVersion == 1 &&
-        Header.HeaderSize == 0x26 &&
-        Header.EncodingKeySize == 9 && 
-        Header.PatchKeySize == 9
-       )
+    // These validations are done in CoD, but since they seem to have changed and can change
+    // we'll leave the checks out
+    //if (
+    //    Header.FormatVersion == 1 &&
+    //    Header.HeaderSize == 0x26 &&
+    //    Header.EncodingKeySize == 9 && 
+    //    Header.PatchKeySize == 9
+    //   )
     {
         Reader.SetPosition(Header.PathTableOffset);
        
