@@ -1,3 +1,7 @@
+# State of Project
+
+Greyhound will no longer be receiving updates, it is now officially abandoned. No new features are being added and there will be no updates for game breaking updates. It was fun to maintain and work on but I need to move onto more enjoyable things.
+
 # Greyhound - A fork of Wraith Archon, Call of Duty Asset Extractor
 [![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/RyqyThu)
 
