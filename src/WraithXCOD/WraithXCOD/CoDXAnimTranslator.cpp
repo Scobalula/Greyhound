@@ -53,7 +53,6 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             break;
         case SupportedGames::BlackOps3:
         case SupportedGames::BlackOps4:
-        case SupportedGames::BlackOpsCW:
             Anim->AddBoneModifier("tag_weapon", WraithAnimationType::Relative);
             Anim->AddBoneModifier("tag_weapon_le", WraithAnimationType::Relative);
             break;

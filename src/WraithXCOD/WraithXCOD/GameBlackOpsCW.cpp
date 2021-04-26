@@ -492,12 +492,12 @@ std::unique_ptr<XAnim_t> GameBlackOpsCW::ReadXAnim(const CoDAnim_t* Animation)
         Anim->FrameCount = AnimData.NumFrames;
         Anim->FrameRate = AnimData.Framerate;
 
-        // Check for viewmodel animations
-        if ((_strnicmp(Animation->AssetName.c_str(), "viewmodel_", 10) == 0) || (_strnicmp(Animation->AssetName.c_str(), "vm_", 3) == 0))
-        {
-            // This is a viewmodel animation
-            Anim->ViewModelAnimation = true;
-        }
+        //// Check for viewmodel animations
+        //if ((_strnicmp(Animation->AssetName.c_str(), "viewmodel_", 10) == 0) || (_strnicmp(Animation->AssetName.c_str(), "vm_", 3) == 0))
+        //{
+        //    // This is a viewmodel animation
+        //    Anim->ViewModelAnimation = true;
+        //}
         ////// Check for additive animations
         ////if (AnimData.AssetType == 0x6)
         ////{
