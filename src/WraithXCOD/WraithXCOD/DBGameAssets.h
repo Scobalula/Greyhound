@@ -3254,16 +3254,13 @@ struct MW4XModelSurface
     uint16_t StatusFlag;
     uint16_t VertexCount;
     uint16_t FacesCount;
-    
+
     uint16_t Padding6;
 
     uint8_t VertListCount;
 
-    uint8_t Padding0[7];
-
-
+    uint8_t PaddingNew[11];
     uint16_t WeightCounts[8];
-
     uint8_t Padding1[4];
 
     // Offset 1 - Vertex Data (Offsets and UV)
@@ -3275,8 +3272,6 @@ struct MW4XModelSurface
     // Offset 7 - Not seen yet; Always -1
     // Offset 8 - Not seen yet; Always -1
     uint32_t Offsets[8];
-
-    uint32_t Padding2;
 
     uint64_t MeshBufferPointer;
     uint64_t Padding3;
@@ -3292,7 +3287,6 @@ struct MW4XModelSurface
     float Min;
     float Max;
     uint8_t Padding5[24];
-
 };
 #pragma pack(pop)
 

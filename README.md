@@ -1,13 +1,11 @@
-# State of Project
-
-Greyhound will no longer be receiving updates, it is now officially abandoned. No new features are being added and there will be no updates for game breaking updates. It was fun to maintain and work on but I need to move onto more enjoyable things.
-
 # Greyhound - A fork of Wraith Archon, Call of Duty Asset Extractor
 [![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/RyqyThu)
 
-Greyhound is a fork of the famous [Wraith Archon](https://github.com/dtzxporter/WraithXArchon/) by DTZxPorter. It is an extraction tool for Call of Duty, supporting XModels, XAnims, Images, and more depending on the game. With Greyhound I hope to ensure updates to the tool for both current and future titles, and bring more features to aid in working with the games.
+Greyhound is a fork of the famous [Wraith Archon](https://github.com/dtzxporter/WraithXArchon/) by DTZxPorter. It is an extraction tool for Call of Duty, supporting XModels, XAnims, Images, and more depending on the game. With Greyhound I hope to ensure updates to the tool for both current and future titles, and bring more features to aid in working with the games. This tool is developed to aid people modding other Call of Duty titles such as Black Ops III, and for people producing art such as renders!
 
-For detailed information such as game support, settings, FAQs, etc. please refer to the wiki: [Wiki](https://github.com/Scobalula/Greyhound/wiki)
+For detailed information such as game support, settings, FAQs, etc. please refer to the wiki: [Wiki](https://github.com/Scobalula/Greyhound/wiki) Work is being done to populate the wiki with information and tutorials so stay tuned!
+
+For more support please visit our Discord: [https://discord.gg/RyqyThu](https://discord.gg/RyqyThu)
 
 ## Requirements
 
@@ -25,7 +23,7 @@ The following tools/plugins are required/recommended for some assets/games:
 * [DarkIris](https://aviacreations.com/modme/index.php?view=topic&tid=831) by DTZxPorter (Texture Utils) (Paint .NET)
 
 ## Links:
-* Discord Server: [https://discord.gg/fGVpV39](https://discord.gg/fGVpV39)
+* Discord Server: [https://discord.gg/RyqyThu](https://discord.gg/RyqyThu)
 * Github Repo: [https://github.com/Scobalula/Greyhound](https://github.com/Scobalula/Greyhound)
 * Change Log: [https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md](https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md)
 * Latest Release: [ttps://github.com/Scobalula/Greyhound/releases](https://github.com/Scobalula/Greyhound/releases)
