@@ -718,7 +718,7 @@ std::unique_ptr<XSound> GameBlackOpsCW::ReadXSound(const CoDSound_t * Sound)
         return nullptr;
 
     // Create new buffer for each 960 frame block
-    auto PCMBuffer = std::make_unique<opus_int16[]>(960 * 2 * SoundData.ChannelCount);
+    auto PCMBuffer = std::make_unique<opus_int16[]>(960 * 2 * (size_t)SoundData.ChannelCount);
 
     // Output Writer (Note: Frame Count in Asset isn't 100% accurate, so we add on some padding
     //                      to account for 960 frame split so that we can avoid realloc)
@@ -757,7 +757,7 @@ std::unique_ptr<XSound> GameBlackOpsCW::ReadXSound(const CoDSound_t * Sound)
     uint32_t DataOffset = 0;
 
     // We'll convert all BOCW sounds to 16bit PCM WAV
-    Result->DataBuffer = new int8_t[PCMDataSize + Sound::GetMaximumWAVHeaderSize()];
+    Result->DataBuffer = new int8_t[PCMDataSize + (size_t)Sound::GetMaximumWAVHeaderSize()];
     Result->DataType = SoundDataTypes::WAV_WithHeader;
     Result->DataSize = (uint32_t)(PCMDataSize + Sound::GetMaximumWAVHeaderSize());
 

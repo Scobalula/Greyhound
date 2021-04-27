@@ -900,18 +900,18 @@ void CoDXAnimTranslator::DeltaTranslations32(const std::unique_ptr<WraithAnim>& 
             if (DataSize == 1)
             {
                 // Read small sizes (char)
-                XCoord = CoDAssets::GameInstance->Read<uint8_t>(DeltaDataPtr);
-                YCoord = CoDAssets::GameInstance->Read<uint8_t>(DeltaDataPtr + 1);
-                ZCoord = CoDAssets::GameInstance->Read<uint8_t>(DeltaDataPtr + 2);
+                XCoord = CoDAssets::GameInstance->Read<uint8_t>((uintptr_t)DeltaDataPtr);
+                YCoord = CoDAssets::GameInstance->Read<uint8_t>((uintptr_t)DeltaDataPtr + 1);
+                ZCoord = CoDAssets::GameInstance->Read<uint8_t>((uintptr_t)DeltaDataPtr + 2);
                 // Advance 3 bytes
                 DeltaDataPtr += 3;
             }
             else
             {
                 // Read big sizes (short)
-                XCoord = CoDAssets::GameInstance->Read<uint16_t>(DeltaDataPtr);
-                YCoord = CoDAssets::GameInstance->Read<uint16_t>(DeltaDataPtr + 2);
-                ZCoord = CoDAssets::GameInstance->Read<uint16_t>(DeltaDataPtr + 4);
+                XCoord = CoDAssets::GameInstance->Read<uint16_t>((uintptr_t)DeltaDataPtr);
+                YCoord = CoDAssets::GameInstance->Read<uint16_t>((uintptr_t)DeltaDataPtr + 2);
+                ZCoord = CoDAssets::GameInstance->Read<uint16_t>((uintptr_t)DeltaDataPtr + 4);
                 // Advance 6 bytes
                 DeltaDataPtr += 6;
             }
