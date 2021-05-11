@@ -1124,7 +1124,7 @@ const XMaterial_t GameBlackOps4::ReadXMaterial(uint64_t MaterialPointer)
 
     // Check for an override in the name DB
     if (AssetNameCache.NameDatabase.find(MaterialData.NamePtr) != AssetNameCache.NameDatabase.end())
-        Result.MaterialName = AssetNameCache.NameDatabase[MaterialData.NamePtr];
+        Result.MaterialName = FileSystems::GetFileNamePurgeExtensions(AssetNameCache.NameDatabase[MaterialData.NamePtr]);
 
     // Iterate over material images, assign proper references if available
     for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
