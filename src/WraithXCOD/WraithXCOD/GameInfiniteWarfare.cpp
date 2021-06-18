@@ -578,12 +578,6 @@ const XMaterial_t GameInfiniteWarfare::ReadXMaterial(uint64_t MaterialPointer)
         case 0xA0AB1041:
             DefaultUsage = ImageUsageType::DiffuseMap;
             break;
-        case 0x59D30D0F:
-            DefaultUsage = ImageUsageType::NormalMap;
-            break;
-        case 0x34ECCCB3:
-            DefaultUsage = ImageUsageType::SpecularMap;
-            break;
         }
 
         // Assign the new image
