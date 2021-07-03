@@ -19,6 +19,7 @@ BEGIN_MESSAGE_MAP(GeneralSettings, WraithWindow)
     ON_COMMAND(IDC_SHOWXSOUNDS, OnXSounds)
     ON_COMMAND(IDC_SHOWXMTL, OnXMTL)
     ON_COMMAND(IDC_SORTBYDATA, OnSortByData)
+    ON_COMMAND(IDC_CREATEXASSETLOG, OnCreateXAssetLog)
 END_MESSAGE_MAP()
 
 void GeneralSettings::OnBeforeLoad()
@@ -55,6 +56,7 @@ void GeneralSettings::OnBeforeLoad()
     ((CButton*)GetDlgItem(IDC_SHOWXSOUNDS))->SetCheck(SettingsManager::GetSetting("showxsounds", "false") == "true");
     ((CButton*)GetDlgItem(IDC_SHOWXMTL))->SetCheck(SettingsManager::GetSetting("showxmtl", "false") == "true");
     ((CButton*)GetDlgItem(IDC_SORTBYDATA))->SetCheck(SettingsManager::GetSetting("sortbydetails", "false") == "true");
+    ((CButton*)GetDlgItem(IDC_CREATEXASSETLOG))->SetCheck(SettingsManager::GetSetting("createxassetlog", "false") == "true");
 }
 
 void GeneralSettings::OnXModels()
@@ -120,4 +122,12 @@ void GeneralSettings::OnSortByData()
     bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_SORTBYDATA))->GetState() & BST_CHECKED) == BST_CHECKED);
     // Set it
     SettingsManager::SetSetting("sortbydetails", (CheckboxChecked) ? "true" : "false");
+}
+
+void GeneralSettings::OnCreateXAssetLog()
+{
+    // Whether or not we are checked
+    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_CREATEXASSETLOG))->GetState() & BST_CHECKED) == BST_CHECKED);
+    // Set it
+    SettingsManager::SetSetting("createxassetlog", (CheckboxChecked) ? "true" : "false");
 }

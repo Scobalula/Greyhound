@@ -403,11 +403,11 @@ void WriteMeshData(MemoryWriter& Writer, const WraithModel& Model)
     uint32_t SubmeshIndex = 0;
     // Reset
     VertexIndex = 0;
+    // Write Count
+    WriteMetaUInt32Block(Writer, 0xBE92, FaceCount);
     // Iterate over submeshes
     for (auto& Submesh : Model.Submeshes)
     {
-        // Write Count
-        WriteMetaUInt32Block(Writer, 0xBE92, FaceCount);
         // Find the index of this submesh's material
         auto FindResult = MaterialIndicies.find(Submesh.MaterialIndicies[0]);
         // Check

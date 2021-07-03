@@ -290,6 +290,9 @@ bool GameModernWarfare4::LoadAssets()
             // Validate and load if need be
             auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
+
             // Make and add
             auto LoadedAnim = new CoDAnim_t();
             // Set
@@ -353,6 +356,9 @@ bool GameModernWarfare4::LoadAssets()
                 LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
             LoadedModel->LodCount = ModelResult.NumLods;
 
+            // Log it
+            CoDAssets::LogXAsset("Model", ModelName);
+
             // Check placeholder configuration, "empty_model" is the base xmodel swap
             if (ModelName == "void")
             {
@@ -407,6 +413,9 @@ bool GameModernWarfare4::LoadAssets()
 
             // Validate and load if need be
             auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
+
+            // Log it
+            CoDAssets::LogXAsset("Image", ImageName);
 
             // Check if it's streamed
             if(ImageResult.LoadedMipLevels > 0)
@@ -485,7 +494,7 @@ bool GameModernWarfare4::LoadAssets()
                 auto NamesOffset = CoDAssets::GameInstance->Read<uint64_t>(SoundBankInfo.BankFilePointer + 0x250);
 
                 // Prepare to loop and read entries
-                for (uint32_t i = 0; i < Header.EntriesCount; i++)
+                for (size_t i = 0; i < Header.EntriesCount; i++)
                 {
                     auto Name = CoDAssets::GameInstance->ReadNullTerminatedString(SoundBankInfo.BankFilePointer + NamesOffset + i * 128);
                     SABFileNames[MW4HashSoundString(Name)] = Name;
@@ -510,6 +519,9 @@ bool GameModernWarfare4::LoadAssets()
                         // We don't have one
                         EntryName = Strings::Format("_%llx", Entry.Key);
                     }
+
+                    // Log it
+                    CoDAssets::LogXAsset("Sound", EntryName);
 
                     // Setup a new entry
                     auto LoadedSound = new CoDSound_t();
@@ -580,6 +592,9 @@ bool GameModernWarfare4::LoadAssets()
         {
             // Validate and load if need be
             auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
+
+            // Log it
+            CoDAssets::LogXAsset("Material", MaterialName);
 
             // Make and add
             auto LoadedMaterial = new CoDMaterial_t();

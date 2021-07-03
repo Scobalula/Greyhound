@@ -6,6 +6,7 @@
 
 // We need the following WraithX classes
 #include "ProcessReader.h"
+#include "TextWriter.h"
 #include "WraithModel.h"
 #include "Image.h"
 
@@ -122,6 +123,8 @@ public:
 
     // The running game instance, if any
     static std::unique_ptr<ProcessReader> GameInstance;
+    // The asset log, if any
+    static std::unique_ptr<TextWriter> XAssetLogWriter;
     // The running game ID, if any
     static SupportedGames GameID;
     // The running game flags, if any
@@ -161,6 +164,9 @@ public:
     static LoadGameFileResult LoadFile(const std::string& FilePath);
     // Cleans up a game if attached
     static void CleanUpGame();
+
+    // Logs XAsset on LoadGame
+    static void LogXAsset(const std::string& Type, const std::string& Name);
 
     // -- Exporting functions
 

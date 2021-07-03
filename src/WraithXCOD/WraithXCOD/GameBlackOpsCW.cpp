@@ -297,6 +297,9 @@ bool GameBlackOpsCW::LoadAssets()
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
                 AnimName = AssetNameCache.NameDatabase[Asset.NamePtr];
 
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
+
             // Make and add
             auto LoadedAnim = new CoDAnim_t();
             // Set
@@ -340,6 +343,9 @@ bool GameBlackOpsCW::LoadAssets()
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
                 ModelName = AssetNameCache.NameDatabase[Asset.NamePtr];
 
+            // Log it
+            CoDAssets::LogXAsset("Model", ModelName);
+
             // Make and add
             auto LoadedModel = new CoDModel_t();
             // Set
@@ -378,6 +384,9 @@ bool GameBlackOpsCW::LoadAssets()
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
                 ImageName = AssetNameCache.NameDatabase[Asset.NamePtr];
+
+            // Log it
+            CoDAssets::LogXAsset("Image", ImageName);
 
             // Check for loaded images
             if (Asset.GfxMipsPtr != 0)
@@ -423,6 +432,9 @@ bool GameBlackOpsCW::LoadAssets()
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
                 MaterialName = AssetNameCache.NameDatabase[Asset.NamePtr];
 
+            // Log it
+            CoDAssets::LogXAsset("Material", MaterialName);
+
             // Make and add
             auto LoadedImage = new CoDMaterial_t();
             // Set
@@ -449,6 +461,9 @@ bool GameBlackOpsCW::LoadAssets()
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
                 SoundName = AssetNameCache.NameDatabase[Asset.NamePtr];
+
+            // Log it
+            CoDAssets::LogXAsset("Sound", SoundName);
 
             // Make and add
             auto LoadedSound = new CoDSound_t();

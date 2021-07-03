@@ -128,6 +128,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "skipblankaudio", "false" },
             { "usesabindexbo4", "false" },
             { "sortbydetails", "false" },
+            { "createxassetlog", "false" },
             { "exportmodelimg", "true" },
             { "exportalllods", "false" },
             { "exporthitbox", "false" },

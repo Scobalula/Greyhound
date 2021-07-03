@@ -79,6 +79,8 @@
 
 // Set the default game instant pointer
 std::unique_ptr<ProcessReader> CoDAssets::GameInstance = nullptr;
+// Set the default logger pointer
+std::unique_ptr<TextWriter> CoDAssets::XAssetLogWriter = nullptr;
 
 // Set the default game id
 SupportedGames CoDAssets::GameID = SupportedGames::None;
@@ -543,6 +545,13 @@ LoadGameResult CoDAssets::LoadGame()
         // Whether or not we loaded assets
         bool Success = false;
 
+        // Create log, if desired
+        if (SettingsManager::GetSetting("createxassetlog", "false") == "true")
+        {
+            XAssetLogWriter = std::make_unique<TextWriter>();
+            XAssetLogWriter->Open(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "AssetLog.txt"));
+        }
+
         // Load assets from the game
         switch (GameID)
         {
@@ -591,6 +600,9 @@ LoadGameResult CoDAssets::LoadGame()
         case SupportedGames::InfiniteWarfare: Success = GameInfiniteWarfare::LoadAssets(); break;
         case SupportedGames::WorldWar2: Success = GameWorldWar2::LoadAssets(); break;
         }
+
+        // Done with logger
+        XAssetLogWriter = nullptr;
 
         // Result check
         if (Success)
@@ -1923,7 +1935,7 @@ void CoDAssets::ExportWraithModel(const std::unique_ptr<WraithModel>& Model, con
     if (SettingsManager::GetSetting("export_xmbin") == "true")
     {
         // Export a XMB file
-        // CodXMB::ExportXMB(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".XMODEL_BIN"));
+        CodXMB::ExportXMB(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".XMODEL_BIN"));
     }
     // Check for SMD format
     if (SettingsManager::GetSetting("export_smd") == "true")
@@ -2014,6 +2026,20 @@ void CoDAssets::CleanUpGame()
     if (GameInstance != nullptr)
     {
         GameInstance.reset();
+    }
+
+    // Clean Up log
+    if (XAssetLogWriter != nullptr)
+    {
+        XAssetLogWriter.reset();
+    }
+}
+
+void CoDAssets::LogXAsset(const std::string& Type, const std::string& Name)
+{
+    if (XAssetLogWriter != nullptr && XAssetLogWriter->IsOpen())
+    {
+        XAssetLogWriter->WriteLineFmt("%s,%s", Type.c_str(), Name.c_str());
     }
 }
 

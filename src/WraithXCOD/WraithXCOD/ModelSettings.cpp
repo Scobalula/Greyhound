@@ -23,6 +23,7 @@ BEGIN_MESSAGE_MAP(ModelSettings, WraithWindow)
     ON_COMMAND(IDC_EXPORTOBJ, OnExportOBJ)
     ON_COMMAND(IDC_EXPORTXNA, OnExportXNA)
     ON_COMMAND(IDC_EXPORTSMD, OnExportSMD)
+    ON_COMMAND(IDC_EXPORTXMB, OnExportXMB)
     ON_COMMAND(IDC_EXPORTXME, OnExportXME)
     ON_COMMAND(IDC_EXPORTSEMODEL, OnExportSEModel)
 END_MESSAGE_MAP()
@@ -70,6 +71,7 @@ void ModelSettings::OnBeforeLoad()
     ((CButton*)GetDlgItem(IDC_EXPORTOBJ))->SetCheck(SettingsManager::GetSetting("export_obj", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTXNA))->SetCheck(SettingsManager::GetSetting("export_xna", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTSMD))->SetCheck(SettingsManager::GetSetting("export_smd", "false") == "true");
+    ((CButton*)GetDlgItem(IDC_EXPORTXMB))->SetCheck(SettingsManager::GetSetting("export_xmbin", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTXME))->SetCheck(SettingsManager::GetSetting("export_xmexport", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTSEMODEL))->SetCheck(SettingsManager::GetSetting("export_semodel", "false") == "true");
 }
@@ -136,6 +138,14 @@ void ModelSettings::OnExportSMD()
     bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTSMD))->GetState() & BST_CHECKED) == BST_CHECKED);
     // Set it
     SettingsManager::SetSetting("export_smd", (CheckboxChecked) ? "true" : "false");
+}
+
+void ModelSettings::OnExportXMB()
+{
+    // Whether or not we are checked
+    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTXMB))->GetState() & BST_CHECKED) == BST_CHECKED);
+    // Set it
+    SettingsManager::SetSetting("export_xmbin", (CheckboxChecked) ? "true" : "false");
 }
 
 void ModelSettings::OnExportXME()

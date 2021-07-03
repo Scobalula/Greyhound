@@ -36,6 +36,7 @@ private:
     void OnExportOBJ();
     void OnExportXNA();
     void OnExportSMD();
+    void OnExportXMB();
     void OnExportXME();
     void OnExportSEModel();
     void OnExportFBX();
