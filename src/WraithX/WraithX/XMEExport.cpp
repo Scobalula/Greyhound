@@ -225,7 +225,8 @@ void CodXME::ExportXME(const WraithModel& Model, const std::string& FileName)
         // Output material name
         Writer.WriteFmt("MATERIAL %d \"%s\" \"Phong\" \"", MaterialIndex, Material.MaterialName.c_str());
         // Check for colormap
-        if (!Strings::IsNullOrWhiteSpace(Material.DiffuseMapName))
+        // Ensure we don't exceed 128 characters, APE (and probably Linker) limits it...
+        if (!Strings::IsNullOrWhiteSpace(Material.DiffuseMapName) && Material.DiffuseMapName.size() < 112)
         {
             // Output color map
             Writer.WriteFmt("color:%s", Material.DiffuseMapName.c_str());

@@ -246,6 +246,8 @@ struct XMaterial_t
     std::string MaterialName;
     // The techset name
     std::string TechsetName;
+    // The surface type name
+    std::string SurfaceTypeName;
 
     // A list of images
     std::vector<XImage_t> Images;
@@ -256,6 +258,8 @@ struct XModelLod_t
     // Constructors
     XModelLod_t(uint16_t SubmeshCount);
 
+    // Name of the LOD
+    std::string Name;
     // A list of submeshes for this specific lod
     std::vector<XModelSubmesh_t> Submeshes;
     // A list of material info per-submesh

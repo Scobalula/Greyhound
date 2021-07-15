@@ -3342,7 +3342,7 @@ struct MW4XAnim
     uint64_t NotificationsPtr;
     uint64_t DeltaPartsPtr;
 
-    uint8_t Padding[0xC];
+    uint8_t Padding[20];
 
     float Framerate;
 

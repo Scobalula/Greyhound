@@ -471,7 +471,12 @@ void WriteMaterialInfoBlock(MemoryWriter& Writer, const WraithMaterial& Material
     // Write Name, Type, and Image
     WriteStringAligned(Writer, Material.MaterialName);
     WriteStringAligned(Writer, "lambert");
-    WriteStringAligned(Writer, Strings::Format("color:%s", Material.DiffuseMapName.c_str()));
+
+    // Ensure we don't exceed 128 characters, APE (and probably Linker) limits it...
+    if(Material.DiffuseMapName.size() < 112)
+        WriteStringAligned(Writer, Strings::Format("color:%s", Material.DiffuseMapName.c_str()));
+    else
+        WriteStringAligned(Writer, "");
 }
 
 // Writes material info block
