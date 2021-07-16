@@ -13,6 +13,9 @@
 #include "FileSystems.h"
 #include "SettingsManager.h"
 
+#include <string>
+using namespace std;
+
 // -- Initialize built-in game offsets databases
 
 // Modern Warfare RM SP
@@ -41,7 +44,7 @@ bool GameModernWarfareRM::LoadOffsets()
 {
     // ----------------------------------------------------
     //    Modern Warfare RM pools, DBAssetPools is an array of uint64 (ptrs) of each asset pool in the game
-    //    The index of the assets we use are as follows: xanim (5), xmodel (7), ximage (0x10)
+    //    The index of the assets we use are as follows: xanim (5), xmodel (7), xmaterial (8), ximage (0x10)
     //    Index * 8 = the offset of the pool pointer in this array of pools, we can verify it using the xmodel pool and checking for "fx"
     //    On Modern Warfare RM, "fx" will be the first xmodel
     //    Modern Warfare RM stringtable, check entries, results may vary
@@ -58,9 +61,10 @@ bool GameModernWarfareRM::LoadOffsets()
         // Check built-in offsets via game exe mode (SP/MP)
         for (auto& GameOffsets : (CoDAssets::GameFlags == SupportedGameFlags::SP) ? SinglePlayerOffsets : MultiPlayerOffsets)
         {
-            // Read required offsets (XANIM, XMODEL, XIMAGE)
+            // Read required offsets (XANIM, XMODEL, XMATERIAL, XIMAGE)
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 5)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 7)));
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 8)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0x10)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0x11)));
             // Verify via first xmodel asset
@@ -78,6 +82,7 @@ bool GameModernWarfareRM::LoadOffsets()
                     // Read and apply sizes
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 5)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 7)));
+                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 8)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0x10)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0x11)));
                     // Return success
@@ -107,9 +112,10 @@ bool GameModernWarfareRM::LoadOffsets()
                 // Resolve packages from LEA
                 CoDAssets::GameInstance->Read<uint32_t>(PackagesTableScan + 0xC) + (PackagesTableScan + 0x10)
                 );
-            // Read required offsets (XANIM, XMODEL, XIMAGE)
+            // Read required offsets (XANIM, XMODEL, XMATERIAL, XIMAGE)
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 5)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 7)));
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 8)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0x10)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0x11)));
             // Verify via first xmodel asset
@@ -127,6 +133,7 @@ bool GameModernWarfareRM::LoadOffsets()
                     // Read and apply sizes
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 5)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 7)));
+                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 8)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x10)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x11)));
                     // Return success
@@ -147,6 +154,7 @@ bool GameModernWarfareRM::LoadAssets()
     bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
+    bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
 
     // Check if we need assets
     if (NeedsAnims)
@@ -285,16 +293,62 @@ bool GameModernWarfareRM::LoadAssets()
         }
     }
 
+    if (NeedsMaterials)
+    {
+        // Materials, skip 8 byte pointer to free head
+        auto MaterialOffset = CoDAssets::GameOffsetInfos[2] + 8;
+        auto MaterialCount = CoDAssets::GamePoolSizes[2];
+
+        // Calculate maximum pool size
+        auto MaximumPoolOffset = (MaterialCount * sizeof(MWRXMaterial)) + MaterialOffset;
+        // Store original offset
+        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
+
+        // Loop and read
+        for (uint32_t i = 0; i < MaterialCount; i++)
+        {
+            // Read
+            auto MaterialResult = CoDAssets::GameInstance->Read<MWRXMaterial>(MaterialOffset);
+
+            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
+            if (MaterialResult.NamePtr == 0 || MaterialResult.NamePtr == MaterialOffset + sizeof(MWRXMaterial))
+            {
+                // Advance
+                MaterialOffset += sizeof(MWRXMaterial);
+                // Skip this asset
+                continue;
+            }
+
+            // Validate and load if need be
+            //auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MaterialResult.NamePtr);
+            auto MaterialName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialResult.NamePtr));
+
+            // Make and add
+            auto Material = new CoDMaterial_t();
+            // Set
+            Material->AssetName = MaterialName;
+            Material->AssetPointer = MaterialOffset;
+            Material->ImageCount = (uint8_t)MaterialResult.ImageCount;
+            Material->AssetStatus = WraithAssetStatus::Loaded;
+
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(Material);
+
+            // Advance
+            MaterialOffset += sizeof(MWRXMaterial);
+        }
+    }
+
     if (NeedsImages)
     {
         // Images are the third offset and third pool, skip 8 byte pointer to free head
-        auto ImageOffset = CoDAssets::GameOffsetInfos[2] + 8;
-        auto ImageCount = CoDAssets::GamePoolSizes[2];
+        auto ImageOffset = CoDAssets::GameOffsetInfos[3] + 8;
+        auto ImageCount = CoDAssets::GamePoolSizes[3];
 
         // Calculate maximum pool size
         auto MaximumPoolOffset = (ImageCount * sizeof(MWRGfxImage)) + ImageOffset;
         // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
+        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
 
         // Loop and read
         for (uint32_t i = 0; i < ImageCount; i++)
@@ -361,13 +415,13 @@ bool GameModernWarfareRM::LoadAssets()
         std::set<uint64_t> UniqueEntries;
 
         // Sounds are the fourth offset and fourth pool, skip 8 byte pointer to free head
-        auto LoadedSoundOffset = CoDAssets::GameOffsetInfos[3] + 8;
-        auto LoadedSoundCount = CoDAssets::GamePoolSizes[3];
+        auto LoadedSoundOffset = CoDAssets::GameOffsetInfos[4] + 8;
+        auto LoadedSoundCount = CoDAssets::GamePoolSizes[4];
 
         // Calculate maximum pool size
         auto MaximumPoolOffset = (LoadedSoundCount * sizeof(MWRSoundAlias)) + LoadedSoundOffset;
         // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
+        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[4];
 
         // Loop and read
         for (uint32_t i = 0; i < LoadedSoundCount; i++)
@@ -692,7 +746,7 @@ std::unique_ptr<XImageDDS> GameModernWarfareRM::ReadXImage(const CoDImage_t* Ima
     return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
 }
 
-const XMaterial_t GameModernWarfareRM::ReadXMaterial(uint64_t MaterialPointer)
+XMaterial_t GameModernWarfareRM::ReadXMaterial(uint64_t MaterialPointer)
 {
     // Prepare to parse the material
     auto MaterialData = CoDAssets::GameInstance->Read<MWRXMaterial>(MaterialPointer);
@@ -766,7 +820,7 @@ std::unique_ptr<XImageDDS> GameModernWarfareRM::LoadXImage(const XImage_t& Image
     }
 
     // Calculate table offset of the biggest mip
-    uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(MWRGfxImage)) * (sizeof(MWRPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[5] + (LargestMip * sizeof(MWRPAKImageEntry));
+    uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[3] + 8)) / sizeof(MWRGfxImage)) * (sizeof(MWRPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[6] + (LargestMip * sizeof(MWRPAKImageEntry));
 
     // Read info
     auto ImageStreamInfo = CoDAssets::GameInstance->Read<MWRPAKImageEntry>(PAKTableOffset);
@@ -776,7 +830,7 @@ std::unique_ptr<XImageDDS> GameModernWarfareRM::LoadXImage(const XImage_t& Image
 
     // Attempt to extract the package asset
     auto ImageData = PAKSupport::AWExtractImagePackage(FileSystems::CombinePath(CoDAssets::GamePackageCache->GetPackagesPath(), ImagePackageName + ".pak"), ImageStreamInfo.ImageOffset, (ImageStreamInfo.ImageEndOffset - ImageStreamInfo.ImageOffset), ResultSize);
-
+    //auto ImageData = PAKSupport::AWExtractImagePackage(FileSystems::CombinePath(CoDAssets::GamePackageCache->GetPackagesPath(), ImagePackageName), ImageOffset, 0, ResultSize);
     // Check
     if (ImageData != nullptr)
     {

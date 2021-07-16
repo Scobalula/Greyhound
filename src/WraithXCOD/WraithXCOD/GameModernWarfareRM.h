@@ -30,6 +30,10 @@ public:
     // Reads an XImageDDS from a image reference from Modern Warfare RM
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
 
+
+    // Reads an XMaterial from it's logical offset in memory
+    static XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
+
     // Reads a string via it's string index for Modern Warfare RM
     static std::string LoadStringEntry(uint64_t Index);
 
@@ -42,7 +46,4 @@ private:
     static std::array<DBGameInfo, 1> MultiPlayerOffsets;
 
     // -- Game utilities
-
-    // Reads an XMaterial from it's logical offset in memory
-    static const XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
 };
