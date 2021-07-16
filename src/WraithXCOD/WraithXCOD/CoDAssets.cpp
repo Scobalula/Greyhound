@@ -1889,6 +1889,9 @@ ExportGameResult CoDAssets::ExportMaterialAsset(const CoDMaterial_t* Material, c
     // Attempt to load it based on game
     switch (CoDAssets::GameID)
     {
+    case SupportedGames::ModernWarfareRemastered:
+        XMaterial = GameModernWarfareRM::ReadXMaterial(Material->AssetPointer);
+        break;
     case SupportedGames::BlackOps4:
         XMaterial = GameBlackOps4::ReadXMaterial(Material->AssetPointer);
         break;
