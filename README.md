@@ -39,6 +39,7 @@ Greyhound is distributed with an automatic updater that will check for updates e
 ## Credits/Contributors
 
 * Scobalula - Developer/Maintainer/Research
+* Blakintosh - MWR Material Support
 * Eric Maynard - Help on BOCW from ModelGetter, ZM Hashes for BOCW Base
 * DTZxPorter - Original Developer of the entire Wraith Project, Game Research
 * ID-Daemon - Game Research
