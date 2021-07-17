@@ -321,7 +321,6 @@ bool GameModernWarfareRM::LoadAssets()
 
             // Validate and load if need be
             auto MaterialName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialResult.NamePtr));
-            std::cout << MaterialName + "\n";
 
             // Make and add
             auto Material = new CoDMaterial_t();
