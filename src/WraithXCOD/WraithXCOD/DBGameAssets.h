@@ -2371,6 +2371,8 @@ struct MWRXMaterial
     uint8_t Padding2[15];
 
     uint64_t ImageTablePtr;
+
+    uint8_t Padding3[0x118];
 };
 #pragma pack(pop)
 
