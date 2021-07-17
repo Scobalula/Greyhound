@@ -882,5 +882,5 @@ std::unique_ptr<XImageDDS> GameModernWarfareRM::LoadXImage(const XImage_t& Image
 std::string GameModernWarfareRM::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[4] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[4] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
 }
