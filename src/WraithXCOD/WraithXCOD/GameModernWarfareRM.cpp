@@ -320,13 +320,12 @@ bool GameModernWarfareRM::LoadAssets()
             }
 
             // Validate and load if need be
-            //auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MaterialResult.NamePtr);
             auto MaterialName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialResult.NamePtr));
 
             // Make and add
             auto Material = new CoDMaterial_t();
             // Set
-            Material->AssetName = MaterialName;
+            Material->AssetName = Strings::Replace(MaterialName, "*", "");
             Material->AssetPointer = MaterialOffset;
             Material->ImageCount = (uint8_t)MaterialResult.ImageCount;
             Material->AssetStatus = WraithAssetStatus::Loaded;
@@ -755,6 +754,7 @@ XMaterial_t GameModernWarfareRM::ReadXMaterial(uint64_t MaterialPointer)
     XMaterial_t Result(MaterialData.ImageCount);
     // Clean the name, then apply it
     Result.MaterialName = FileSystems::GetFileNameWithoutExtension(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr));
+    Result.MaterialName = Strings::Replace(Result.MaterialName, "*", "");
 
     // Iterate over material images, assign proper references if available
     for (uint32_t m = 0; m < MaterialData.ImageCount; m++)

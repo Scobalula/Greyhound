@@ -302,6 +302,24 @@ bool GameModernWarfare4::LoadAssets()
             LoadedAnim->FrameCount = AnimResult.NumFrames;
             LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
 
+            // Check placeholder configuration, "void" is the base xanim
+            if (AnimName == "void")
+            {
+                // Set as placeholder animation
+                PlaceholderAnim = AnimResult;
+                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
+            }
+            else if (AnimResult.BoneIDsPtr == PlaceholderAnim.BoneIDsPtr && AnimResult.DataBytePtr == PlaceholderAnim.DataBytePtr && AnimResult.DataShortPtr == PlaceholderAnim.DataShortPtr && AnimResult.DataIntPtr == PlaceholderAnim.DataIntPtr && AnimResult.RandomDataBytePtr == PlaceholderAnim.RandomDataBytePtr && AnimResult.RandomDataIntPtr == PlaceholderAnim.RandomDataIntPtr && AnimResult.RandomDataShortPtr == PlaceholderAnim.RandomDataShortPtr && AnimResult.NotificationsPtr == PlaceholderAnim.NotificationsPtr && AnimResult.DeltaPartsPtr == PlaceholderAnim.DeltaPartsPtr)
+            {
+                // Set as placeholder, data matches void
+                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
+            }
+            else
+            {
+                // Set
+                LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
+            }
+
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
 
