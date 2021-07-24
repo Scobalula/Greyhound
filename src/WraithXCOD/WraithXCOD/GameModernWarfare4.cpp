@@ -97,13 +97,13 @@ struct MW4SoundAlias
 struct MW4SoundAliasEntry
 {
     uint64_t NamePtr;
-    uint64_t Unk;
+    uint8_t Unk[0xF];
     uint64_t SecondaryPtr;
     uint64_t FilePtr;
     uint32_t NameHash;
     uint32_t Padding;
     uint32_t FileHash;
-    uint8_t Padding2[188];
+    uint8_t Padding2[180];
 };
 
 // Calculates the hash of a sound string

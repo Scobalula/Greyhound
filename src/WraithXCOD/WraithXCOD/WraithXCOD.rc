@@ -386,12 +386,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "DTZxPorter / Scobalula"
             VALUE "FileDescription", "Greyhound"
-            VALUE "FileVersion", "1.7.9.2"
+            VALUE "FileVersion", "1.7.9.3"
             VALUE "InternalName", "Greyhound"
             VALUE "LegalCopyright", "Copyright (C) 2021 DTZxPorter / Scobalula"
             VALUE "OriginalFilename", "Greyhound.exe"
             VALUE "ProductName", "Greyhound"
-            VALUE "ProductVersion", "1.7.9.2"
+            VALUE "ProductVersion", "1.7.9.3"
         END
     END
     BLOCK "VarFileInfo"

@@ -311,7 +311,7 @@ bool GameModernWarfareRM::LoadAssets()
             auto MaterialResult = CoDAssets::GameInstance->Read<MWRXMaterial>(MaterialOffset);
 
             // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-            if (MaterialResult.NamePtr == 0 || MaterialResult.NamePtr == MaterialOffset + sizeof(MWRXMaterial))
+            if (MaterialResult.NamePtr == 0 || (MaterialResult.NamePtr > MinimumPoolOffset && MaterialResult.NamePtr < MaximumPoolOffset))
             {
                 // Advance
                 MaterialOffset += sizeof(MWRXMaterial);
