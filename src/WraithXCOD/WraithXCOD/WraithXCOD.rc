@@ -368,8 +368,8 @@ IDI_CHECKMARK           ICON                    "..\\..\\WraithX\\Resources\\Che
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,7,9,4
- PRODUCTVERSION 1,7,9,4
+ FILEVERSION 1,7,9,5
+ PRODUCTVERSION 1,7,9,5
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -386,12 +386,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "DTZxPorter / Scobalula"
             VALUE "FileDescription", "Greyhound"
-            VALUE "FileVersion", "1.7.9.4"
+            VALUE "FileVersion", "1.7.9.5"
             VALUE "InternalName", "Greyhound"
             VALUE "LegalCopyright", "Copyright (C) 2021 DTZxPorter / Scobalula"
             VALUE "OriginalFilename", "Greyhound.exe"
             VALUE "ProductName", "Greyhound"
-            VALUE "ProductVersion", "1.7.9.4"
+            VALUE "ProductVersion", "1.7.9.5"
         END
     END
     BLOCK "VarFileInfo"

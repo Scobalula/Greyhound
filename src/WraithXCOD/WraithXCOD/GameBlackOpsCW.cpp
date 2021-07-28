@@ -1136,6 +1136,7 @@ std::string GameBlackOpsCW::LoadStringEntry(uint64_t Index)
     auto Offset = CoDAssets::GameOffsetInfos[5] + (Index * 16);
     // Read Info
     auto StringHash = CoDAssets::GameInstance->Read<uint64_t>(Offset + 16) & 0xFFFFFFFFFFFFFFF;
+
     // Attempt to locate string
     auto StringEntry = StringCache.NameDatabase.find(StringHash);
 
