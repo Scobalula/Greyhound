@@ -96,14 +96,18 @@ struct MW4SoundAlias
 
 struct MW4SoundAliasEntry
 {
-    uint64_t NamePtr;
-    uint8_t Unk[0xF];
-    uint64_t SecondaryPtr;
     uint64_t FilePtr;
-    uint32_t NameHash;
-    uint32_t Padding;
     uint32_t FileHash;
-    uint8_t Padding2[180];
+    uint32_t Unk;
+    uint64_t NamingInfoPtr;
+    uint64_t UnkPtr2;
+};
+
+// In the Season 5 patch the Name/Secondary pointers are no longer stored directly in the sound alias entry and are instead their own structure pointed to from the entry.
+struct MW4SoundAliasNamingInfo
+{
+    uint64_t NamePtr;
+    uint64_t SecondaryPtr;
 };
 
 // Calculates the hash of a sound string
@@ -871,12 +875,17 @@ void GameModernWarfare4::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
         {
             auto Alias = CoDAssets::GameInstance->Read<MW4SoundAlias>(Bank.AliasesPtr + j * sizeof(MW4SoundAlias));
 
+            std::cout << "Bank alias pointer: " + std::to_string(Bank.AliasesPtr) + "\n";
+
+            std::cout << "Alias entry: " + std::to_string(Alias.EntriesPtr) + "\n";
+
             for (uint64_t k = 0; k < Alias.EntriesCount; k++)
             {
                 auto Entry = CoDAssets::GameInstance->Read<MW4SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW4SoundAliasEntry));
 
-                auto Name      = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.NamePtr);
-                auto Secondary = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.SecondaryPtr);
+                auto NamingInfo = CoDAssets::GameInstance->Read<MW4SoundAliasNamingInfo>(Entry.NamingInfoPtr);
+                auto Name      = CoDAssets::GameInstance->ReadNullTerminatedString(NamingInfo.NamePtr);
+                auto Secondary = CoDAssets::GameInstance->ReadNullTerminatedString(NamingInfo.SecondaryPtr);
                 auto FileName  = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
 
                 AliasWriter.WriteLineFmt("%s,%s,%s", Name.c_str(), Secondary.c_str(), FileName.c_str());
