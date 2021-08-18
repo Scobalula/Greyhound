@@ -875,10 +875,6 @@ void GameModernWarfare4::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
         {
             auto Alias = CoDAssets::GameInstance->Read<MW4SoundAlias>(Bank.AliasesPtr + j * sizeof(MW4SoundAlias));
 
-            std::cout << "Bank alias pointer: " + std::to_string(Bank.AliasesPtr) + "\n";
-
-            std::cout << "Alias entry: " + std::to_string(Alias.EntriesPtr) + "\n";
-
             for (uint64_t k = 0; k < Alias.EntriesCount; k++)
             {
                 auto Entry = CoDAssets::GameInstance->Read<MW4SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW4SoundAliasEntry));
