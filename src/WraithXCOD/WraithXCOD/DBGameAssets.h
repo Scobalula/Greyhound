@@ -3424,7 +3424,6 @@ struct MW4SoundBank
 struct BOCWSoundAsset
 {
     uint64_t NamePtr;
-    uint64_t UnknownZero;
     uint32_t FrameCount;
     uint8_t FrameRateIndex;
     uint8_t ChannelCount;
@@ -3454,7 +3453,6 @@ struct BOCWXAnim
     uint64_t UnknownZero3;
     uint64_t RandomDataBytePtr;
     uint64_t NamePtr;
-    uint64_t UnknownZero;
     uint64_t DataIntPtr;
     uint64_t UnknownZero2;
     uint64_t DataShortPtr;
@@ -3498,7 +3496,6 @@ struct BOCWGfxMip
 struct BOCWGfxImage
 {
     uint64_t NamePtr;
-    uint64_t UnknownPtr;
     uint64_t UnknownPtr1;
     uint64_t UnknownZero;
     uint64_t UnknownZero2;
@@ -3521,7 +3518,6 @@ struct BOCWGfxImage
 struct BOCWXMaterial
 {
     uint64_t NamePtr;
-    uint64_t Unk01;
     uint8_t Padding[0x20];
     uint64_t TechsetPtr;
     uint64_t ImageTablePtr;
@@ -3535,7 +3531,6 @@ struct BOCWXMaterial
 struct BOCWXSkeleton
 {
     uint64_t NamePtr;
-    uint64_t UnknownZero;
     uint64_t BoneIDsPtr;
     uint64_t UnknownPtr2;
     uint64_t ParentListPtr;
@@ -3553,7 +3548,6 @@ struct BOCWXSkeleton
 struct BOCWXModel
 {
     uint64_t NamePtr;
-    uint64_t UnknownZero;
     uint64_t XSkeletonPtr;
     uint64_t XCollisionPtr;
     uint64_t UnknownPtr2;
@@ -3570,7 +3564,6 @@ struct BOCWXModel
 struct BOCWXModelLod
 {
     uint64_t NamePtr;
-    uint64_t UnknownZero;
     uint64_t XSurfacePtr;
     uint64_t XModelMeshPtr;
     uint64_t UnknownPtr;
