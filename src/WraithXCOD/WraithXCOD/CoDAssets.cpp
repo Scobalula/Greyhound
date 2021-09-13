@@ -381,6 +381,8 @@ std::map<uint32_t, std::string> SemanticHashes =
     { 0x95B48AE5, "meltRevealMap" },
     { 0x1DCB003F, "meltNormalMap" },
     { 0xB607C0FE, "Color_Map" },
+    { 0x34ECCCB3, "specularMap" },
+    { 0x6001F931, "occlusionMap" }
 };
 
 // -- Find game information
