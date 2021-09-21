@@ -188,6 +188,38 @@ std::unique_ptr<XImageDDS> CoDIWITranslator::TranslateIWI(const std::unique_ptr<
             // Read buffer to our stream
             Reader.Read(SizeToDump, ImageBuffer + ResultSize);
 
+            // Correct the output
+            // TODO: Bypass ImageFormat and use DXGI_FORMAT directly since there
+            // is actually a DXGI_FORMAT that supports this, but for now it's easier
+            // to quickly switch channels here due to it's limited use case
+            if (Header.Version == 0x8 && Info.ImageFormat == 0x1)
+            {
+                // Convert from BGRA to RGBA
+                auto Pixels = ImageBuffer + ResultSize;
+                auto PixelCount = Info.ImageWidth * Info.ImageHeight;
+
+                for (size_t Pixel = 0; Pixel < PixelCount; Pixel++)
+                {
+                    // 32Bbp, verify we're not outside the bounds
+                    auto PixelOffset = Pixel * 4;
+
+                    if (PixelOffset >= SizeToDump)
+                    {
+                        break;
+                    }
+
+                    auto NewR = Pixels[PixelOffset + 2];
+                    auto NewG = Pixels[PixelOffset + 1];
+                    auto NewB = Pixels[PixelOffset + 0];
+                    auto NewA = Pixels[PixelOffset + 3];
+
+                    Pixels[PixelOffset + 0] = NewR;
+                    Pixels[PixelOffset + 1] = NewG;
+                    Pixels[PixelOffset + 2] = NewB;
+                    Pixels[PixelOffset + 3] = NewA;
+                }
+            }
+
             // Assign data
             Result->DataBuffer = ImageBuffer;
             Result->DataSize = (uint32_t)(ResultSize + SizeToDump);
