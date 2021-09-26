@@ -712,7 +712,7 @@ std::unique_ptr<XSound> GameBlackOpsCW::ReadXSound(const CoDSound_t * Sound)
     {
         // Extract buffer, these are compressed
         uint32_t SoundMemoryResult = 0;
-        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(CoDAssets::GameInstance->Read<uint64_t>(SoundData.StreamInfoPtr + 0x10), SoundMemoryResult);
+        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(CoDAssets::GameInstance->Read<uint64_t>(SoundData.StreamInfoPtr + 0x8), SoundMemoryResult);
 
         if (SoundMemoryResult == 0)
             return nullptr;
