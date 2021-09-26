@@ -725,9 +725,11 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             NotetracksBO3(Anim, Animation);
             break;
         case SupportedGames::BlackOps4:
-        case SupportedGames::BlackOpsCW:
             // Black Ops 4 has a new format
             NotetracksBO4(Anim, Animation);
+        case SupportedGames::BlackOpsCW:
+            // Black Ops CW has a new format
+            NotetracksCW(Anim, Animation);
             break;
     }
 
@@ -834,6 +836,40 @@ void CoDXAnimTranslator::NotetracksBO4(const std::unique_ptr<WraithAnim>& Anim, 
 
         // Advance 0x28 bytes
         Animation->NotificationsPtr += 0x28;
+    }
+}
+
+void CoDXAnimTranslator::NotetracksCW(const std::unique_ptr<WraithAnim>& Anim, const std::unique_ptr<XAnim_t>& Animation)
+{
+    // Loop over notetracks
+    for (uint32_t i = 0; i < Animation->NotificationCount; i++)
+    {
+        // Read the tag
+        auto NotificaionHash = CoDAssets::GameInstance->Read<uint64_t>(Animation->NotificationsPtr) & 0xFFFFFFFFFFFFFFF;
+        auto NotificationTag = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr + 0x8));
+        auto NotificationType = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr + 0x14));
+        // Read the frame
+        uint32_t NotificationFrame = (uint32_t)((float)Animation->FrameCount * CoDAssets::GameInstance->Read<float>(Animation->NotificationsPtr + 0x18));
+
+        // Append the removed prefixes to the notetrack
+        if (NotificationType == "sound")
+            NotificationTag = Strings::Format("sndnt#%llx", NotificaionHash);
+        else if (NotificationType == "rumble")
+            NotificationTag = Strings::Format("rmbnt#%llx", NotificaionHash);
+        else if (NotificationType == "vox")
+            NotificationTag = "vox#" + NotificationTag;
+        else if (NotificaionHash != 0)
+            NotificationTag = Strings::Format("hash_%llx", NotificaionHash);
+
+        // Add the notetrack, if the tag is not blank
+        if (!Strings::IsNullOrWhiteSpace(NotificationTag))
+        {
+            // Add
+            Anim->AddNoteTrack(NotificationTag, NotificationFrame);
+        }
+
+        // Advance 0x28 bytes
+        Animation->NotificationsPtr += 0x20;
     }
 }
 
