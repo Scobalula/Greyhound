@@ -113,10 +113,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     WraithTheme::OnLoadImageResource = LoadImageResource;
 
     // Start the instance (We must provide the main window title, never include versions from now on)
-    auto CanContinue = Instance::BeginSingleInstance("Greyhound");
+    // auto CanContinue = Instance::BeginSingleInstance("Greyhound");
 
     // Only resume if we can
-    if (CanContinue)
+    // if (CanContinue)
     {
         // Load settings, specify default
         SettingsManager::LoadSettings("greyhound",
