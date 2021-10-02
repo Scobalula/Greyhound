@@ -668,7 +668,7 @@ void MainWindow::OnSupport()
 void MainWindow::OnLoadFile()
 {
     // Prepare to load a file, first, ask for one
-    auto Result = WraithFileDialogs::OpenFileDialog("Select a game file to load", "", "Image Package Files (*.iwd, *.ipak, *.xpak)|*.iwd;*.ipak;*.xpak|Sound Package Files (*.sabs, *.sabl)|*.sabs;*.sabl;", this->GetSafeHwnd());
+    auto Result = WraithFileDialogs::OpenFileDialog("Select a game file to load", "", "All files (*.*)|*.*;|Image Package Files (*.iwd, *.ipak, *.xpak)|*.iwd;*.ipak;*.xpak|Sound Package Files (*.sabs, *.sabl)|*.sabs;*.sabl;", this->GetSafeHwnd());
     // Make sure
     if (!Strings::IsNullOrWhiteSpace(Result))
     {
