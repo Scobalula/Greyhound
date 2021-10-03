@@ -962,6 +962,46 @@ BOOL MainWindow::PreTranslateMessage(MSG* pMsg)
         // Handle return pressed in edit control
         return TRUE;
     }
+    else if(GetFocus() == &AssetListView && (GetKeyState(VK_CONTROL) & 0x8000 && pMsg->wParam == 'C'))
+    {
+        // Grab the list of objects
+        auto SelectedIndicies = AssetListView.GetSelectedItems();
+        // Continue if we got some
+        if (SelectedIndicies.size() > 0)
+        {
+            // Our output
+            std::stringstream Output;
+            // Resolve the asset list
+            auto& LoadedAssets = (this->SearchMode) ? this->SearchResults : CoDAssets::GameAssets->LoadedAssets;
+            // Loop and output the stream
+            for (auto SelectedIndex : SelectedIndicies)
+            {
+                Output << LoadedAssets[SelectedIndex]->AssetName << "\n";
+            }
+            // Attempt to open the clip board
+            if (OpenClipboard())
+            {
+                // Empty it
+                EmptyClipboard();
+                // Convert to unicode and create a handle
+                auto AsUnicode = Strings::ToUnicodeString(Output.str());
+                auto Handle = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (AsUnicode.length() + 1) * sizeof(WCHAR));
+                // Validate
+                if (Handle != NULL)
+                {
+                    // Lock the buffer
+                    auto Buffer = (LPWSTR)GlobalLock(Handle);
+                    // Validate
+                    if (Buffer != nullptr)
+                    {
+                        memcpy(Buffer, AsUnicode.c_str(), AsUnicode.length() * sizeof(WCHAR));
+                        SetClipboardData(CF_UNICODETEXT, Handle);
+                        CloseClipboard();
+                    }
+                }
+            }
+        }
+    }
 
     // All other cases still need default processing
     return FALSE;
