@@ -193,7 +193,7 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
     return false;
 }
 
-std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize)
+std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, int32_t Size, uint32_t& ResultSize)
 {
     // Prepare to extract if found
     if (CacheObjects.find(CacheID) != CacheObjects.end())
@@ -221,10 +221,12 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
         // A buffer for total size
         uint64_t TotalDataSize = 0;
         // Decompressed Size
-        uint64_t DecompressedSize = CacheInfo.UncompressedSize;
+        uint64_t DecompressedSize = Size == -1 ? CacheInfo.UncompressedSize : Size;
 
         // A buffer for the data, this will eventually be shipped off, it's 36MB of memory
-        auto DataTemporaryBuffer = new int8_t[0x2400000];
+        // or where possible, use the size from the game, as this is a hefty allocation
+        auto ResultBufferSize = Size == -1 ? 0x2400000 : Size;
+        auto ResultBuffer = std::make_unique<uint8_t[]>(ResultBufferSize);
 
         // Loop until we have all our data
         while (DataRead < CacheInfo.CompressedSize)
@@ -254,7 +256,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     if (DataBlock != nullptr)
                     {
                         // Decompress the LZ4 block
-                        auto Result = Compression::DecompressLZ4Block((const int8_t*)DataBlock.get(), DataTemporaryBuffer + TotalDataSize, (uint32_t)BlockSize, 0x2400000);
+                        auto Result = Compression::DecompressLZ4Block((const int8_t*)DataBlock.get(), (int8_t*)ResultBuffer.get() + TotalDataSize, (uint32_t)BlockSize, 0x2400000);
 
                         // Append size
                         TotalDataSize += Result;
@@ -274,7 +276,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                         uint32_t DecompressedSize = *(uint32_t*)(DataBlock.get());
 
                         // Decompress the Oodle block
-                        auto Result = Siren::Decompress((const uint8_t*)DataBlock.get() + 4, (uint32_t)BlockSize - 4, (uint8_t*)DataTemporaryBuffer + TotalDataSize, DecompressedSize);
+                        auto Result = Siren::Decompress((const uint8_t*)DataBlock.get() + 4, (uint32_t)BlockSize - 4, (uint8_t*)ResultBuffer.get() + TotalDataSize, DecompressedSize);
 
                         // Append size
                         TotalDataSize += Result;
@@ -295,7 +297,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     if (DataBlock != nullptr)
                     {
                         // Decompress the Oodle block
-                        auto Result = Siren::Decompress((const uint8_t*)DataBlock.get(), (uint32_t)BlockSize, (uint8_t*)DataTemporaryBuffer + TotalDataSize, RawBlockSize);
+                        auto Result = Siren::Decompress((const uint8_t*)DataBlock.get(), (uint32_t)BlockSize, (uint8_t*)ResultBuffer.get() + TotalDataSize, RawBlockSize);
 
                         // Append size
                         TotalDataSize += RawBlockSize;
@@ -314,7 +316,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
                     if (DataBlock != nullptr)
                     {
                         // We just need to append it
-                        std::memcpy(DataTemporaryBuffer + TotalDataSize, DataBlock.get(), BlockSize);
+                        std::memcpy(ResultBuffer.get() + TotalDataSize, DataBlock.get(), BlockSize);
 
                         // Append size
                         TotalDataSize += BlockSize;
@@ -359,17 +361,8 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
             DataRead += sizeof(BO3XPakDataHeader);
         }
 
-        // If we got here, the result size is totaldatasize, we need to allocate a safe buffer, copy, then clean up properly
-        auto ResultBuffer = std::make_unique<uint8_t[]>((uint32_t)TotalDataSize);
-        // Copy over the buffer
-        std::memcpy(ResultBuffer.get(), DataTemporaryBuffer, TotalDataSize);
-
-        // Clean up
-        delete[] DataTemporaryBuffer;
-
         // Set result size
         ResultSize = (uint32_t)TotalDataSize;
-
         // Return the safe buffer
         return ResultBuffer;
     }
@@ -381,7 +374,7 @@ std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(uint64_t CacheID, uin
     return nullptr;
 }
 
-std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(const std::string & PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t & ResultSize)
+std::unique_ptr<uint8_t[]> CASCCache::ExtractPackageObject(const std::string& PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t& ResultSize)
 {
     // Prepare to extract an image asset (AW, MWR)
     ResultSize = 0;

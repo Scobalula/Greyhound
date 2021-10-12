@@ -59,7 +59,7 @@ bool XPAKCache::LoadPackage(const std::string& FilePath)
     // Open the file
     auto Reader = BinaryReader();
     // Open it
-    Reader.Open(FilePath);
+    Reader.Open(FilePath, true);
 
     // Read the header
     auto Header = Reader.Read<BO3XPakHeader>();
@@ -167,7 +167,7 @@ bool XPAKCache::LoadPackage(const std::string& FilePath)
     return false;
 }
 
-std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize)
+std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int32_t Size, uint32_t& ResultSize)
 {
     // Prepare to extract if found
     if (CacheObjects.find(CacheID) != CacheObjects.end())
@@ -180,7 +180,7 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
         // Open the file
         auto Reader = BinaryReader();
         // Open it
-        Reader.Open(XPAKFileName);
+        Reader.Open(XPAKFileName, true);
 
         // Hop to the beginning offset
         Reader.SetPosition(CacheInfo.Offset);
@@ -190,10 +190,12 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
         // A buffer for total size
         uint64_t TotalDataSize = 0;
         // Decompressed Size
-        uint64_t DecompressedSize = CacheInfo.UncompressedSize;
+        uint64_t DecompressedSize = Size == -1 ? CacheInfo.UncompressedSize : Size;
 
         // A buffer for the data, this will eventually be shipped off, it's 36MB of memory
-        auto DataTemporaryBuffer = new int8_t[0x2400000];
+        // or where possible, use the size from the game, as this is a hefty allocation
+        auto ResultBufferSize = Size == -1 ? 0x2400000 : Size;
+        auto ResultBuffer = std::make_unique<uint8_t[]>(ResultBufferSize);
 
         // Loop until we have all our data
         while (DataRead < CacheInfo.CompressedSize)
@@ -223,7 +225,7 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
                     if (DataBlock != nullptr)
                     {
                         // Decompress the LZ4 block
-                        auto Result = Compression::DecompressLZ4Block((const int8_t*)DataBlock, DataTemporaryBuffer + TotalDataSize, (uint32_t)BlockSize, 0x2400000);
+                        auto Result = Compression::DecompressLZ4Block((const int8_t*)DataBlock, (int8_t*)ResultBuffer.get() + TotalDataSize, (uint32_t)BlockSize, 0x2400000);
 
                         // Append size
                         TotalDataSize += Result;
@@ -246,7 +248,7 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
                         uint32_t DecompressedSize = *(uint32_t*)(DataBlock);
 
                         // Decompress the Oodle block
-                        auto Result = Siren::Decompress((const uint8_t*)DataBlock + 4, (uint32_t)BlockSize - 4, (uint8_t*)DataTemporaryBuffer + TotalDataSize, DecompressedSize);
+                        auto Result = Siren::Decompress((const uint8_t*)DataBlock + 4, (uint32_t)BlockSize - 4, ResultBuffer.get() + TotalDataSize, DecompressedSize);
 
                         // Append size
                         TotalDataSize += Result;
@@ -261,23 +263,18 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
                     uint64_t ReadSize = 0;
                     // Read the block
                     auto DataBlock = Reader.Read(BlockSize, ReadSize);
-                    // Pad the Block Size
-                    BlockSize = (BlockSize + 3) & 0xFFFFFFFC;
+                    // Check if we're at the end of the block/less than the max block size, if so, use that
+                    uint64_t RawBlockSize = std::min<uint64_t>(DecompressedSize, 262112);
+                    // Subtract from our total size
+                    DecompressedSize -= RawBlockSize;
 
                     // Check if we read data
                     if (DataBlock != nullptr)
                     {
-                        // Check if we're at the end of the block/less than the max block size, if so, use that
-                        uint64_t RawBlockSize = DecompressedSize < 262112 ? DecompressedSize : 262112;
-                        // Subtract from our total size
-                        DecompressedSize -= RawBlockSize;
-
                         // Decompress the Oodle block
-                        auto Result = Siren::Decompress((const uint8_t*)DataBlock, (uint32_t)BlockSize, (uint8_t*)DataTemporaryBuffer + TotalDataSize, RawBlockSize);
-
+                        auto Result = Siren::Decompress((const uint8_t*)DataBlock, (uint32_t)BlockSize, (uint8_t*)ResultBuffer.get() + TotalDataSize, RawBlockSize);
                         // Append size
                         TotalDataSize += RawBlockSize;
-
                         // Clean up the buffer
                         delete[] DataBlock;
                     }
@@ -288,12 +285,14 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
                     uint64_t ReadSize = 0;
                     // Read the block
                     auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    // Subtract from our total size
+                    DecompressedSize -= BlockSize;
 
                     // Check if we read data
                     if (DataBlock != nullptr)
                     {
                         // We just need to append it
-                        std::memcpy(DataTemporaryBuffer + TotalDataSize, DataBlock, BlockSize);
+                        std::memcpy(ResultBuffer.get() + TotalDataSize, DataBlock, BlockSize);
 
                         // Append size
                         TotalDataSize += BlockSize;
@@ -307,6 +306,10 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
                     // As far as we care, any other flag value is padding (0xCF is one of them)
                     Reader.Advance(BlockSize);
                 }
+
+                // Pad for MW
+                if (CoDAssets::GameID == SupportedGames::ModernWarfare4)
+                    BlockSize = (BlockSize + 3) & 0xFFFFFFFC;
 
                 // We must append the block size and pad it properly (If it's the last block)
                 uint64_t NextSegmentOffset = 0;
@@ -336,14 +339,6 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, uin
             // We must append the size of a header
             DataRead += sizeof(BO3XPakDataHeader);
         }
-
-        // If we got here, the result size is totaldatasize, we need to allocate a safe buffer, copy, then clean up properly
-        auto ResultBuffer = std::make_unique<uint8_t[]>((uint32_t)TotalDataSize);
-        // Copy over the buffer
-        std::memcpy(ResultBuffer.get(), DataTemporaryBuffer, TotalDataSize);
-
-        // Clean up
-        delete[] DataTemporaryBuffer;
 
         // Set result size
         ResultSize = (uint32_t)TotalDataSize;

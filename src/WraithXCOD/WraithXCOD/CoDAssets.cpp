@@ -99,6 +99,8 @@ std::unique_ptr<CoDGDTProcessor> CoDAssets::GameGDTProcessor = std::make_unique<
 std::unique_ptr<AssetPool> CoDAssets::GameAssets = nullptr;
 // Set cache
 std::unique_ptr<CoDPackageCache> CoDAssets::GamePackageCache = nullptr;
+// Set cache
+std::unique_ptr<CoDPackageCache> CoDAssets::OnDemandCache = nullptr;
 
 // Set the image read handler
 LoadXImageHandler CoDAssets::GameXImageHandler = nullptr;
@@ -590,9 +592,11 @@ LoadGameResult CoDAssets::LoadGame()
             // TODO: Find a better solution to this, a good trigger for it to occur is relaunching the game, moving to different parts or Blizzard editing the CASC while
             // we have a handle, then try export an image, it'll probably come out black
             CleanupPackageCache();
+            // Load from casc and on demand
             GamePackageCache = std::make_unique<CASCCache>();
-            // Set the XPAK path
             GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+            OnDemandCache = std::make_unique<XPAKCache>();
+            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "xpak_cache"));
             // Load as normally
             Success = GameModernWarfare4::LoadAssets(); break;
         case SupportedGames::Ghosts: Success = GameGhosts::LoadAssets(); break;
@@ -1996,6 +2000,16 @@ void CoDAssets::CleanupPackageCache()
 
         // Clean up
         GamePackageCache.reset();
+    }
+
+    // Check if even loaded
+    if (OnDemandCache != nullptr)
+    {
+        // Wait until load completes
+        OnDemandCache->WaitForPackageCacheLoad();
+
+        // Clean up
+        OnDemandCache.reset();
     }
 }
 

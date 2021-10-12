@@ -30,6 +30,7 @@ using System.ComponentModel;
 using System.Net;
 using System.Reflection;
 using Octokit;
+using System.Globalization;
 
 namespace GreyhoundUpdater
 {
@@ -59,6 +60,11 @@ namespace GreyhoundUpdater
         public string GithubUserName { get; set; }
 
         /// <summary>
+        /// Name of the User Account that owns the Repo
+        /// </summary>
+        public string PackageIndexRepoName { get; set; }
+
+        /// <summary>
         /// Name of the Application we're updating
         /// </summary>
         public string ApplicationName { get; set; }
@@ -79,51 +85,212 @@ namespace GreyhoundUpdater
         public bool Updating = false;
 
         /// <summary>
+        /// A tracker variable to check if we're updating
+        /// </summary>
+        public bool PackageIndexMode = false;
+
+        /// <summary>
+        /// Gets or Sets the Client
+        /// </summary>
+        GitHubClient Client { get; set; }
+
+        /// <summary>
         /// Main Entry Point for WPF
         /// </summary>
         public MainWindow()
         {
             // Check command line arguments
-            if(!GetCommandLineArguments())
+            if (!GetCommandLineArguments())
             {
                 MessageBox.Show("This application is intended to be opened by its parent program.", "Updater", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 Close();
             }
+            // TODO: Really improve the hacky slapped in package index logic, maybe merge everything into 1 clean system
+            // var result = MessageBox.Show($"{ApplicationName} can check for updates for both itself and new items from its index repo.\n\nWould you like to enable automatic updates?", "Updater", MessageBoxButton.YesNo, MessageBoxImage.Information);
             // Try grab and open the window, if we fail, exit
             try
             {
                 // Query Github Releases
-                var client = new GitHubClient(new ProductHeaderValue(ApplicationName));
-                var releases = client.Repository.Release.GetAll(GithubUserName, GithubRepoName);
-                var latestRelease = releases.Result[0];
-                // Query File Version
-                var fileInfo = FileVersionInfo.GetVersionInfo(AssemblyName);
-                // Convert to Version Objects for comparison
-                var currentVersion = new Version(fileInfo.FileVersion);
-                var remoteVersion = new Version(latestRelease.TagName);
-                // Set Latest Release Asset
-                LatestReleaseAsset = latestRelease.Assets[0];
-                // Check current Version against Remote
-                if(currentVersion < remoteVersion)
+                Client = new GitHubClient(new ProductHeaderValue(ApplicationName));
+#if DEBUG
+                // Debug purposes, need higher rate limit
+                Client.Credentials = new Credentials(File.ReadAllText(@"C:\Visual Studio\Auth\OctoKitAuth.txt"));
+#endif
+                try
                 {
-                    InitializeComponent();
-                    // Set Version
-                    LatestVersion.Content = String.Format("Update {0}", remoteVersion);
-                    // Set Titles
-                    Title = ApplicationName + " Update";
-                    TitleLabel.Content = ApplicationName + " Update";
-                    // Append change log
-                    Changes.AppendText(latestRelease.Body);
+                    if (PackageIndexRequiresUpdate(Client))
+                    {
+                        InitializeComponent();
+                        // Set Version
+                        LatestVersion.Content = String.Format("Package Index Update");
+                        // Set Titles
+                        Title = ApplicationName + " Update";
+                        TitleLabel.Content = ApplicationName + " Update";
+                        // Append change log
+                        Changes.AppendText("An update is available for the Package Index. This includes new hashes for content.");
+                        // Set index mode
+                        PackageIndexMode = true;
+                    }
                 }
-                else
+                catch { }
+                // We're updating
+                if(!PackageIndexMode)
                 {
-                    Close();
+                    var releases = Client.Repository.Release.GetAll(GithubUserName, GithubRepoName);
+                    var latestRelease = releases.Result[0];
+                    // Query File Version
+                    var fileInfo = FileVersionInfo.GetVersionInfo(AssemblyName);
+                    // Convert to Version Objects for comparison
+                    var currentVersion = new Version(fileInfo.FileVersion);
+                    var remoteVersion = new Version(latestRelease.TagName);
+                    // Set Latest Release Asset
+                    LatestReleaseAsset = latestRelease.Assets[0];
+                    // Check current Version against Remote
+                    if (currentVersion < remoteVersion)
+                    {
+                        InitializeComponent();
+                        // Set Version
+                        LatestVersion.Content = String.Format("Update {0}", remoteVersion);
+                        // Set Titles
+                        Title = ApplicationName + " Update";
+                        TitleLabel.Content = ApplicationName + " Update";
+                        // Append change log
+                        Changes.AppendText(latestRelease.Body);
+                    }
+                    else
+                    {
+                        Close();
+                    }
                 }
             }
             catch
             {
                Close();
             }
+        }
+
+        /// <summary>
+        /// Updates the package index
+        /// </summary>
+        private void UpdatePackageIndexFolder(GitHubClient client)
+        {
+            try
+            {
+                // Download entire repo
+                var archiveBytes = client.Repository.Content.GetArchive(GithubUserName, PackageIndexRepoName, ArchiveFormat.Zipball);
+
+                using (ZipArchive archive = new ZipArchive(new MemoryStream(archiveBytes.Result)))
+                {
+                    foreach (var entry in archive.Entries)
+                    {
+                        if(Path.GetExtension(entry.FullName) == ".csv")
+                        {
+                            CompileFromCSV(entry.Open(), Path.GetFileNameWithoutExtension(entry.FullName));
+                        }
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+                // Try launch Greyhound again
+                try
+                {
+                    Process.Start("Greyhound.exe");
+                }
+                catch
+                {
+                    Updating = false;
+                    MessageBox.Show("Failed to execute Greyhound.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Close();
+                }
+                // Invoke UI Changes and launch Finalize method
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ProgressInfo.Content = "Finalizing....";
+                    Progress.IsIndeterminate = true;
+                }));
+                // Set back
+                Updating = false;
+                // Delay the exit
+                DelayExit();
+            }
+        }
+
+        /// <summary>
+        /// Checks if we should update the package index but comparing the commit hash
+        /// </summary>
+        private bool PackageIndexRequiresUpdate(GitHubClient client)
+        {
+            if (string.IsNullOrWhiteSpace(PackageIndexRepoName))
+                return false;
+
+            // We're basically using the latest SHA to check, if it's different, something has
+            // changed and therefore we need to refresh the package index repo
+            var commits = client.Repository.Commit.GetAll(GithubUserName, PackageIndexRepoName, new ApiOptions() { PageCount = 1, PageSize = 1 });
+            var topCommit = commits.Result[0];
+
+            if (!File.Exists(Path.Combine("package_index", "commit_cache.dat")))
+            {
+                Directory.CreateDirectory("package_index");
+                File.WriteAllText(Path.Combine("package_index", "commit_cache.dat"), topCommit.Sha);
+                return true;
+            }
+
+            var commitCache = File.ReadAllText(Path.Combine("package_index", "commit_cache.dat"));
+
+            // Our commits are different, we must refresh the package index
+            if(commitCache != topCommit.Sha)
+            {
+                File.WriteAllText(Path.Combine("package_index", "commit_cache.dat"), topCommit.Sha);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Compiles a WNI file from a CSV file
+        /// </summary>
+        static void CompileFromCSV(Stream stream, string name)
+        {
+            Directory.CreateDirectory("package_index");
+            var wniFile = Path.Combine("package_index", $"{name}.wni");
+            var index = new PackageIndex();
+
+            using(var reader = new StreamReader(stream))
+            {
+                string line = null;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    string lineTrim = line.Trim();
+
+                    if (!lineTrim.StartsWith("#"))
+                    {
+                        string[] lineSplit = lineTrim.Split(',');
+
+                        if (lineSplit.Length > 1)
+                        {
+                            if (ulong.TryParse(lineSplit[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out ulong id))
+                            {
+                                id &= 0xFFFFFFFFFFFFFFF;
+
+                                if (index.Entries.ContainsKey(id))
+                                    continue;
+
+                                index.Entries[id] = lineSplit[1];
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Save
+            index.Save(wniFile);
         }
 
         /// <summary>
@@ -143,6 +310,10 @@ namespace GreyhoundUpdater
             ApplicationName   = args[3];
             AssemblyName      = args[4];
             DownloadViaClient = args[5] == "true";
+            if (args.Length >= 7)
+                PackageIndexRepoName = args[6];
+            else
+                PackageIndexRepoName = "GreyhoundPackageIndex";
             // Got it
             return true;
         }
@@ -177,14 +348,41 @@ namespace GreyhoundUpdater
                 // Loop and Kill any instances of Greyhound
                 foreach (var process in processes)
                     process.Kill();
-                // Initiate the Download
-                InitiateDownload();
+                // Check mode
+                if (PackageIndexMode)
+                {
+                    ProgressInfo.Content = "Updating Package Index....";
+                    Progress.IsIndeterminate = true;
+                    // Create and set download methods and data
+                    new Thread(() => {
+                        UpdatePackageIndexFolder(Client);
+                    }).Start();
+                }
+                else
+                {
+                    // Initiate the Download
+                    InitiateDownload();
+                }
             }
             else
             {
                 Process.Start(LatestReleaseAsset.BrowserDownloadUrl);
                 Close();
             }
+        }
+
+        /// <summary>
+        /// Initiates Github Index Download
+        /// </summary>
+        private void InitiateIndexDownload()
+        {
+            // Create and set download methods and data
+            new Thread(() => {
+                WebClient client = new WebClient();
+                client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(UpdateProgress);
+                client.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadComplete);
+                client.DownloadFileAsync(new Uri(LatestReleaseAsset.BrowserDownloadUrl), "Update.zip");
+            }).Start();
         }
 
         /// <summary>

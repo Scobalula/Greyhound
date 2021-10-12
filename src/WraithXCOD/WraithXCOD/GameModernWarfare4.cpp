@@ -1026,10 +1026,12 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     auto ImageInfo = CoDAssets::GameInstance->Read<MW4GfxImage>(Image.ImagePtr);
 
     // Calculate the largest image mip
-    uint32_t LargestMip = 0;
-    uint32_t LargestWidth = 0;
+    uint32_t LargestMip    = 0;
+    uint32_t LargestWidth  = 0;
     uint32_t LargestHeight = 0;
-    uint64_t LargestHash = 0;
+    uint32_t LargestSize   = 0;
+    uint64_t LargestHash   = 0;
+    bool OnDemand          = false;
 
     // Loop and calculate
     for (uint32_t i = 0; i < 4; i++)
@@ -1037,10 +1039,21 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
         // Compare widths
         if (ImageInfo.MipLevels[i].Width > LargestWidth && CoDAssets::GamePackageCache->Exists(ImageInfo.MipLevels[i].HashID))
         {
-            LargestMip = i;
-            LargestWidth = ImageInfo.MipLevels[i].Width;
+            LargestMip    = i;
+            LargestWidth  = ImageInfo.MipLevels[i].Width;
             LargestHeight = ImageInfo.MipLevels[i].Height;
-            LargestHash = ImageInfo.MipLevels[i].HashID;
+            LargestSize   = i == 0 ? ImageInfo.MipLevels[i].Size >> 4 : (ImageInfo.MipLevels[i].Size >> 4) - (ImageInfo.MipLevels[i - 1].Size >> 4);
+            LargestHash   = ImageInfo.MipLevels[i].HashID;
+            OnDemand = false;
+        }
+        else if (ImageInfo.MipLevels[i].Width > LargestWidth && CoDAssets::OnDemandCache->Exists(ImageInfo.MipLevels[i].HashID))
+        {
+            LargestMip    = i;
+            LargestWidth  = ImageInfo.MipLevels[i].Width;
+            LargestHeight = ImageInfo.MipLevels[i].Height;
+            LargestSize   = i == 0 ? ImageInfo.MipLevels[i].Size >> 4 : (ImageInfo.MipLevels[i].Size >> 4) - (ImageInfo.MipLevels[i - 1].Size >> 4);
+            LargestHash   = ImageInfo.MipLevels[i].HashID;
+            OnDemand      = true;
         }
     }
 
@@ -1069,8 +1082,17 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     // Check if we're missing a hash / size
     if (LargestWidth != 0 || LargestHash != 0)
     {
-        // We have a streamed image, prepare to extract
-        ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(LargestHash, ResultSize);
+        // Check if we're on-demand
+        if (OnDemand)
+        {
+            // We have a streamed image, prepare to extract
+            ImageData = CoDAssets::OnDemandCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
+        }
+        else
+        {
+            // We have a streamed image, prepare to extract
+            ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
+        }
     }
 
     // Prepare if we have it
@@ -1178,7 +1200,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
         // Result size
         uint32_t ResultSize = 0;
         // We must read from the cache
-        MeshDataBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(MeshInfo.LODStreamKey, ResultSize);
+        MeshDataBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(MeshInfo.LODStreamKey, BufferInfo.BufferSize, ResultSize);
         // Set size
         MeshDataBufferSize = ResultSize;
     }
@@ -1294,7 +1316,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((24 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
 }
 void GameModernWarfare4::PerformInitialSetup()
 {

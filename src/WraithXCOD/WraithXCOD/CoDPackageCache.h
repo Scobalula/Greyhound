@@ -49,7 +49,9 @@ public:
     // Returns the literal cache object with no /decompression applied (nullptr if not found)
     virtual std::unique_ptr<uint8_t[]> ExtractPackageObjectRaw(uint64_t CacheID, uint32_t& ResultSize) { return nullptr; }
     // Returns a cache object (nullptr if not found)
-    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize) { return nullptr; }
+    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize) { return ExtractPackageObject(CacheID, -1, ResultSize); }
+    // Returns a cache object (nullptr if not found)
+    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, int32_t Size, uint32_t& ResultSize) { return nullptr; }
     // Returns a cache object (nullptr if not found)
     virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(const std::string& PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t& ResultSize) { return nullptr; }
 

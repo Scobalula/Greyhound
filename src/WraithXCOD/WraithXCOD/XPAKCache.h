@@ -20,5 +20,5 @@ public:
     // Implement the load package
     virtual bool LoadPackage(const std::string& FilePath);
     // Implement the extract function
-    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, uint32_t& ResultSize);
+    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, int32_t Size, uint32_t& ResultSize);
 };

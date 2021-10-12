@@ -3296,7 +3296,8 @@ struct MW4XModelSurface
 struct MW4GfxMip
 {
     uint64_t HashID;
-    uint8_t Padding[28];
+    uint8_t Padding[24];
+    uint32_t Size;
     uint16_t Width;
     uint16_t Height;
 };

@@ -134,6 +134,8 @@ public:
     static std::unique_ptr<AssetPool> GameAssets;
     // The game's package cache, if any
     static std::unique_ptr<CoDPackageCache> GamePackageCache;
+    // The game's package cache, if any
+    static std::unique_ptr<CoDPackageCache> OnDemandCache;
     // The game's ximage read handler
     static LoadXImageHandler GameXImageHandler;
     // The game's string read handler
