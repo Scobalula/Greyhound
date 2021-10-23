@@ -79,6 +79,11 @@ enum class ImagePatch
     // Do nothing to the export image
     NoPatch,
 
+    // -- Gloss map patches
+    
+    // Convert a gray-scale, roughnessmap to a glossmap
+    Gloss_Roughness,
+
     // -- Normal map patches
 
     // Convert a gray-scale bumpmap to a regular normalmap
