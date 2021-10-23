@@ -209,6 +209,7 @@ bool Image::ConvertToFormat(std::unique_ptr<DirectX::ScratchImage>& Image, Direc
         // Apply patching to the image
         switch (Patch)
         {
+        case ImagePatch::Gloss_Roughness: PatchGlossFromRoughness(Image); break;
         case ImagePatch::Normal_Bumpmap: PatchNormalFromBumpmap(Image); break;
         case ImagePatch::Normal_Expand: PatchNormalFromCompressed(Image); break;
         case ImagePatch::Normal_COD_NOG: PatchNormalCODFromNOG(Image); break;
@@ -365,6 +366,45 @@ bool Image::ConvertToFormat(std::unique_ptr<DirectX::ScratchImage>& Image, Direc
 
     // If we got here, we were successful
     return true;
+}
+
+void Image::PatchGlossFromRoughness(std::unique_ptr<DirectX::ScratchImage>& Image)
+{
+    // Patch a normalmap in bumpmap format, to a traditional normal
+    auto TemporaryImage = std::make_unique<DirectX::ScratchImage>();
+    // Transform it
+    auto Result = DirectX::TransformImage(Image->GetImages(), Image->GetImageCount(), Image->GetMetadata(), [&](DirectX::XMVECTOR* outPixels, const DirectX::XMVECTOR* inPixels, size_t width, size_t y)
+        {
+            // Prepare to transform the pixels
+            UNREFERENCED_PARAMETER(y);
+            // Loop through scanlines
+            for (size_t j = 0; j < width; j++)
+            {
+                // Get the scanline
+                DirectX::XMVECTOR scanline = inPixels[j];
+
+                // Basically, we can take G and A channels and assign them as XY for a normal, then set Z to 1.0, it's closer than most calcs
+                float RedVal = DirectX::XMVectorGetX(scanline);
+                float GreenVal = DirectX::XMVectorGetY(scanline);
+                float BlueVal = DirectX::XMVectorGetZ(scanline);
+
+                // Set it
+                scanline = DirectX::XMVectorSetX(scanline, VectorMath::Clamp<float>(1.0f - RedVal, 0.0, 1.0));
+                scanline = DirectX::XMVectorSetY(scanline, VectorMath::Clamp<float>(1.0f - GreenVal, 0.0, 1.0));
+                scanline = DirectX::XMVectorSetZ(scanline, VectorMath::Clamp<float>(1.0f - BlueVal, 0.0, 1.0));
+                // Ensure alpha is 1.0
+                scanline = DirectX::XMVectorSetW(scanline, 1.0);
+                // Set the out pixel value to new line
+                outPixels[j] = scanline;
+            }
+            // Done with image
+        }, *TemporaryImage);
+    // If we succeeded, swap out the image
+    if (!FAILED(Result))
+    {
+        // Swap out the image
+        Image.reset(TemporaryImage.release());
+    }
 }
 
 void Image::PatchNormalFromBumpmap(std::unique_ptr<DirectX::ScratchImage>& Image)
