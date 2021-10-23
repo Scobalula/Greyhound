@@ -3509,7 +3509,9 @@ struct BOCWGfxImage
     uint16_t LoadedMipWidth;
     uint16_t LoadedMipHeight;
     uint8_t LoadedMipLevels;
-    uint8_t Padding1[19];
+    uint8_t Padding1[15];
+    uint8_t ImageSemantic;
+    uint8_t Padding1[3];
     uint8_t GfxMipMaps;
     uint8_t Padding2[23];
 };
