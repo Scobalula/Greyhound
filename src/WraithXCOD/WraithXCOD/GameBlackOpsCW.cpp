@@ -840,7 +840,6 @@ const XMaterial_t GameBlackOpsCW::ReadXMaterial(uint64_t MaterialPointer)
         case 0x4:
             DefaultUsage = ImageUsageType::NormalMap;
             break;
-        case 0x5:
         case 0x6:
             DefaultUsage = ImageUsageType::SpecularMap;
             break;
