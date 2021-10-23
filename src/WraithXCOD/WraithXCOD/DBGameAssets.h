@@ -3511,9 +3511,9 @@ struct BOCWGfxImage
     uint8_t LoadedMipLevels;
     uint8_t Padding1[15];
     uint8_t ImageSemantic;
-    uint8_t Padding1[3];
+    uint8_t Padding2[3];
     uint8_t GfxMipMaps;
-    uint8_t Padding2[23];
+    uint8_t Padding3[23];
 };
 #pragma pack(pop)
 
