@@ -843,6 +843,9 @@ const XMaterial_t GameBlackOpsCW::ReadXMaterial(uint64_t MaterialPointer)
         case 0x6:
             DefaultUsage = ImageUsageType::SpecularMap;
             break;
+        case 0x7:
+            DefaultUsage = ImageUsageType::GlossMap;
+            break;
         }
 
         // Assign the new image
@@ -945,10 +948,18 @@ std::unique_ptr<XImageDDS> GameBlackOpsCW::LoadXImage(const XImage_t& Image)
         auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
 
         // Check for, and apply patch if required, if we got a raw result
-        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
+        if (Result != nullptr)
         {
-            // Set normal map patch
-            Result->ImagePatchType = ImagePatch::Normal_Expand;
+            if (ImageInfo.ImageSemantic == 0x4 && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
+            {
+                // Set normal map patch
+                Result->ImagePatchType = ImagePatch::Normal_Expand;
+            }
+            else if (ImageInfo.ImageSemantic == 0x7) //&& (SettingsManager::GetSetting("patchgloss", "true") == "true")
+            {
+                // Set gloss map patch
+                Result->ImagePatchType = ImagePatch::Gloss_Roughness;
+            }
         }
 
         // Return it
