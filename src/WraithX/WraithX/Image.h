@@ -116,6 +116,8 @@ public:
 
     // -- Patching functions
 
+    // Convert a gray-scale, roughnessmap to a glossmap
+    static void PatchGlossFromRoughness(std::unique_ptr<DirectX::ScratchImage>& Image);
     // Convert a gray-scale, bumpmap, to a normalmap
     static void PatchNormalFromBumpmap(std::unique_ptr<DirectX::ScratchImage>& Image);
     // Convert a compressed normalmap to a regular one
