@@ -1107,11 +1107,13 @@ struct BO4GfxImage
     uint16_t LoadedMipHeight;
     uint8_t LoadedMipLevels;
 
-    uint8_t Padding2[0x10];
+    uint8_t Padding2[0xB];
+    uint8_t ImageSemantic;
+    uint8_t Padding3[0x4];
 
     uint8_t GfxMipMaps;
 
-    uint8_t Padding3[0xA];
+    uint8_t Padding4[0xA];
 
 
 };
