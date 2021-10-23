@@ -832,15 +832,16 @@ const XMaterial_t GameBlackOpsCW::ReadXMaterial(uint64_t MaterialPointer)
         // Default type
         auto DefaultUsage = ImageUsageType::Unknown;
         // Check 
-        switch (ImageInfo.SemanticHash)
+        switch (CoDAssets::GameInstance->Read<uint8_t>(ImageInfo.ImagePtr + 180))
         {
-        case 0xA0AB1041:
+        case 0x2:
             DefaultUsage = ImageUsageType::DiffuseMap;
             break;
-        case 0x59D30D0F:
+        case 0x4:
             DefaultUsage = ImageUsageType::NormalMap;
             break;
-        case 0xEC443804:
+        case 0x5:
+        case 0x6:
             DefaultUsage = ImageUsageType::SpecularMap;
             break;
         }
