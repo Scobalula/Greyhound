@@ -1263,11 +1263,6 @@ std::unique_ptr<XImageDDS> GameBlackOps4::LoadXImage(const XImage_t& Image)
                 // Set normal map patch
                 Result->ImagePatchType = ImagePatch::Normal_Expand;
             }
-            else if (ImageInfo.ImageSemantic == 0x7) //&& (SettingsManager::GetSetting("patchgloss", "true") == "true")
-            {
-                // Set gloss map patch
-                Result->ImagePatchType = ImagePatch::Gloss_Roughness;
-            }
         }
 
         // Return it
