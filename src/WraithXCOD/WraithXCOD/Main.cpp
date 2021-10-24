@@ -153,6 +153,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "global_images", "true" },
             { "patchnormals", "true" },
             { "patchcolor", "true" },
+            { "patchgloss", "true" },
             { "showxanim", "true" },
             { "showxmodel", "true" },
             { "showximage", "false" },
