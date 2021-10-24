@@ -25,6 +25,7 @@ private:
 
     void OnRebuildNormal();
     void OnRebuildColor();
+    void OnRebuildGloss();
     void OnSkipPrevImg();
     void OnImageFormat();
 
