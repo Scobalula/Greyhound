@@ -955,7 +955,7 @@ std::unique_ptr<XImageDDS> GameBlackOpsCW::LoadXImage(const XImage_t& Image)
                 // Set normal map patch
                 Result->ImagePatchType = ImagePatch::Normal_Expand;
             }
-            else if (ImageInfo.ImageSemantic == 0x7 || ImageInfo.ImageSemantic == 0x1C) //&& (SettingsManager::GetSetting("patchgloss", "true") == "true")
+            else if ((ImageInfo.ImageSemantic == 0x7 || ImageInfo.ImageSemantic == 0x1C) && SettingsManager::GetSetting("patchgloss", "true") == "true")
             {
                 // Set gloss map patch
                 Result->ImagePatchType = ImagePatch::Gloss_Roughness;
