@@ -31,6 +31,7 @@ using System.Net;
 using System.Reflection;
 using Octokit;
 using System.Globalization;
+using System.Security.Policy;
 
 namespace GreyhoundUpdater
 {
@@ -47,7 +48,7 @@ namespace GreyhoundUpdater
         /// <summary>
         /// Gets Application Directory
         /// </summary>
-        public string ApplicationDirectory { get { return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location); } }
+        public string ApplicationDirectory { get; set; }
 
         /// <summary>
         /// Name of the Github Repo to Query
@@ -112,10 +113,11 @@ namespace GreyhoundUpdater
             {
                 // Query Github Releases
                 Client = new GitHubClient(new ProductHeaderValue(ApplicationName));
-#if DEBUG
+
                 // Debug purposes, need higher rate limit
-                Client.Credentials = new Credentials(File.ReadAllText(@"C:\Visual Studio\Auth\OctoKitAuth.txt"));
-#endif
+                if(File.Exists(@"C:\Visual Studio\Auth\OctoKitAuth.txt"))
+                    Client.Credentials = new Credentials(File.ReadAllText(@"C:\Visual Studio\Auth\OctoKitAuth.txt"));
+
                 try
                 {
                     if (PackageIndexRequiresUpdate(Client))
@@ -199,12 +201,12 @@ namespace GreyhoundUpdater
                 // Try launch Greyhound again
                 try
                 {
-                    Process.Start("Greyhound.exe");
+                    Process.Start(Path.Combine(ApplicationDirectory, AssemblyName));
                 }
                 catch
                 {
                     Updating = false;
-                    MessageBox.Show("Failed to execute Greyhound.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Failed to execute {AssemblyName}.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
                     Close();
                 }
                 // Invoke UI Changes and launch Finalize method
@@ -233,19 +235,27 @@ namespace GreyhoundUpdater
             var commits = client.Repository.Commit.GetAll(GithubUserName, PackageIndexRepoName, new ApiOptions() { PageCount = 1, PageSize = 1 });
             var topCommit = commits.Result[0];
 
-            if (!File.Exists(Path.Combine("package_index", "commit_cache.dat")))
+            var cache = Path.Combine(ApplicationDirectory, "package_index", "commit_cache.dat");
+
+            if (!File.Exists(cache))
             {
-                Directory.CreateDirectory("package_index");
-                File.WriteAllText(Path.Combine("package_index", "commit_cache.dat"), topCommit.Sha);
+                Directory.CreateDirectory(Path.GetDirectoryName(cache));
+                File.WriteAllText(cache, topCommit.Sha);
                 return true;
             }
 
-            var commitCache = File.ReadAllText(Path.Combine("package_index", "commit_cache.dat"));
+            var commitCache = File.ReadAllText(cache);
+
+            // Debug for people doing hash entries, do not want updates
+            if(commitCache == "-1")
+            {
+                return false;
+            }
 
             // Our commits are different, we must refresh the package index
             if(commitCache != topCommit.Sha)
             {
-                File.WriteAllText(Path.Combine("package_index", "commit_cache.dat"), topCommit.Sha);
+                File.WriteAllText(cache, topCommit.Sha);
                 return true;
             }
 
@@ -255,10 +265,11 @@ namespace GreyhoundUpdater
         /// <summary>
         /// Compiles a WNI file from a CSV file
         /// </summary>
-        static void CompileFromCSV(Stream stream, string name)
+        private void CompileFromCSV(Stream stream, string name)
         {
-            Directory.CreateDirectory("package_index");
-            var wniFile = Path.Combine("package_index", $"{name}.wni");
+            var dir = Path.Combine(ApplicationDirectory, "package_index");
+            Directory.CreateDirectory(dir);
+            var wniFile = Path.Combine(dir, $"{name}.wni");
             var index = new PackageIndex();
 
             using(var reader = new StreamReader(stream))
@@ -302,15 +313,16 @@ namespace GreyhoundUpdater
             // Get arguments
             string[] args = Environment.GetCommandLineArgs();
             // Check did we receive the correct number of arguments (we want 5, so we check 5 since we're including this assembly)
-            if (args.Length < 6)
+            if (args.Length < 7)
                 return false;
             // Assign data
-            GithubUserName    = args[1];
-            GithubRepoName    = args[2];
-            ApplicationName   = args[3];
-            AssemblyName      = args[4];
-            DownloadViaClient = args[5] == "true";
-            if (args.Length >= 7)
+            GithubUserName       = args[1];
+            GithubRepoName       = args[2];
+            ApplicationName      = args[3];
+            AssemblyName         = args[4];
+            ApplicationDirectory = args[5];
+            DownloadViaClient    = args[6] == "true";
+            if (args.Length >= 8)
                 PackageIndexRepoName = args[6];
             else
                 PackageIndexRepoName = "GreyhoundPackageIndex";
@@ -381,7 +393,7 @@ namespace GreyhoundUpdater
                 WebClient client = new WebClient();
                 client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(UpdateProgress);
                 client.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadComplete);
-                client.DownloadFileAsync(new Uri(LatestReleaseAsset.BrowserDownloadUrl), "Update.zip");
+                client.DownloadFileAsync(new Uri(LatestReleaseAsset.BrowserDownloadUrl), Path.Combine(ApplicationDirectory, "Update.zip"));
             }).Start();
         }
 
@@ -395,7 +407,7 @@ namespace GreyhoundUpdater
                 WebClient client = new WebClient();
                 client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(UpdateProgress);
                 client.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadComplete);
-                client.DownloadFileAsync(new Uri(LatestReleaseAsset.BrowserDownloadUrl), "Update.zip");
+                client.DownloadFileAsync(new Uri(LatestReleaseAsset.BrowserDownloadUrl), Path.Combine(ApplicationDirectory, "Update.zip"));
             }).Start();
         }
 
@@ -430,21 +442,19 @@ namespace GreyhoundUpdater
         private void FinalizeUpdate()
         {
             // Check if Update Zip was actually downloaded
-            if(File.Exists("Update.zip"))
+            if(File.Exists(Path.Combine(ApplicationDirectory, Path.Combine(ApplicationDirectory, "Update.zip"))))
             {
                 // Try unpack, we should not fail unless permission issues, etc. occur.
                 try
                 {
-                    using (ZipArchive archive = new ZipArchive(new FileStream("Update.zip", System.IO.FileMode.Open)))
+                    using (ZipArchive archive = new ZipArchive(new FileStream(Path.Combine(ApplicationDirectory, "Update.zip"), System.IO.FileMode.Open)))
                     {
                         foreach (var entry in archive.Entries)
                         {
-                            if (!String.IsNullOrWhiteSpace(entry.Name) && entry.Name != Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName))
+                            if (!String.IsNullOrWhiteSpace(entry.Name))
                             {
                                 string resultingFile = Path.Combine(ApplicationDirectory, entry.FullName);
-
                                 Directory.CreateDirectory(Path.GetDirectoryName(resultingFile));
-
                                 entry.ExtractToFile(resultingFile, true);
                             }
                         }
@@ -466,22 +476,22 @@ namespace GreyhoundUpdater
             // Try launch Greyhound again
             try
             {
-                Process.Start("Greyhound.exe");
+                Process.Start(Path.Combine(ApplicationDirectory, AssemblyName));
             }
             catch
             {
                 Updating = false;
-                MessageBox.Show("Failed to execute Greyhound.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to execute {AssemblyName}.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
                 Close();
             }
             // Set back
             Updating = false;
             // Delete Update File
-            if(File.Exists("Update.zip"))
+            if(File.Exists(Path.Combine(ApplicationDirectory, "Update.zip")))
             {
                 try
                 {
-                    File.Delete("Update.zip");
+                    File.Delete(Path.Combine(ApplicationDirectory, "Update.zip"));
                 }
                 catch
                 {

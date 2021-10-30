@@ -79,20 +79,17 @@ void Casc::Container::LoadIndexFiles()
 void Casc::Container::LoadDataFiles()
 {
     auto DataFileNames = FileSystems::GetFiles(DataPath, "data.*");
+    auto DataFileCount = DataFileNames.size();
+    DataFiles = std::make_unique<std::shared_ptr<DataFile>[]>(DataFileCount);
 
-    DataFiles.reserve(DataFileNames.size());
-
-    for (auto DataFileName : DataFileNames)
+    for (size_t i = 0; i < DataFileCount; i++)
     {
-        auto IndexSplit = Strings::SplitString(DataFileName, '.');
+        auto FullPath = Strings::Format("%s/data.%03d", DataPath.c_str(), i);
 
-        if (IndexSplit.size() >= 2)
-        {
-            auto ArchiveIndex = std::stoi(IndexSplit.back());
-
-            DataFiles.insert(DataFiles.begin() + ArchiveIndex, std::make_shared<DataFile>(DataFileName));
-        }
-
+        if (!FileSystems::FileExists(FullPath))
+            continue;
+        
+        DataFiles[i] = std::make_shared<DataFile>(FullPath);
     }
 }
 
@@ -238,7 +235,7 @@ Casc::Container::~Container()
 
 void Casc::Container::Open(const std::string & path)
 {
-    DataFiles.clear();
+    DataFiles = nullptr;
     DataEntries.clear();
     FileSystemHandler = nullptr;
 
@@ -317,7 +314,7 @@ Casc::FileReader Casc::Container::OpenFile(const std::string& FileName)
     for (auto& KeyEntry : File.KeyEntries)
     {
         IndexEntry& Entry = DataEntries.at(KeyEntry);
-        auto DataFile = DataFiles.at(Entry.ArchiveIndex);
+        auto DataFile = DataFiles[Entry.ArchiveIndex];
 
         FileSpan Span(Entry.ArchiveIndex);
 
@@ -383,7 +380,7 @@ Casc::FileReader Casc::Container::OpenFile(IndexEntry Entry)
 
     FileReader Reader(*this);
 
-    auto DataFile = DataFiles.at(Entry.ArchiveIndex);
+    auto DataFile = DataFiles[Entry.ArchiveIndex];
 
     FileSpan Span(Entry.ArchiveIndex);
 
@@ -470,7 +467,7 @@ void Casc::Container::Close()
     if (Closed)
         return;
 
-    DataFiles.clear();
+    DataFiles = nullptr;
     DataEntries.clear();
     FileSystemHandler = nullptr;
     Closed = true;

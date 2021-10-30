@@ -410,7 +410,7 @@ namespace Casc
         // Data Entries
         std::unordered_map<IndexKey, IndexEntry, IndexKeyHasher> DataEntries;
         // Data Files
-        std::vector<std::shared_ptr<DataFile>> DataFiles;
+        std::unique_ptr<std::shared_ptr<DataFile>[]> DataFiles;
         // File System Handler
         std::unique_ptr<FileSystem> FileSystemHandler;
         // Container Mutex
