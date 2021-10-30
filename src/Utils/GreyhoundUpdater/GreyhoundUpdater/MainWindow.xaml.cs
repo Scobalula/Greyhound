@@ -453,9 +453,13 @@ namespace GreyhoundUpdater
                         {
                             if (!String.IsNullOrWhiteSpace(entry.Name))
                             {
-                                string resultingFile = Path.Combine(ApplicationDirectory, entry.FullName);
-                                Directory.CreateDirectory(Path.GetDirectoryName(resultingFile));
-                                entry.ExtractToFile(resultingFile, true);
+                                try
+                                {
+                                    string resultingFile = Path.Combine(ApplicationDirectory, entry.FullName);
+                                    Directory.CreateDirectory(Path.GetDirectoryName(resultingFile));
+                                    entry.ExtractToFile(resultingFile, true);
+                                }
+                                catch { }
                             }
                         }
                     }
