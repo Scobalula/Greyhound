@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Supported Titles
-nav_order: 1
+nav_order: 2
 ---
 
 # Supported Titles
