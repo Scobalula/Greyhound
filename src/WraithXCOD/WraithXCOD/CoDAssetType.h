@@ -51,6 +51,8 @@ public:
 
     // -- Animation properties
 
+    // The bones
+    std::vector<std::string> BoneNames;
     // The framerate
     float Framerate;
     // The number of frames
@@ -71,6 +73,8 @@ public:
 
     // -- Model properties
 
+    // The bones
+    std::vector<std::string> BoneNames;
     // The bone count
     uint32_t BoneCount;
     // The cosmetic bone count
@@ -116,7 +120,9 @@ enum class SoundDataTypes
     WAV_WithHeader,
     WAV_NeedsHeader,
     FLAC_WithHeader,
-    FLAC_NeedsHeader
+    FLAC_NeedsHeader,
+    Opus_Interleaved,
+    Opus_Interleaved_Streamed,
 };
 
 // A class that represents a sound asset
@@ -191,6 +197,10 @@ struct XModelSubmesh_t
     uint64_t FacesPtr;
     // Pointer to verticies
     uint64_t VertexPtr;
+    // Pointer to verticies
+    uint64_t VertexNormalsPtr;
+    // Pointer to UVs
+    uint64_t VertexUVsPtr;
     // Pointer to vertex colors
     uint64_t VertexColorPtr;
 

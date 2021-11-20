@@ -630,6 +630,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             case SupportedGames::BlackOpsCW:
             case SupportedGames::WorldWar2:
             case SupportedGames::ModernWarfare4:
+            case SupportedGames::Vanguard:
                 // Build translations for 64bit games
                 DeltaTranslations64(Anim, FrameSize, Animation);
             break;
@@ -663,6 +664,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             case SupportedGames::BlackOpsCW:
             case SupportedGames::WorldWar2:
             case SupportedGames::ModernWarfare4:
+            case SupportedGames::Vanguard:
                 // Build 2d rotations for 64bit games
                 Delta2DRotations64(Anim, FrameSize, Animation);
                 break;
@@ -693,6 +695,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::BlackOpsCW:
         case SupportedGames::WorldWar2:
         case SupportedGames::ModernWarfare4:
+        case SupportedGames::Vanguard:
             // Build 3d rotations for 64bit games
             Delta3DRotations64(Anim, FrameSize, Animation);
             break;
@@ -730,6 +733,10 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::BlackOpsCW:
             // Black Ops CW has a new format
             NotetracksCW(Anim, Animation);
+            break;
+        case SupportedGames::Vanguard:
+            // Build standard notetracks
+            NotetracksVG(Anim, Animation);
             break;
     }
 
@@ -870,6 +877,28 @@ void CoDXAnimTranslator::NotetracksCW(const std::unique_ptr<WraithAnim>& Anim, c
 
         // Advance 0x28 bytes
         Animation->NotificationsPtr += 0x20;
+    }
+}
+
+void CoDXAnimTranslator::NotetracksVG(const std::unique_ptr<WraithAnim>& Anim, const std::unique_ptr<XAnim_t>& Animation)
+{
+    // Loop over notetracks
+    for (uint32_t i = 0; i < Animation->NotificationCount; i++)
+    {
+        // Read the tag
+        auto NotificationTag = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->NotificationsPtr));
+        // Read the frame
+        uint32_t NotificationFrame = (uint32_t)((float)Animation->FrameCount * CoDAssets::GameInstance->Read<float>(Animation->NotificationsPtr + 4));
+
+        // Add the notetrack, if the tag is not blank
+        if (!Strings::IsNullOrWhiteSpace(NotificationTag))
+        {
+            // Add
+            Anim->AddNoteTrack(NotificationTag, NotificationFrame);
+        }
+
+        // Advance 8 bytes
+        Animation->NotificationsPtr += 16;
     }
 }
 

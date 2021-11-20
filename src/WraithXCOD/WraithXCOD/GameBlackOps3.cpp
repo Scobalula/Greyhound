@@ -248,6 +248,7 @@ bool GameBlackOps3::LoadAssets()
             LoadedAnim->AssetPointer = AssetOffset;
             LoadedAnim->Framerate = Asset.Framerate;
             LoadedAnim->FrameCount = Asset.NumFrames;
+            LoadedAnim->BoneCount = Asset.TotalBoneCount;
 
             // Check placeholder configuration, "void" is the base xanim
             if (AnimName == "void")

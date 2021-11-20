@@ -1,13 +1,16 @@
 #include "stdafx.h"
 
 // The class we are implementing
-#include "GameModernWarfare4.h"
+#include "GameVanguard.h"
 
 // We need the CoDAssets class
 #include "CoDAssets.h"
 #include "CoDRawImageTranslator.h"
 #include "CoDXPoolParser.h"
 #include "DBGameFiles.h"
+
+// We need the SAB class for decoding
+#include "SABSupport.h"
 
 // We need the following WraithX classes
 #include "Strings.h"
@@ -19,17 +22,20 @@
 
 // -- Initialize built-in game offsets databases
 
-// Modern Warfare 4 SP
-std::array<DBGameInfo, 1> GameModernWarfare4::SinglePlayerOffsets =
+WraithNameIndex GameVanguard::StringCache = WraithNameIndex();
+WraithNameIndex GameVanguard::AssetNameCache = WraithNameIndex();
+
+// Vanguard SP
+std::array<DBGameInfo, 1> GameVanguard::SinglePlayerOffsets =
 {{
-    { 0xCFA24C0, 0x0, 0xEC77F00, 0x0 }
+    { 0xE1AF540, 0x0, 0xF9B1000, 0x0 }
 }};
 
 // -- Finished with databases
 
 // -- Begin XModelStream structures
 
-struct MW4GfxRigidVerts
+struct VGGfxRigidVerts
 {
     uint16_t BoneIndex;
     uint16_t VertexCount;
@@ -38,7 +44,7 @@ struct MW4GfxRigidVerts
 };
 
 #pragma pack(push, 1)
-struct MW4GfxStreamVertex
+struct VGGfxStreamVertex
 {
     uint64_t PackedPosition; // Packed 21bits, scale + offset in Mesh Info
     uint32_t BiNormal;
@@ -48,7 +54,7 @@ struct MW4GfxStreamVertex
 };
 #pragma pack(pop)
 
-struct MW4GfxStreamFace
+struct VGGfxStreamFace
 {
     uint16_t Index1;
     uint16_t Index2;
@@ -57,101 +63,90 @@ struct MW4GfxStreamFace
 
 // -- End XModelStream structures
 
-// -- Modern Warfare 4 Pool Data Structure
-
-struct MW4XAssetPoolData
-{
-    // The beginning of the pool
-    uint64_t PoolPtr;
-
-    // A pointer to the closest free header
-    uint64_t PoolFreeHeadPtr;
-
-    // The maximum pool size
-    uint32_t PoolSize;
-
-    // The size of the asset header
-    uint32_t AssetSize;
-};
-
-struct MW4SoundBankInfo
-{
-    uint64_t BankNamePointer;
-    uint64_t StreamKey;
-    uint8_t Padding[0x14];
-    uint64_t BankFilePointer;
-    uint64_t UnkPointer;
-    uint32_t BankFileSize;
-    uint32_t Unk;
-};
-
-struct MW4SoundAlias
-{
-    uint64_t NamePtr;
-    uint32_t NameHash;
-    uint32_t Padding;
-    uint64_t EntriesPtr;
-    uint64_t EntriesCount;
-};
-
-struct MW4SoundAliasEntry
-{
-    uint64_t FilePtr;
-    uint32_t FileHash;
-    uint32_t Unk;
-    uint64_t NamingInfoPtr;
-    uint64_t UnkPtr2;
-};
-
-// In the Season 5 patch the Name/Secondary pointers are no longer stored directly in the sound alias entry and are instead their own structure pointed to from the entry.
-struct MW4SoundAliasNamingInfo
-{
-    uint64_t NamePtr;
-    uint64_t SecondaryPtr;
-};
-
 // Calculates the hash of a sound string
-uint32_t MW4HashSoundString(const std::string& Value)
+uint64_t VGHashSoundString(const std::string& Value)
 {
-    uint32_t Result = 5381;
+    uint64_t Result = 0xCBF29CE484222325;
 
-    for (auto& Character : Value)
-        Result = (uint32_t)(tolower(Character) + (Result << 6) + (Result << 16)) - Result;
+    for (uint32_t i = 0; i < Value.length(); i++)
+    {
+        Result ^= tolower(Value[i]);
+        Result *= 0x100000001B3;
+    }
 
     return Result;
 }
 
 // Verify that our pool data is exactly 0x20
-static_assert(sizeof(MW4XAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
+static_assert(sizeof(VGXAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
 
-bool GameModernWarfare4::LoadOffsets()
+struct VGGfxImage
+{
+    uint64_t NamePtr;
+    uint8_t Unk00[12];
+    uint8_t Unk010;
+    uint8_t Unk011;
+    uint8_t Unk012;
+    uint8_t Unk013;
+    uint32_t BufferSize;
+    uint32_t Unk02;
+    uint16_t Width;
+    uint16_t Height;
+    uint16_t Depth;
+    uint16_t Levels;
+    uint8_t UnkByte0;
+    uint8_t UnkByte1;
+    uint8_t ImageFormat;
+    uint8_t UnkByte3;
+    uint8_t UnkByte4;
+    uint8_t UnkByte5;
+    uint8_t UnkByte6;
+    uint8_t UnkByte7;
+    uint64_t Unk04;
+    uint64_t MipMaps;
+    uint64_t PrimedMipPtr;
+    uint64_t LoadedImagePtr;
+};
+
+#pragma pack(push, 1)
+struct VGGfxMip
+{
+    uint64_t HashID;
+    uint8_t Padding[8];
+    uint32_t Size;
+    uint16_t Width;
+    uint16_t Height;
+};
+#pragma pack(pop)
+
+bool GameVanguard::LoadOffsets()
 {
     // ----------------------------------------------------
-    //    Modern Warfare 4 pools and sizes, XAssetPoolData is an array of pool info for each asset pool in the game
+    //    Vanguard pools and sizes, XAssetPoolData is an array of pool info for each asset pool in the game
     //    The index of the assets we use are as follows: xanim (3), xmodel (4), ximage (0x9)
     //    Index * sizeof(MWXAssetPoolData) = the offset of the asset info in this array of data, we can verify it using the xmodel pool and checking for the model hash (0x04647533e968c910)
-    //  Notice: Modern Warfare 4 doesn't store a freePoolHandle at the beginning, so we just read on.
-    //    On Modern Warfare 4, (0x04647533e968c910) will be the first xmodel
-    //    Modern Warfare 4 stringtable, check entries, results may vary
+    //  Notice: Vanguard doesn't store a freePoolHandle at the beginning, so we just read on.
+    //    On Vanguard, (0x04647533e968c910) will be the first xmodel
+    //    Vanguard stringtable, check entries, results may vary
     //    Reading is: (StringIndex * 28) + StringTablePtr + 8
     // ----------------------------------------------------
 
     // Attempt to load the game offsets
     if (CoDAssets::GameInstance != nullptr)
     {
-        // We need the base address of the MW4 Module for ASLR + Heuristics
+        // We need the base address of the Vanguard Module for ASLR + Heuristics
         auto BaseAddress = CoDAssets::GameInstance->GetMainModuleAddress();
 
         // Check built-in offsets via game exe mode (SP)
         for (auto& GameOffsets : SinglePlayerOffsets)
         {
             // Read required offsets (XANIM, XMODEL, XIMAGE, RAWFILE RELATED...)
-            auto AnimPoolData           = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
-            auto ModelPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
-            auto ImagePoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
-            auto SoundPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
-            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 22));
-            auto MaterialPoolData       = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 11));
+            auto AnimPoolData           = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 7));
+            auto ModelPoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 9));
+            auto ImagePoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 19));
+            auto SoundPoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 22));
+            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 23));
+            auto MaterialPoolData       = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 11));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
@@ -183,8 +178,8 @@ bool GameModernWarfare4::LoadOffsets()
         }
 
         // Attempt to locate via heuristic searching (Note: As of right now, none of the functions got inlined)
-        auto DBAssetsScan      = CoDAssets::GameInstance->Scan("48 8D 04 40 4C 8D 8E ?? ?? ?? ?? 4D 8D 0C C1 8D 42 FF");
-        auto StringTableScan   = CoDAssets::GameInstance->Scan("4D 8B C7 48 03 1D ?? ?? ?? ?? 49 8B D5");
+        auto DBAssetsScan      = CoDAssets::GameInstance->Scan("48 63 ?? 4C 8D ?? ?? ?? ?? ?? 48 8D 0C 40 49 8B");
+        auto StringTableScan   = CoDAssets::GameInstance->Scan("BA 10 00 00 00 4C 8D ?? ?? ?? ?? ?? 3B DA B8 CD CC CC CC");
 
         // Check that we had hits
         if (DBAssetsScan > 0 && StringTableScan > 0)
@@ -192,11 +187,11 @@ bool GameModernWarfare4::LoadOffsets()
             // Load info and verify
             auto GameOffsets = DBGameInfo(
                 // Resolve pool info from LEA
-                CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0x7) + BaseAddress,
+                CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0x6) + DBAssetsScan + 10 - 8,
                 // We don't use size offsets
                 0,
                 // Resolve strings from LEA
-                CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x6) + (StringTableScan + 0xA)),
+                CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x8) + (StringTableScan + 0xC),
                 // We don't use package offsets
                 0
             );
@@ -208,12 +203,12 @@ bool GameModernWarfare4::LoadOffsets()
 #endif
 
             // Read required offsets (XANIM, XMODEL, XIMAGE)
-            auto AnimPoolData           = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
-            auto ModelPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
-            auto ImagePoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
-            auto SoundPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
-            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 22));
-            auto MaterialPoolData       = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 11));
+            auto AnimPoolData           = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 7));
+            auto ModelPoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 9));
+            auto ImagePoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 19));
+            auto SoundPoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 22));
+            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 23));
+            auto MaterialPoolData       = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 11));
 
             // Apply game offset info
             CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
@@ -249,7 +244,7 @@ bool GameModernWarfare4::LoadOffsets()
     return false;
 }
 
-bool GameModernWarfare4::LoadAssets()
+bool GameVanguard::LoadAssets()
 {
     // Prepare to load game assets, into the AssetPool
     bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
@@ -258,6 +253,7 @@ bool GameModernWarfare4::LoadAssets()
     bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
     bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
+    bool NeedsExtInfo = (SettingsManager::GetSetting("needsextinfo", "true") == "true");
 
     // Check if we need assets
     if (NeedsAnims)
@@ -325,6 +321,17 @@ bool GameModernWarfare4::LoadAssets()
                 LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
             }
 
+            // Parse bone names if requested
+            if (NeedsExtInfo)
+            {
+                for (size_t i = 0; i < LoadedAnim->BoneCount; i++)
+                {
+                    auto BoneIndex = CoDAssets::GameInstance->Read<uint32_t>(AnimResult.BoneIDsPtr + i * 4);
+
+                    LoadedAnim->BoneNames.emplace_back(CoDAssets::GameStringHandler(BoneIndex));
+                }
+            }
+
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
 
@@ -340,12 +347,12 @@ bool GameModernWarfare4::LoadAssets()
         auto ModelCount = CoDAssets::GamePoolSizes[1];
 
         // Calculate maximum pool size
-        auto MaximumPoolOffset = (ModelCount * sizeof(MW4XModel)) + ModelOffset;
+        auto MaximumPoolOffset = (ModelCount * sizeof(VGXModel)) + ModelOffset;
         // Store original offset
         auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[1];
 
         // Store the placeholder model
-        MW4XModel PlaceholderModel;
+        VGXModel PlaceholderModel;
         // Clear it out
         std::memset(&PlaceholderModel, 0, sizeof(PlaceholderModel));
 
@@ -353,13 +360,13 @@ bool GameModernWarfare4::LoadAssets()
         for (uint32_t i = 0; i < ModelCount; i++)
         {
             // Read
-            auto ModelResult = CoDAssets::GameInstance->Read<MW4XModel>(ModelOffset);
+            auto ModelResult = CoDAssets::GameInstance->Read<VGXModel>(ModelOffset);
 
             // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
             if ((ModelResult.NamePtr > MinimumPoolOffset && ModelResult.NamePtr < MaximumPoolOffset) || ModelResult.NamePtr == 0)
             {
                 // Advance
-                ModelOffset += sizeof(MW4XModel);
+                ModelOffset += sizeof(VGXModel);
                 // Skip this asset
                 continue;
             }
@@ -400,11 +407,22 @@ bool GameModernWarfare4::LoadAssets()
                 LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
             }
 
+            // Parse bone names if requested
+            if (NeedsExtInfo)
+            {
+                for (size_t i = 0; i < LoadedModel->BoneCount; i++)
+                {
+                    auto BoneIndex = CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + i * 4);
+
+                    LoadedModel->BoneNames.emplace_back(CoDAssets::GameStringHandler(BoneIndex));
+                }
+            }
+
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
 
             // Advance
-            ModelOffset += sizeof(MW4XModel);
+            ModelOffset += sizeof(VGXModel);
         }
     }
 
@@ -415,7 +433,7 @@ bool GameModernWarfare4::LoadAssets()
         auto ImageCount = CoDAssets::GamePoolSizes[2];
 
         // Calculate maximum pool size
-        auto MaximumPoolOffset = (ImageCount * sizeof(MW4GfxImage)) + ImageOffset;
+        auto MaximumPoolOffset = (ImageCount * sizeof(VGGfxImage)) + ImageOffset;
         // Store original offset
         auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
 
@@ -423,13 +441,13 @@ bool GameModernWarfare4::LoadAssets()
         for (uint32_t i = 0; i < ImageCount; i++)
         {
             // Read
-            auto ImageResult = CoDAssets::GameInstance->Read<MW4GfxImage>(ImageOffset);
+            auto ImageResult = CoDAssets::GameInstance->Read<VGGfxImage>(ImageOffset);
 
             // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
             if ((ImageResult.NamePtr > MinimumPoolOffset && ImageResult.NamePtr < MaximumPoolOffset) || ImageResult.NamePtr == 0)
             {
                 // Advance
-                ImageOffset += sizeof(MW4GfxImage);
+                ImageOffset += sizeof(VGGfxImage);
                 // Skip this asset
                 continue;
             }
@@ -441,7 +459,7 @@ bool GameModernWarfare4::LoadAssets()
             CoDAssets::LogXAsset("Image", ImageName);
 
             // Check if it's streamed
-            if(ImageResult.LoadedMipLevels > 0)
+            if(ImageResult.MipMaps > 0)
             {
 
                 // Make and add
@@ -449,8 +467,8 @@ bool GameModernWarfare4::LoadAssets()
                 // Set
                 LoadedImage->AssetName = ImageName;
                 LoadedImage->AssetPointer = ImageOffset;
-                LoadedImage->Width = (uint16_t)ImageResult.LoadedMipWidth;
-                LoadedImage->Height = (uint16_t)ImageResult.LoadedMipHeight;
+                LoadedImage->Width = (uint16_t)ImageResult.Width;
+                LoadedImage->Height = (uint16_t)ImageResult.Height;
                 LoadedImage->Format = ImageResult.ImageFormat;
                 LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
 
@@ -459,19 +477,23 @@ bool GameModernWarfare4::LoadAssets()
             }
 
             // Advance
-            ImageOffset += sizeof(MW4GfxImage);
+            ImageOffset += sizeof(VGGfxImage);
         }
     }
 
     // Since MW now stores the entire SABL in Fast Files, we must essentially parse it in memory, SABS files can be loaded as usual.
     if (NeedsSounds)
     {
+#if _DEBUG
+        TextWriter Writer;
+        Writer.Open("vg_sound_names.csv");
+#endif 
         // Images are the fourth offset and foruth pool
         auto SoundOffset = CoDAssets::GameOffsetInfos[3];
         auto SoundCount = CoDAssets::GamePoolSizes[3];
 
         // Calculate maximum pool size
-        auto MaximumPoolOffset = (SoundCount * sizeof(MW4SoundBank)) + SoundOffset;
+        auto MaximumPoolOffset = (SoundCount * sizeof(VGSoundBank)) + SoundOffset;
         // Store original offset
         auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
 
@@ -479,24 +501,26 @@ bool GameModernWarfare4::LoadAssets()
         for (uint32_t i = 0; i < SoundCount; i++)
         {
             // Read
-            auto SoundResult = CoDAssets::GameInstance->Read<MW4SoundBank>(SoundOffset);
+            auto SoundResult = CoDAssets::GameInstance->Read<VGSoundBank>(SoundOffset);
 
             // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
             if ((SoundResult.NamePtr > MinimumPoolOffset && SoundResult.NamePtr < MaximumPoolOffset) || SoundResult.NamePtr == 0)
             {
                 // Advance
-                SoundOffset += sizeof(MW4SoundBank);
+                SoundOffset += sizeof(VGSoundBank);
                 // Skip this asset
                 continue;
             }
 
-            auto SoundBankInfo = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(SoundResult.SoundBankPtr);
+            auto SoundBankInfo = CoDAssets::GameInstance->Read<VGSoundBankInfo>(SoundResult.SoundBankPtr);
+
+            std::cout << "Sound Bank: " << CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr) << " @ " << SoundOffset << std::endl;
+
+            // Get Settings
+            auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
 
             if (SoundBankInfo.BankFilePointer > 0)
             {
-                // Names by Hash
-                std::map<uint32_t, std::string> SABFileNames;
-
                 // Parse the loaded header, and offset from the pointer to it
                 auto Header = CoDAssets::GameInstance->Read<SABFileHeader>(SoundBankInfo.BankFilePointer);
 
@@ -505,13 +529,10 @@ bool GameModernWarfare4::LoadAssets()
                 if (Header.Magic != 0x23585532)
                 {
                     // Advance
-                    SoundOffset += sizeof(MW4SoundBank);
+                    SoundOffset += sizeof(VGSoundBank);
                     // Skip this asset
                     continue;
                 }
-
-                // Get Settings
-                auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
 
                 // Name offset
                 auto NamesOffset = CoDAssets::GameInstance->Read<uint64_t>(SoundBankInfo.BankFilePointer + 0x250);
@@ -520,57 +541,106 @@ bool GameModernWarfare4::LoadAssets()
                 for (size_t i = 0; i < Header.EntriesCount; i++)
                 {
                     auto Name = CoDAssets::GameInstance->ReadNullTerminatedString(SoundBankInfo.BankFilePointer + NamesOffset + i * 128);
-                    SABFileNames[MW4HashSoundString(Name)] = Name;
+                    AssetNameCache.NameDatabase[VGHashSoundString(Name)] = Name;
                 }
 
                 // Prepare to loop and read entries
                 for (uint32_t i = 0; i < Header.EntriesCount; i++)
                 {
                     // Read each entry
-                    auto Entry = CoDAssets::GameInstance->Read<SABv4Entry>(SoundBankInfo.BankFilePointer + Header.EntryTableOffset + i * sizeof(SABv4Entry));
+                    auto Entry = CoDAssets::GameInstance->Read<SABv17Entry>(SoundBankInfo.BankFilePointer + Header.EntryTableOffset + i * sizeof(SABv17Entry));
 
-                    // Prepare to parse the information to our generic structure
-                    std::string EntryName = "";
-                    // Check our options
-                    if (SABFileNames.size() > 0)
+                    // Check do we want to skip this
+                    if (SkipBlankAudio && Entry.Size <= 0)
                     {
-                        // We have it in file
-                        EntryName = SABFileNames[Entry.Key];
+                        continue;
                     }
-                    else
-                    {
-                        // We don't have one
-                        EntryName = Strings::Format("_%llx", Entry.Key);
-                    }
-
-                    // Log it
-                    CoDAssets::LogXAsset("Sound", EntryName);
 
                     // Setup a new entry
                     auto LoadedSound = new CoDSound_t();
-                    // Set the name, but remove all extensions first
-                    LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
-                    LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
 
-                    // Set various properties
-                    LoadedSound->FrameRate = Entry.FrameRate;
-                    LoadedSound->FrameCount = Entry.FrameCount;
+                    LoadedSound->FrameRate     = Entry.FrameRate;
+                    LoadedSound->FrameCount    = Entry.FrameCount;
                     LoadedSound->ChannelsCount = Entry.ChannelCount;
-                    // The offset should be after the seek table, since it is not required
-                    LoadedSound->AssetPointer = SoundBankInfo.BankFilePointer + (Entry.Offset + Entry.SeekTableLength);
-                    LoadedSound->AssetSize = Entry.Size;
-                    LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
-                    LoadedSound->IsFileEntry = false;
-                    LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
-                    // All Modern Warfare (v10) entries are FLAC's with no header
-                    LoadedSound->DataType = SoundDataTypes::FLAC_NeedsHeader;
+                    LoadedSound->AssetPointer  = SoundBankInfo.BankFilePointer + (Entry.Offset + Entry.SeekTableLength);
+                    LoadedSound->AssetSize     = Entry.Size;
+                    LoadedSound->AssetStatus   = WraithAssetStatus::Loaded;
+                    LoadedSound->IsFileEntry   = false;
+                    LoadedSound->Length        = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+                    LoadedSound->DataType      = SoundDataTypes::Opus_Interleaved;
+
+                    auto NameResult = AssetNameCache.NameDatabase.find(Entry.Key);
+
+                    if (NameResult != AssetNameCache.NameDatabase.end())
+                    {
+                        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(NameResult->second);
+                        LoadedSound->FullPath = FileSystems::GetDirectoryName(NameResult->second);
+                    }
+                    else
+                    {
+                        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(Strings::Format("xsound_%llx", Entry.Key));
+                        LoadedSound->FullPath = FileSystems::GetDirectoryName(LoadedSound->AssetName);
+                    }
+
+
+                    // Log it
+                    CoDAssets::LogXAsset("Sound", FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
+
+#if _DEBUG
+                    Writer.WriteLineFmt("%llx,%s", Entry.Key, FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
+#endif 
+
+                    // Add
+                    CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+                }
+            }
+
+            if (SoundResult.StreamedSoundsPtr > 0 && SoundResult.StreamedSoundCount > 0)
+            {
+                for (size_t i = 0; i < SoundResult.StreamedSoundCount; i++)
+                {
+                    // Read each entry
+                    auto Entry = CoDAssets::GameInstance->Read<SABv17Entry>(SoundResult.StreamedSoundsPtr + i * sizeof(SABv17Entry));
 
                     // Check do we want to skip this
-                    if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
+                    if (SkipBlankAudio && Entry.Size <= 0)
                     {
-                        delete LoadedSound;
                         continue;
                     }
+
+                    // Setup a new entry
+                    auto LoadedSound = new CoDSound_t();
+
+                    LoadedSound->FrameRate     = Entry.FrameRate;
+                    LoadedSound->FrameCount    = Entry.FrameCount;
+                    LoadedSound->ChannelsCount = Entry.ChannelCount;
+                    LoadedSound->AssetPointer  = SoundResult.StreamedSoundsPtr + i * sizeof(SABv17Entry);
+                    LoadedSound->AssetSize     = Entry.Size;
+                    LoadedSound->AssetStatus   = WraithAssetStatus::Loaded;
+                    LoadedSound->IsFileEntry   = false;
+                    LoadedSound->Length        = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+                    LoadedSound->DataType      = SoundDataTypes::Opus_Interleaved_Streamed;
+
+                    auto NameResult = AssetNameCache.NameDatabase.find(Entry.Key);
+
+                    if (NameResult != AssetNameCache.NameDatabase.end())
+                    {
+                        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(NameResult->second);
+                        LoadedSound->FullPath = FileSystems::GetDirectoryName(NameResult->second);
+                    }
+                    else
+                    {
+                        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(Strings::Format("xsound_%llx", Entry.Key));
+                        LoadedSound->FullPath = FileSystems::GetDirectoryName(LoadedSound->AssetName);
+                    }
+
+
+                    // Log it
+                    CoDAssets::LogXAsset("Sound", FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
+
+#if _DEBUG
+                    Writer.WriteLineFmt("%llx,%s", Entry.Key, FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
+#endif 
 
                     // Add
                     CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
@@ -578,20 +648,20 @@ bool GameModernWarfare4::LoadAssets()
             }
 
             // Advance
-            SoundOffset += sizeof(MW4SoundBank);
+            SoundOffset += sizeof(VGSoundBank);
         }
     }
 
     if (NeedsRawFiles)
     {
         // Parse the Rawfile pool
-        CoDXPoolParser<uint64_t, MW4SoundBank>(CoDAssets::GameOffsetInfos[4], CoDAssets::GamePoolSizes[4], [](MW4SoundBank& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, VGSoundBank>(CoDAssets::GameOffsetInfos[4], CoDAssets::GamePoolSizes[4], [](VGSoundBank& Asset, uint64_t& AssetOffset)
         {
             // Validate and load if need be
             auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr) + ".sabs";
 
             // Note actually streamer info pool
-            auto Info = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(Asset.SoundBankPtr);
+            auto Info = CoDAssets::GameInstance->Read<VGSoundBankInfo>(Asset.SoundBankPtr);
 
             // Make and add
             auto LoadedRawfile = new CoDRawFile_t();
@@ -608,35 +678,35 @@ bool GameModernWarfare4::LoadAssets()
         });
     }
 
-    if (NeedsMaterials)
-    {
-        // Parse the Rawfile pool
-        CoDXPoolParser<uint64_t, MW4XMaterial>(CoDAssets::GameOffsetInfos[5], CoDAssets::GamePoolSizes[5], [](MW4XMaterial& Asset, uint64_t& AssetOffset)
-        {
-            // Validate and load if need be
-            auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
+    //if (NeedsMaterials)
+    //{
+    //    // Parse the Rawfile pool
+    //    CoDXPoolParser<uint64_t, VGXMaterial>(CoDAssets::GameOffsetInfos[5], CoDAssets::GamePoolSizes[5], [](VGXMaterial& Asset, uint64_t& AssetOffset)
+    //    {
+    //        // Validate and load if need be
+    //        auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
 
-            // Log it
-            CoDAssets::LogXAsset("Material", MaterialName);
+    //        // Log it
+    //        CoDAssets::LogXAsset("Material", MaterialName);
 
-            // Make and add
-            auto LoadedMaterial = new CoDMaterial_t();
-            // Set
-            LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
-            LoadedMaterial->AssetPointer = AssetOffset;
-            LoadedMaterial->ImageCount = Asset.ImageCount;
-            LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
+    //        // Make and add
+    //        auto LoadedMaterial = new CoDMaterial_t();
+    //        // Set
+    //        LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
+    //        LoadedMaterial->AssetPointer = AssetOffset;
+    //        LoadedMaterial->ImageCount = Asset.ImageCount;
+    //        LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
 
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
-        });
-    }
+    //        // Add
+    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
+    //    });
+    //}
 
     // Success, error only on specific load
     return true;
 }
 
-std::unique_ptr<XAnim_t> GameModernWarfare4::ReadXAnim(const CoDAnim_t* Animation)
+std::unique_ptr<XAnim_t> GameVanguard::ReadXAnim(const CoDAnim_t* Animation)
 {
     // Verify that the program is running
     if (CoDAssets::GameInstance->IsRunning())
@@ -662,11 +732,11 @@ std::unique_ptr<XAnim_t> GameModernWarfare4::ReadXAnim(const CoDAnim_t* Animatio
 
         // Check for additive animations
         // No point, breaks it in SETools, wait for Cast to implement full Additive support
-        //if (AnimData.AssetType == 0x6)
-        //{
-        //    // This is a additive animation
-        //    Anim->AdditiveAnimation = true;
-        //}
+        if (AnimData.AssetType == 0x6)
+        {
+            // This is a additive animation
+            Anim->AdditiveAnimation = true;
+        }
         // Check for looping
         Anim->LoopingAnimation = (AnimData.Flags & 1);
 
@@ -705,11 +775,11 @@ std::unique_ptr<XAnim_t> GameModernWarfare4::ReadXAnim(const CoDAnim_t* Animatio
         Anim->Delta2DRotationsPtr = AnimDeltaData.Delta2DRotationsPtr;
         Anim->Delta3DRotationsPtr = AnimDeltaData.Delta3DRotationsPtr;
 
-        // Set types, we use dividebysize for MW4
+        // Set types, we use dividebysize for VG
         Anim->RotationType = AnimationKeyTypes::DivideBySize;
         Anim->TranslationType = AnimationKeyTypes::MinSizeTable;
 
-        // Modern Warfare 4 supports inline indicies
+        // Vanguard supports inline indicies
         Anim->SupportsInlineIndicies = true;
 
         // Return it
@@ -719,19 +789,20 @@ std::unique_ptr<XAnim_t> GameModernWarfare4::ReadXAnim(const CoDAnim_t* Animatio
     return nullptr;
 }
 
-std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model)
+std::unique_ptr<XModel_t> GameVanguard::ReadXModel(const CoDModel_t* Model)
 {
     // Verify that the program is running
     if (CoDAssets::GameInstance->IsRunning())
     {
         // Read the XModel structure
-        auto ModelData = CoDAssets::GameInstance->Read<MW4XModel>(Model->AssetPointer);
+        auto ModelData = CoDAssets::GameInstance->Read<VGXModel>(Model->AssetPointer);
 
         // Prepare to read the xmodel (Reserving space for lods)
         auto ModelAsset = std::make_unique<XModel_t>(ModelData.NumLods);
 
         // Copy over default properties
         ModelAsset->ModelName = Model->AssetName;
+
         // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
         if ((ModelData.NumBones + ModelData.UnkBoneCount) > 1 && ModelData.ParentListPtr == 0)
         {
@@ -743,6 +814,7 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
             ModelAsset->BoneCount = ModelData.NumBones + ModelData.UnkBoneCount;
             ModelAsset->RootBoneCount = ModelData.NumRootBones;
         }
+
         // Bone data type
         ModelAsset->BoneRotationData = BoneDataTypes::DivideBySize;
 
@@ -755,7 +827,7 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
 
         // Bone parent info
         ModelAsset->BoneParentsPtr = ModelData.ParentListPtr;
-        ModelAsset->BoneParentSize = 1;
+        ModelAsset->BoneParentSize = 2;
 
         // Local bone pointers
         ModelAsset->RotationsPtr = ModelData.RotationsPtr;
@@ -767,22 +839,25 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
         // Prepare to parse lods
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
         {
+            // Read Load
+            auto ModelLod = CoDAssets::GameInstance->Read<VGXModelLod>(ModelData.ModelLodsPtr + i * sizeof(VGXModelLod));
+
             // Create the lod and grab reference
-            ModelAsset->ModelLods.emplace_back(ModelData.ModelLods[i].NumSurfs);
+            ModelAsset->ModelLods.emplace_back(ModelLod.NumSurfs);
             // Grab reference
             auto& LodReference = ModelAsset->ModelLods[i];
 
             // Set distance
-            LodReference.LodDistance = ModelData.ModelLods[i].LodDistance;
+            LodReference.LodDistance = ModelLod.LodDistance;
 
             // Set stream key and info ptr
-            LodReference.LODStreamInfoPtr = ModelData.ModelLods[i].MeshPtr;
+            LodReference.LODStreamInfoPtr = ModelLod.MeshPtr;
 
             // Grab pointer from the lod itself
-            auto XSurfacePtr = ModelData.ModelLods[i].SurfsPtr;
+            auto XSurfacePtr = ModelLod.SurfsPtr;
 
             // Load surfaces
-            for (uint32_t s = 0; s < ModelData.ModelLods[i].NumSurfs; s++)
+            for (uint32_t s = 0; s < ModelLod.NumSurfs; s++)
             {
                 // Create the surface and grab reference
                 LodReference.Submeshes.emplace_back();
@@ -790,22 +865,33 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
                 auto& SubmeshReference = LodReference.Submeshes[s];
 
                 // Read the surface data
-                auto SurfaceInfo = CoDAssets::GameInstance->Read<MW4XModelSurface>(XSurfacePtr);
-
-                sizeof(MW4XModelSurface);
+                auto SurfaceInfo = CoDAssets::GameInstance->Read<VGXModelSurface>(XSurfacePtr);
 
                 // Apply surface info
-                SubmeshReference.RigidWeightsPtr = SurfaceInfo.RigidWeightsPtr;
-                SubmeshReference.VertListcount   = SurfaceInfo.VertListCount;
-                SubmeshReference.VertexCount     = SurfaceInfo.VertexCount;
-                SubmeshReference.FaceCount       = SurfaceInfo.FacesCount;
-                SubmeshReference.VertexPtr       = SurfaceInfo.Offsets[0];
-                SubmeshReference.FacesPtr        = SurfaceInfo.Offsets[1];
-                SubmeshReference.VertexColorPtr  = SurfaceInfo.Offsets[3];
-                SubmeshReference.Scale           = fmaxf(fmaxf(SurfaceInfo.Min, SurfaceInfo.Scale), SurfaceInfo.Max);
-                SubmeshReference.XOffset         = SurfaceInfo.XOffset;
-                SubmeshReference.YOffset         = SurfaceInfo.YOffset;
-                SubmeshReference.ZOffset         = SurfaceInfo.ZOffset;
+                SubmeshReference.RigidWeightsPtr  = SurfaceInfo.RigidWeightsPtr;
+                SubmeshReference.VertListcount    = SurfaceInfo.VertListCount;
+                SubmeshReference.VertexCount      = SurfaceInfo.VertexCount;
+                SubmeshReference.FaceCount        = SurfaceInfo.FacesCount;
+                SubmeshReference.VertexPtr        = SurfaceInfo.Offsets[0];
+                SubmeshReference.VertexUVsPtr     = SurfaceInfo.Offsets[1];
+                SubmeshReference.VertexNormalsPtr = SurfaceInfo.Offsets[2];
+                SubmeshReference.FacesPtr         = SurfaceInfo.Offsets[3];
+                SubmeshReference.VertexColorPtr   = SurfaceInfo.Offsets[6];
+
+                if (SurfaceInfo.NewScale != -1)
+                {
+                    SubmeshReference.Scale = SurfaceInfo.NewScale;
+                    SubmeshReference.XOffset = 0;
+                    SubmeshReference.YOffset = 0;
+                    SubmeshReference.ZOffset = 0;
+                }
+                else
+                {
+                    SubmeshReference.Scale = fmaxf(fmaxf(SurfaceInfo.Min, SurfaceInfo.Scale), SurfaceInfo.Max);
+                    SubmeshReference.XOffset = SurfaceInfo.XOffset;
+                    SubmeshReference.YOffset = SurfaceInfo.YOffset;
+                    SubmeshReference.ZOffset = SurfaceInfo.ZOffset;
+                }
 
                 // Assign weights
                 SubmeshReference.WeightCounts[0] = SurfaceInfo.WeightCounts[0];
@@ -825,7 +911,7 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
                 LodReference.Materials.emplace_back(ReadXMaterial(MaterialHandle));
 
                 // Advance
-                XSurfacePtr += sizeof(MW4XModelSurface);
+                XSurfacePtr += sizeof(VGXModelSurface);
                 ModelData.MaterialHandlesPtr += sizeof(uint64_t);
             }
         }
@@ -837,13 +923,49 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
     return nullptr;
 }
 
-std::unique_ptr<XImageDDS> GameModernWarfare4::ReadXImage(const CoDImage_t* Image)
+std::unique_ptr<XImageDDS> GameVanguard::ReadXImage(const CoDImage_t* Image)
 {
     // Proxy off
     return LoadXImage(XImage_t(ImageUsageType::DiffuseMap, 0, Image->AssetPointer, Image->AssetName));
 }
 
-void GameModernWarfare4::TranslateRawfile(const CoDRawFile_t * Rawfile, const std::string & ExportPath)
+std::unique_ptr<XSound> GameVanguard::ReadXSound(const CoDSound_t* Sound)
+{
+    // Buffer
+    std::unique_ptr<uint8_t[]> SoundBuffer = nullptr;
+    size_t OpusOffset = 0;
+
+    if (Sound->DataType == SoundDataTypes::Opus_Interleaved_Streamed)
+    {
+        // Use entry and get streamed item
+        auto Entry = CoDAssets::GameInstance->Read<SABv17Entry>(Sound->AssetPointer);
+
+        // Result size
+        uint32_t ResultSize = 0;
+        // We must read from the cache
+        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(Entry.Offset, Entry.Size + Entry.SeekTableLength, ResultSize);
+        // Set offset, skip seek table
+        OpusOffset = Entry.SeekTableLength;
+    }
+    else
+    {
+        // Buffer
+        SoundBuffer = std::make_unique<uint8_t[]>((size_t)Sound->AssetSize);
+
+        // Validate
+        if (CoDAssets::GameInstance->Read(SoundBuffer.get(), Sound->AssetPointer, Sound->AssetSize) != (size_t)Sound->AssetSize)
+            return nullptr;
+    }
+
+    if (SoundBuffer != nullptr)
+    {
+        return SABSupport::DecodeOpusInterleaved(SoundBuffer.get(), Sound->AssetSize, OpusOffset, Sound->FrameRate, Sound->ChannelsCount, Sound->FrameCount);
+    }
+    
+    return nullptr;
+}
+
+void GameVanguard::TranslateRawfile(const CoDRawFile_t * Rawfile, const std::string & ExportPath)
 {
     // Build the export path
     std::string ExportFolder = ExportPath;
@@ -859,39 +981,39 @@ void GameModernWarfare4::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
     FileSystems::CreateDirectory(ExportFolder);
 
     // Read Bank
-    auto Bank = CoDAssets::GameInstance->Read<MW4SoundBank>(Rawfile->AssetPointer);
+    auto Bank = CoDAssets::GameInstance->Read<VGSoundBank>(Rawfile->AssetPointer);
 
-    // Text writer for aliases
-    TextWriter AliasWriter;
+    //// Text writer for aliases
+    //TextWriter AliasWriter;
 
-    // Create the file
-    if (AliasWriter.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName + ".csv")))
-    {
-        // Write head
-        AliasWriter.WriteLine("Name,Secondary,File");
-        AliasWriter.WriteLine("# Note: Secondary is triggered by this alias, so a chain of secondaries are played at the same time");
-        AliasWriter.WriteLine("# Note: There are other settings that cannot be pulled, so these sounds may not sound the same as in-game without editing");
+    //// Create the file
+    //if (AliasWriter.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName + ".csv")))
+    //{
+    //    // Write head
+    //    AliasWriter.WriteLine("Name,Secondary,File");
+    //    AliasWriter.WriteLine("# Note: Secondary is triggered by this alias, so a chain of secondaries are played at the same time");
+    //    AliasWriter.WriteLine("# Note: There are other settings that cannot be pulled, so these sounds may not sound the same as in-game without editing");
 
-        for (uint64_t j = 0; j < Bank.AliasCount; j++)
-        {
-            auto Alias = CoDAssets::GameInstance->Read<MW4SoundAlias>(Bank.AliasesPtr + j * sizeof(MW4SoundAlias));
+    //    for (uint64_t j = 0; j < Bank.AliasCount; j++)
+    //    {
+    //        auto Alias = CoDAssets::GameInstance->Read<VGSoundAlias>(Bank.AliasesPtr + j * sizeof(VGSoundAlias));
 
-            for (uint64_t k = 0; k < Alias.EntriesCount; k++)
-            {
-                auto Entry = CoDAssets::GameInstance->Read<MW4SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW4SoundAliasEntry));
+    //        for (uint64_t k = 0; k < Alias.EntriesCount; k++)
+    //        {
+    //            auto Entry = CoDAssets::GameInstance->Read<VGSoundAliasEntry>(Alias.EntriesPtr + k * sizeof(VGSoundAliasEntry));
 
-                auto NamingInfo = CoDAssets::GameInstance->Read<MW4SoundAliasNamingInfo>(Entry.NamingInfoPtr);
-                auto Name      = CoDAssets::GameInstance->ReadNullTerminatedString(NamingInfo.NamePtr);
-                auto Secondary = CoDAssets::GameInstance->ReadNullTerminatedString(NamingInfo.SecondaryPtr);
-                auto FileName  = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
+    //            auto NamingInfo = CoDAssets::GameInstance->Read<VGSoundAliasNamingInfo>(Entry.NamingInfoPtr);
+    //            auto Name      = CoDAssets::GameInstance->ReadNullTerminatedString(NamingInfo.NamePtr);
+    //            auto Secondary = CoDAssets::GameInstance->ReadNullTerminatedString(NamingInfo.SecondaryPtr);
+    //            auto FileName  = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
 
-                AliasWriter.WriteLineFmt("%s,%s,%s", Name.c_str(), Secondary.c_str(), FileName.c_str());
-            }
-        }
-    }
+    //            AliasWriter.WriteLineFmt("%s,%s,%s", Name.c_str(), Secondary.c_str(), FileName.c_str());
+    //        }
+    //    }
+    //}
 
     // Note actually streamer info pool
-    auto Info = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(Bank.SoundBankPtr);
+    auto Info = CoDAssets::GameInstance->Read<VGSoundBankInfo>(Bank.SoundBankPtr);
 
     // Always stream, data in memory gets bamboozled like Thomas Cat's death
     // Size read
@@ -913,10 +1035,10 @@ void GameModernWarfare4::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
     }
 }
 
-const XMaterial_t GameModernWarfare4::ReadXMaterial(uint64_t MaterialPointer)
+const XMaterial_t GameVanguard::ReadXMaterial(uint64_t MaterialPointer)
 {
     // Prepare to parse the material
-    auto MaterialData = CoDAssets::GameInstance->Read<MW4XMaterial>(MaterialPointer);
+    auto MaterialData = CoDAssets::GameInstance->Read<VGXMaterial>(MaterialPointer);
 
     // Allocate a new material with the given image count
     XMaterial_t Result(MaterialData.ImageCount);
@@ -952,110 +1074,124 @@ const XMaterial_t GameModernWarfare4::ReadXMaterial(uint64_t MaterialPointer)
     return Result;
 }
 
-void GameModernWarfare4::PrepareVertexWeights(std::vector<WeightsData>& Weights, const XModelSubmesh_t & Submesh)
+void GameVanguard::PrepareVertexWeights(std::vector<WeightsData>& Weights, const XModelSubmesh_t & Submesh)
 {
     // The index of read weight data
     uint32_t WeightDataIndex = 0;
 
-    // Prepare the simple, rigid weights
-    for (uint32_t i = 0; i < Submesh.VertListcount; i++)
+    if (Submesh.RigidWeightsPtr > 0)
     {
-        // Simple weights build, rigid, just apply the proper bone id
-        auto RigidInfo = CoDAssets::GameInstance->Read<MW4GfxRigidVerts>(Submesh.RigidWeightsPtr + (i * sizeof(MW4GfxRigidVerts)));
-        // Apply bone ids properly
-        for (uint32_t w = 0; w < RigidInfo.VertexCount; w++)
+        // Prepare the simple, rigid weights
+        for (uint32_t i = 0; i < Submesh.VertListcount; i++)
         {
-            // Apply
-            Weights[WeightDataIndex].BoneValues[0] = RigidInfo.BoneIndex;
-            // Advance
-            WeightDataIndex++;
+            // Simple weights build, rigid, just apply the proper bone id
+            auto RigidInfo = CoDAssets::GameInstance->Read<VGGfxRigidVerts>(Submesh.RigidWeightsPtr + (i * sizeof(VGGfxRigidVerts)));
+            // Apply bone ids properly
+            for (uint32_t w = 0; w < RigidInfo.VertexCount; w++)
+            {
+                // Apply
+                Weights[WeightDataIndex].BoneValues[0] = RigidInfo.BoneIndex;
+                // Advance
+                WeightDataIndex++;
+            }
         }
     }
 
-    // Total weight data read
-    uintptr_t ReadDataSize = 0;
-    // Calculate the size of weights buffer
-    auto WeightsDataLength = ((4 * Submesh.WeightCounts[0]) + (8 * Submesh.WeightCounts[1]) + (12 * Submesh.WeightCounts[2]) + (16 * Submesh.WeightCounts[3]) + (20 * Submesh.WeightCounts[4]) + (24 * Submesh.WeightCounts[5]) + (28 * Submesh.WeightCounts[6]) + (32 * Submesh.WeightCounts[7]));
-    // Read the weight data
-    auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), ReadDataSize);
-
-    // Loop over the number of counts (8 in total)
-    for (int i = 0; i < 8; i++)
+    if (Submesh.WeightsPtr > 0)
     {
-        // Loop over the number of bones for this chunk
-        for (int k = 0; k < i + 1; k++)
+        // Total weight data read
+        uintptr_t ReadDataSize = 0;
+        // Calculate the size of weights buffer
+        auto WeightsDataLength = ((4 * Submesh.WeightCounts[0]) + (8 * Submesh.WeightCounts[1]) + (12 * Submesh.WeightCounts[2]) + (16 * Submesh.WeightCounts[3]) + (20 * Submesh.WeightCounts[4]) + (24 * Submesh.WeightCounts[5]) + (28 * Submesh.WeightCounts[6]) + (32 * Submesh.WeightCounts[7]));
+        // Read the weight data
+        auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), ReadDataSize);
+
+        // Loop over the number of counts (8 in total)
+        for (int i = 0; i < 8; i++)
         {
-            // Store local weight index
-            uint32_t LocalWeightDataIndex = WeightDataIndex;
-
-            for (int w = 0; w < Submesh.WeightCounts[i]; w++)
+            // Loop over the number of bones for this chunk
+            for (int k = 0; k < i + 1; k++)
             {
-                // Assign count
-                Weights[LocalWeightDataIndex].WeightCount = k + 1;
-                // Read Weight and Index
-                Weights[LocalWeightDataIndex].BoneValues[k] = WeightsData.Read<uint16_t>();
+                // Store local weight index
+                uint32_t LocalWeightDataIndex = WeightDataIndex;
 
-                // Process weight if applicable
-                if (k > 0)
+                for (int w = 0; w < Submesh.WeightCounts[i]; w++)
                 {
-                    // Read value and subtract from first bone
-                    Weights[LocalWeightDataIndex].WeightValues[k] = ((float)WeightsData.Read<uint16_t>() / 65536.0f);
-                    Weights[LocalWeightDataIndex].WeightValues[0] -= Weights[LocalWeightDataIndex].WeightValues[k];
-                }
-                else
-                {
-                    // Skip 2 padding
-                    WeightsData.Advance(2);
-                }
+                    // Assign count
+                    Weights[LocalWeightDataIndex].WeightCount = k + 1;
+                    // Read Weight and Index
+                    Weights[LocalWeightDataIndex].BoneValues[k] = WeightsData.Read<uint16_t>();
 
-                // Advance
-                LocalWeightDataIndex++;
+                    // Process weight if applicable
+                    if (k > 0)
+                    {
+                        // Read value and subtract from first bone
+                        Weights[LocalWeightDataIndex].WeightValues[k] = ((float)WeightsData.Read<uint16_t>() / 65536.0f);
+                        Weights[LocalWeightDataIndex].WeightValues[0] -= Weights[LocalWeightDataIndex].WeightValues[k];
+                    }
+                    else
+                    {
+                        // Skip 2 padding
+                        WeightsData.Advance(2);
+                    }
+
+                    // Advance
+                    LocalWeightDataIndex++;
+                }
             }
-        }
 
-        // Increment
-        WeightDataIndex += Submesh.WeightCounts[i];
+            // Increment
+            WeightDataIndex += Submesh.WeightCounts[i];
+        }
     }
 }
 
-std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
+std::unique_ptr<XImageDDS> GameVanguard::LoadXImage(const XImage_t& Image)
 {
     // Prepare to load an image, we need to rip loaded and streamed ones
     uint32_t ResultSize = 0;
 
     // We must read the image data
-    auto ImageInfo = CoDAssets::GameInstance->Read<MW4GfxImage>(Image.ImagePtr);
+    auto ImageInfo = CoDAssets::GameInstance->Read<VGGfxImage>(Image.ImagePtr);
+
+    // Read Array of Mip Maps
+    VGGfxMip MipMaps[8];
+    int32_t MipCount = std::min((int32_t)ImageInfo.UnkByte6, 8);
+
+    if (CoDAssets::GameInstance->Read((uint8_t*)MipMaps, ImageInfo.MipMaps, MipCount * sizeof(VGGfxMip)) != (MipCount * sizeof(VGGfxMip)))
+        return nullptr;
 
     // Calculate the largest image mip
     uint32_t LargestMip    = 0;
     uint32_t LargestWidth  = 0;
     uint32_t LargestHeight = 0;
-    uint32_t LargestSize   = 0;
     uint64_t LargestHash   = 0;
+    uint64_t LargestSize   = 0;
     bool OnDemand          = false;
 
     // Loop and calculate
-    for (uint32_t i = 0; i < 4; i++)
+    for (uint32_t i = 0; i < MipCount; i++)
     {
         // Compare widths
-        if (ImageInfo.MipLevels[i].Width > LargestWidth && CoDAssets::GamePackageCache->Exists(ImageInfo.MipLevels[i].HashID))
+        if (MipMaps[i].Width > LargestWidth && CoDAssets::GamePackageCache->Exists(MipMaps[i].HashID))
         {
             LargestMip    = i;
-            LargestWidth  = ImageInfo.MipLevels[i].Width;
-            LargestHeight = ImageInfo.MipLevels[i].Height;
-            LargestSize   = i == 0 ? ImageInfo.MipLevels[i].Size >> 4 : (ImageInfo.MipLevels[i].Size >> 4) - (ImageInfo.MipLevels[i - 1].Size >> 4);
-            LargestHash   = ImageInfo.MipLevels[i].HashID;
+            LargestWidth  = MipMaps[i].Width;
+            LargestHeight = MipMaps[i].Height;
+            LargestHash   = MipMaps[i].HashID;
+            LargestSize   = i == 0 ? MipMaps[i].Size >> 4 : (MipMaps[i].Size >> 4) - (MipMaps[i - 1].Size >> 4);
             OnDemand = false;
         }
-        else if (ImageInfo.MipLevels[i].Width > LargestWidth && CoDAssets::OnDemandCache->Exists(ImageInfo.MipLevels[i].HashID))
+        else if (MipMaps[i].Width > LargestWidth && CoDAssets::OnDemandCache->Exists(MipMaps[i].HashID))
         {
             LargestMip    = i;
-            LargestWidth  = ImageInfo.MipLevels[i].Width;
-            LargestHeight = ImageInfo.MipLevels[i].Height;
-            LargestSize   = i == 0 ? ImageInfo.MipLevels[i].Size >> 4 : (ImageInfo.MipLevels[i].Size >> 4) - (ImageInfo.MipLevels[i - 1].Size >> 4);
-            LargestHash   = ImageInfo.MipLevels[i].HashID;
+            LargestWidth  = MipMaps[i].Width;
+            LargestHeight = MipMaps[i].Height;
+            LargestHash   = MipMaps[i].HashID;
+            LargestSize   = i == 0 ? MipMaps[i].Size >> 4 : (MipMaps[i].Size >> 4) - (MipMaps[i - 1].Size >> 4);
             OnDemand      = true;
         }
+
     }
 
     // Calculate proper image format
@@ -1064,15 +1200,16 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     // RGBA
     case 7: ImageInfo.ImageFormat = 28; break;
     // BC1
-    case 33:
-    case 34:
-    case 35: ImageInfo.ImageFormat = 71; break;
-    case 36: ImageInfo.ImageFormat = 74; break;
-    case 38: ImageInfo.ImageFormat = 77; break;
-    case 39: ImageInfo.ImageFormat = 80; break;
+    case 35:
+    case 36:
+    case 37: ImageInfo.ImageFormat = 71; break;
+    case 38: ImageInfo.ImageFormat = 74; break;
+    case 39: ImageInfo.ImageFormat = 77; break;
+    case 40: ImageInfo.ImageFormat = 80; break;
+    case 41: ImageInfo.ImageFormat = 80; break;
     // BC7
-    case 44: 
-    case 45: ImageInfo.ImageFormat = 98; break;
+    case 46: 
+    case 47: ImageInfo.ImageFormat = 98; break;
     // Fall back to BC1
     default: ImageInfo.ImageFormat = 71; break;
     }
@@ -1113,12 +1250,12 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
         return Result;
     }
 
-    // Failed to load the image
+    // failed to load the image
     return nullptr;
 }
 
 // Transforms a Normal by the Rotation
-Vector3 TransformNormal(Quaternion quat, Vector3 up)
+Vector3 VanguardTransformNormal(Quaternion quat, Vector3 up)
 {
     // Generate the normal by rotating up around the normal value
     const Vector3 a(
@@ -1136,7 +1273,7 @@ Vector3 TransformNormal(Quaternion quat, Vector3 up)
 }
 
 // Unpacks a 4-D Quaternion Normal
-Vector3 UnpackNormalQuat(uint32_t packedQuat)
+Vector3 VanguardUnpackNormalQuat(uint32_t packedQuat)
 {
     auto Up = Vector3(0, 0, 1.0f);
     auto LargestComponent = packedQuat >> 30;
@@ -1150,22 +1287,22 @@ Vector3 UnpackNormalQuat(uint32_t packedQuat)
     // Determine largest
     switch (LargestComponent)
     {
-    case 0: return TransformNormal(Quaternion(w, x, y, z), Up);
-    case 1: return TransformNormal(Quaternion(x, w, y, z), Up);
-    case 2: return TransformNormal(Quaternion(x, y, w, z), Up);
-    case 3: return TransformNormal(Quaternion(x, y, z, w), Up);
+    case 0: return VanguardTransformNormal(Quaternion(w, x, y, z), Up);
+    case 1: return VanguardTransformNormal(Quaternion(x, w, y, z), Up);
+    case 2: return VanguardTransformNormal(Quaternion(x, y, w, z), Up);
+    case 3: return VanguardTransformNormal(Quaternion(x, y, z, w), Up);
     default: return Vector3(1.0f, 0.0f, 0.0f);
     }
 }
 
-void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
+void GameVanguard::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Scale to use
     auto ScaleConstant = (1.0f / 0x1FFFFF) * 2.0f;
     // Check if we want Vertex Colors
     bool ExportColors = (SettingsManager::GetSetting("exportvtxcolor", "true") == "true");
     // Read the mesh information
-    auto MeshInfo = CoDAssets::GameInstance->Read<MW4XModelMesh>(ModelLOD.LODStreamInfoPtr);
+    auto MeshInfo = CoDAssets::GameInstance->Read<VGXModelMesh>(ModelLOD.LODStreamInfoPtr);
     // Read Buffer Info
     auto BufferInfo = CoDAssets::GameInstance->Read<MW4XModelMeshBufferInfo>(MeshInfo.MeshBufferPointer);
 
@@ -1179,6 +1316,8 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
     {
         // Result size
         uintptr_t ResultSize = 0;
+        // Allocate safe
+        MeshDataBuffer = std::make_unique<uint8_t[]>(BufferInfo.BufferSize);
         // The mesh is already loaded, just read it
         auto TemporaryBuffer = CoDAssets::GameInstance->Read(BufferInfo.BufferPtr, BufferInfo.BufferSize, ResultSize);
 
@@ -1191,7 +1330,6 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             std::memcpy(MeshDataBuffer.get(), TemporaryBuffer, (size_t)ResultSize);
             // Set size
             MeshDataBufferSize = ResultSize;
-
             // Clean up
             delete[] TemporaryBuffer;
         }
@@ -1209,9 +1347,6 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
     // Continue on success
     if (MeshDataBuffer != nullptr)
     {
-        // Make a reader to begin reading the mesh (Don't close)
-        auto MeshReader = MemoryReader((int8_t*)MeshDataBuffer.get(), MeshDataBufferSize, true);
-
         // The total weighted verticies
         uint32_t TotalReadWeights = 0;
         // The maximum weight index
@@ -1219,6 +1354,14 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 
         // Prepare it for submeshes
         ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());
+
+        // Readers for all data types, global so that we can use them when streaming...
+        MemoryReader VertexPosReader;
+        MemoryReader VertexNormReader;
+        MemoryReader VertexUVReader;
+        MemoryReader VertexColorReader;
+        MemoryReader VertexWeightReader;
+        MemoryReader FaceIndiciesReader;
 
         // Iterate over submeshes
         for (auto& Submesh : ModelLOD.Submeshes)
@@ -1236,11 +1379,13 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             auto VertexWeights = std::vector<WeightsData>(Submesh.VertexCount);
 
             // Setup weights if we have any bones
-            if(ResultModel->BoneCount() > 1)
-                PrepareVertexWeights(VertexWeights, Submesh);
+            if (ResultModel->BoneCount() > 1) PrepareVertexWeights(VertexWeights, Submesh);
 
-            // Jump to vertex position data, advance to this submeshes verticies
-            MeshReader.SetPosition(Submesh.VertexPtr);
+            // Vertex Readers
+            VertexPosReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.VertexPtr, Submesh.VertexCount * sizeof(uint64_t), true);
+            VertexNormReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.VertexNormalsPtr, Submesh.VertexCount * sizeof(uint32_t), true);
+            VertexUVReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.VertexUVsPtr, Submesh.VertexCount * sizeof(uint32_t), true);
+            FaceIndiciesReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.FacesPtr, Submesh.FaceCount * sizeof(uint16_t) * 3, true);
 
             // Iterate over verticies
             for (uint32_t i = 0; i < Submesh.VertexCount; i++)
@@ -1248,21 +1393,20 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
                 // Make a new vertex
                 auto& Vertex = Mesh.AddVertex();
 
-                auto StreamVertex = MeshReader.Read<MW4GfxStreamVertex>();
-
+                // Read Vertex
+                auto VertexPosition = VertexPosReader.Read<uint64_t>();
 
                 // Read and assign position
                 Vertex.Position = Vector3(
-                    (((((StreamVertex.PackedPosition >> 0)  & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.XOffset,
-                    (((((StreamVertex.PackedPosition >> 21) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.YOffset,
-                    (((((StreamVertex.PackedPosition >> 42) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.ZOffset);
+                    (((((VertexPosition >> 00) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.XOffset,
+                    (((((VertexPosition >> 21) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.YOffset,
+                    (((((VertexPosition >> 42) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.ZOffset);
 
-
-                // Add UV layer
-                Vertex.AddUVLayer(HalfFloats::ToFloat(StreamVertex.UVUPosition), HalfFloats::ToFloat(StreamVertex.UVVPosition));
+                // Read Tangent/Normal
+                auto QTangent = VertexNormReader.Read<uint32_t>();
 
                 // Add normal
-                Vertex.Normal = UnpackNormalQuat(StreamVertex.NormalQuaternion);
+                Vertex.Normal = VanguardUnpackNormalQuat(QTangent);
 
                 // Apply Color (some models don't store colors, so we need to check ptr below)
                 Vertex.Color[0] = 255;
@@ -1270,10 +1414,17 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
                 Vertex.Color[2] = 255;
                 Vertex.Color[3] = 255;
 
+                // Read and set UVs
+                auto UVU = HalfFloats::ToFloat(VertexUVReader.Read<uint16_t>());
+                auto UVV = HalfFloats::ToFloat(VertexUVReader.Read<uint16_t>());
+
+                // Set it
+                Vertex.AddUVLayer(UVU, UVV);
+
                 // Assign weights
                 auto& WeightValue = VertexWeights[i];
 
-                // Iterate
+                //// Iterate
                 for (uint32_t w = 0; w < WeightValue.WeightCount; w++)
                 {
                     // Add new weight
@@ -1284,28 +1435,24 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             // Jump to color data, if it's stored and we want it
             if (ExportColors && Submesh.VertexColorPtr != 0xFFFFFFFF)
             {
-                // Jump to vertex position data, advance to this submeshes verticies
-                MeshReader.SetPosition(Submesh.VertexColorPtr);
+                VertexColorReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.VertexColorPtr, Submesh.VertexCount * sizeof(uint32_t), true);
 
                 // Iterate over verticies
                 for (uint32_t i = 0; i < Submesh.VertexCount; i++)
                 {
                     // Apply Color (some models don't store colors, so we need to check ptr below)
-                    Mesh.Verticies[i].Color[0] = MeshReader.Read<uint8_t>();
-                    Mesh.Verticies[i].Color[1] = MeshReader.Read<uint8_t>();
-                    Mesh.Verticies[i].Color[2] = MeshReader.Read<uint8_t>();
-                    Mesh.Verticies[i].Color[3] = MeshReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[0] = VertexColorReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[1] = VertexColorReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[2] = VertexColorReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[3] = VertexColorReader.Read<uint8_t>();
                 }
             }
-
-            // Jump to face data, advance to this submeshes faces
-            MeshReader.SetPosition(Submesh.FacesPtr);
 
             // Iterate over faces
             for (uint32_t i = 0; i < Submesh.FaceCount; i++)
             {
                 // Read data
-                auto Face = MeshReader.Read<MW4GfxStreamFace>();
+                auto Face = FaceIndiciesReader.Read<VGGfxStreamFace>();
 
                 // Add the face
                 Mesh.AddFace(Face.Index1, Face.Index2, Face.Index3);
@@ -1314,17 +1461,30 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
     }
 }
 
-std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
+std::string GameVanguard::LoadStringEntry(uint64_t Index)
 {
-    // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
-}
-void GameModernWarfare4::PerformInitialSetup()
-{
-    // Prepare to copy the oodle dll
-    auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_6_win64.dll");
+    // Calculate Offset to String (Offsets[3] = StringTable)
+    auto Offset = CoDAssets::GameOffsetInfos[6] + (Index * 20);
+    // Read Info
+    auto StringHash = CoDAssets::GameInstance->Read<uint64_t>(Offset + 12) & 0xFFFFFFFFFFFFFFF;
 
+    // Attempt to locate string
+    auto StringEntry = StringCache.NameDatabase.find(StringHash);
+
+    // Not Encrypted
+    if (StringEntry != StringCache.NameDatabase.end())
+        return StringEntry->second;
+    else
+        return Strings::Format("xstring_%llx", StringHash);
+}
+void GameVanguard::PerformInitialSetup()
+{
+    // Load Caches
+    StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_string.wni"));
+    AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xsounds_unverified.wni"));
+    // Prepare to copy the oodle dll
+    auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_8_win64.dll");
     // Copy if not exists
     if (!FileSystems::FileExists(OurPath))
-        FileSystems::CopyFile(FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "oo2core_7_win64.dll"), OurPath);
+        FileSystems::CopyFile(FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "oo2core_8_win64.dll"), OurPath);
 }

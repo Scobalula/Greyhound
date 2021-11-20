@@ -43,8 +43,11 @@
 #include "GameInfiniteWarfare.h"
 #include "GameWorldWar2.h"
 #include "GameQuantumSolace.h"
+#include "GameVanguard.h"
 
 // We need the game cache functions
+// TODO: Reorganise how packages are handled, merge into a "reader" class that handles
+// everything rather than duplicated code and seperate code for Load File/Caches
 #include "CASCCache.h"
 #include "IWDCache.h"
 #include "IPAKCache.h"
@@ -53,6 +56,8 @@
 #include "SABCache.h"
 #include "XPTOCCache.h"
 #include "XSUBCache.h"
+#include "VGXSUBCache.h"
+#include "VGXPAKCache.h"
 
 // We need the game support functions
 #include "PAKSupport.h"
@@ -436,6 +441,8 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
     // 007 Quantum Solace
     { "jb_liveengine_s.exe", SupportedGames::QuantumSolace, SupportedGameFlags::SP },
+    // Vanguard
+    { "vanguard.exe", SupportedGames::Vanguard, SupportedGameFlags::SP },
 };
 
 // -- End find game database
@@ -599,6 +606,15 @@ LoadGameResult CoDAssets::LoadGame()
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "xpak_cache"));
             // Load as normally
             Success = GameModernWarfare4::LoadAssets(); break;
+        case SupportedGames::Vanguard:
+            CleanupPackageCache();
+            // Load from casc and on demand
+            GamePackageCache = std::make_unique<VGXSUBCache>();
+            GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+            OnDemandCache = std::make_unique<VGXPAKCache>();
+            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "xpak_cache"));
+            // Load as normally
+            Success = GameVanguard::LoadAssets(); break;
         case SupportedGames::Ghosts: Success = GameGhosts::LoadAssets(); break;
         case SupportedGames::AdvancedWarfare: Success = GameAdvancedWarfare::LoadAssets(); break;
         case SupportedGames::ModernWarfareRemastered: Success = GameModernWarfareRM::LoadAssets(); break;
@@ -1190,6 +1206,18 @@ bool CoDAssets::LocateGameInfo()
         //// Set game string handler
         GameStringHandler = GameModernWarfare4::LoadStringEntry;
         break;
+    case SupportedGames::Vanguard:
+        // Initial setup required for Vanguard
+        GameVanguard::PerformInitialSetup();
+        // Load game offset info
+        Success = GameVanguard::LoadOffsets();
+        // Set shorthand
+        GDTShorthand = "VG";
+        // Set game ximage handler
+        GameXImageHandler = GameVanguard::LoadXImage;
+        // Set game string handler
+        GameStringHandler = GameVanguard::LoadStringEntry;
+        break;
     }
 
     // Setup the game's cache
@@ -1231,6 +1259,7 @@ std::string CoDAssets::BuildExportPath(const CoDAsset_t* Asset)
     case SupportedGames::ModernWarfare2Remastered: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_2_rm"); break;
     case SupportedGames::InfiniteWarfare: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "infinite_warfare"); break;
     case SupportedGames::WorldWar2: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "world_war_2"); break;
+    case SupportedGames::Vanguard: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "vanguard"); break;
     }
 
     // Append the asset type folder (Some assets have specific folder names)
@@ -1298,6 +1327,7 @@ std::unique_ptr<XAnim_t> CoDAssets::LoadGenericAnimAsset(const CoDAnim_t* Animat
     case SupportedGames::ModernWarfare2Remastered: return GameModernWarfare2RM::ReadXAnim(Animation); break;
     case SupportedGames::InfiniteWarfare: return GameInfiniteWarfare::ReadXAnim(Animation); break;
     case SupportedGames::WorldWar2: return GameWorldWar2::ReadXAnim(Animation); break;
+    case SupportedGames::Vanguard: return GameVanguard::ReadXAnim(Animation); break;
     }
 
     // Unknown game
@@ -1381,6 +1411,7 @@ std::unique_ptr<XModel_t> CoDAssets::LoadGenericModelAsset(const CoDModel_t* Mod
     case SupportedGames::ModernWarfare2Remastered: return GameModernWarfare2RM::ReadXModel(Model); break;
     case SupportedGames::InfiniteWarfare: return GameInfiniteWarfare::ReadXModel(Model); break;
     case SupportedGames::WorldWar2: return GameWorldWar2::ReadXModel(Model); break;
+    case SupportedGames::Vanguard: return GameVanguard::ReadXModel(Model); break;
     }
 
     // Unknown game
@@ -1681,6 +1712,7 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
             case SupportedGames::InfiniteWarfare: ImageData          = GameInfiniteWarfare::ReadXImage(Image); break;
             case SupportedGames::ModernWarfare4: ImageData           = GameModernWarfare4::ReadXImage(Image); break;
             case SupportedGames::WorldWar2: ImageData                = GameWorldWar2::ReadXImage(Image); break;
+            case SupportedGames::Vanguard: ImageData                 = GameVanguard::ReadXImage(Image); break;
             }
         }
 
@@ -1778,6 +1810,12 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
             else
                 SoundData = GameWorldWar2::ReadXSound(Sound);
             break;
+        case SupportedGames::Vanguard:
+            if (Sound->IsFileEntry)
+                SoundData = SABSupport::LoadOpusSound(Sound);
+            else
+                SoundData = GameVanguard::ReadXSound(Sound);
+            break;
         }
 
         // Grab the image format type
@@ -1862,6 +1900,9 @@ ExportGameResult CoDAssets::ExportRawfileAsset(const CoDRawFile_t* Rawfile, cons
     case SupportedGames::ModernWarfare4:
         // Send to MW Raw File Extractor (SAB Files)
         GameModernWarfare4::TranslateRawfile(Rawfile, ExportPath);
+    case SupportedGames::Vanguard:
+        // Send to VG Raw File Extractor (SAB Files)
+        GameVanguard::TranslateRawfile(Rawfile, ExportPath);
         break;
     }
 

@@ -743,6 +743,7 @@ bool GameBlackOps4::LoadAssets()
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
+    bool NeedsExtInfo = (SettingsManager::GetSetting("needsextinfo", "true") == "true");
 
     /*
         This was implemented as a fix for a specific user who requested it, as the search box is capped at 32767 by Windows
@@ -757,7 +758,7 @@ bool GameBlackOps4::LoadAssets()
     if (NeedsAnims)
     {
         // Parse the XAnim pool
-        CoDXPoolParser<uint64_t, BO4XAnim>((CoDAssets::GameOffsetInfos[0]), CoDAssets::GamePoolSizes[0], [Filters](BO4XAnim& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BO4XAnim>((CoDAssets::GameOffsetInfos[0]), CoDAssets::GamePoolSizes[0], [Filters, NeedsExtInfo](BO4XAnim& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -788,6 +789,19 @@ bool GameBlackOps4::LoadAssets()
             LoadedAnim->Framerate = Asset.Framerate;
             LoadedAnim->FrameCount = Asset.NumFrames;
             LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
+            LoadedAnim->BoneCount = Asset.TotalBoneCount;
+
+            // Parse bone names if requested
+            if (NeedsExtInfo)
+            {
+                for (size_t i = 0; i < LoadedAnim->BoneCount; i++)
+                {
+                    auto BoneIndex = CoDAssets::GameInstance->Read<uint32_t>(Asset.BoneIDsPtr + i * 4);
+
+                    LoadedAnim->BoneNames.emplace_back(CoDAssets::GameStringHandler(BoneIndex));
+                }
+            }
+
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
         });
@@ -796,7 +810,7 @@ bool GameBlackOps4::LoadAssets()
     if (NeedsModels)
     {
         // Parse the XModel pool
-        CoDXPoolParser<uint64_t, BO4XModel>((CoDAssets::GameOffsetInfos[1]), CoDAssets::GamePoolSizes[1], [Filters](BO4XModel& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BO4XModel>((CoDAssets::GameOffsetInfos[1]), CoDAssets::GamePoolSizes[1], [Filters, NeedsExtInfo](BO4XModel& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -828,6 +842,18 @@ bool GameBlackOps4::LoadAssets()
             LoadedModel->LodCount          = Asset.NumLods;
             LoadedModel->CosmeticBoneCount = Asset.NumCosmeticBones;
             LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
+
+            // Parse bone names if requested
+            if (NeedsExtInfo)
+            {
+                for (size_t i = 0; i < LoadedModel->BoneCount; i++)
+                {
+                    auto BoneIndex = CoDAssets::GameInstance->Read<uint32_t>(Asset.BoneIDsPtr + i * 4);
+
+                    LoadedModel->BoneNames.emplace_back(CoDAssets::GameStringHandler(BoneIndex));
+                }
+            }
+
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
         });

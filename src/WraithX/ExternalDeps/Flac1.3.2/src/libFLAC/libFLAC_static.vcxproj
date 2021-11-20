@@ -60,6 +60,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4267;4996;4244;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,6 +79,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4267;4996;4244;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

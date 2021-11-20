@@ -15,6 +15,7 @@
 #include "GameBlackOpsCW.h"
 #include "GameWorldWar2.h"
 #include "GameModernWarfare4.h"
+#include "GameVanguard.h"
 
 // Include generic structures
 #include "DBGameGenerics.h"
@@ -277,6 +278,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         case SupportedGames::BlackOpsCW:            GameBlackOpsCW::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::WorldWar2:             GameWorldWar2::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::ModernWarfare4:        GameModernWarfare4::LoadXModel(LodReference, ModelResult); break;
+        case SupportedGames::Vanguard:              GameVanguard::LoadXModel(LodReference, ModelResult); break;
         }
     }
     else

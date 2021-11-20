@@ -200,6 +200,26 @@ struct SABv15Entry
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct SABv17Entry
+{
+    uint64_t Key;
+    uint64_t Unknown1;
+    uint64_t Offset;
+    uint32_t Size;
+    uint32_t SeekTableLength;
+    uint32_t FrameCount;
+    uint32_t PrimedSize;
+    uint32_t FrameRate;
+    uint32_t Unknown3;
+    uint8_t Unknown4;
+    uint8_t ChannelCount;
+    uint8_t Looping;
+    uint8_t Format;
+    uint8_t Padding[4];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct SABv21Entry
 {
     uint64_t Key;

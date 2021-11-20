@@ -5,6 +5,7 @@
 
 // We need the following WraithX classes
 #include "MemoryReader.h"
+#include "MemoryWriter.h"
 #include "BinaryReader.h"
 #include "Strings.h"
 #include "Sound.h"
@@ -17,6 +18,9 @@
 #include "CoDAssets.h"
 #include "DBGameFiles.h"
 
+// We need Opus
+#include "..\..\External\Opus\include\opus.h"
+
 // Calculates the hash of a sound string
 uint32_t HashSoundString(const std::string& Value)
 {
@@ -24,6 +28,20 @@ uint32_t HashSoundString(const std::string& Value)
 
     for (auto& Character : Value)
         Result = (uint32_t)(tolower(Character) + (Result << 6) + (Result << 16)) - Result;
+
+    return Result;
+}
+
+// Calculates the hash of a sound string
+uint64_t HashSoundStringV17(const std::string& Value)
+{
+    uint64_t Result = 0xCBF29CE484222325;
+
+    for (uint32_t i = 0; i < Value.length(); i++)
+    {
+        Result ^= tolower(Value[i]);
+        Result *= 0x100000001B3;
+    }
 
     return Result;
 }
@@ -115,7 +133,7 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
                 // Read
                 auto Name = Reader.ReadNullTerminatedString();
                 // Calculate jump
-                auto PositionAdvance = (Header.SizeOfNameEntry * 2) - (Name.size() + 1);
+                auto PositionAdvance = ((size_t)Header.SizeOfNameEntry * 2) - (Name.size() + 1);
                 // Emplace it back
                 SABFileNames.emplace_back(Name);
                 // Advance size of name entry * 2 - string size
@@ -132,7 +150,7 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
     // Read per-game entries
     switch (Header.Version)
     {
-    case 0x4: 
+    case 0x4:
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::InfiniteWarfare;
         // Load
@@ -152,6 +170,11 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
         CoDAssets::GameID = SupportedGames::BlackOps3;
         // Load
         HandleSABv15(Reader, Header, SABFileNames, SABNames); break;
+    case 0x11:
+        // Set the game, then load
+        CoDAssets::GameID = SupportedGames::Vanguard;
+        // Load
+        HandleSABv17(Reader, Header, SABFileNames, SABNames); break;
     case 0x15: 
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::BlackOps4;
@@ -233,6 +256,109 @@ std::unique_ptr<XSound> SABSupport::LoadSound(const CoDSound_t* SoundAsset)
     // Return result
     return SoundResult;
 }
+
+std::unique_ptr<XSound> SABSupport::LoadOpusSound(const CoDSound_t* SoundAsset)
+{
+    // Prepare to extract the sound asset, and clean up the data if need be
+    auto& SoundBankPath = CoDAssets::GamePackageCache->GetPackagesPath();
+
+    // Open the bank file
+    auto Reader = BinaryReader();
+    // Open it
+    Reader.Open(SoundBankPath);
+
+    // Handle encryption once again
+    HandleSABEncryption(Reader, SoundBankPath);
+
+    // Jump to the offset
+    Reader.SetPosition(SoundAsset->AssetPointer);
+
+    // Buffer
+    std::unique_ptr<uint8_t[]> SoundBuffer = std::make_unique<uint8_t[]>((size_t)SoundAsset->AssetSize);
+
+    // Read the audio buffer
+    uint64_t ReadResult = 0;
+    Reader.Read(SoundBuffer.get(), SoundAsset->AssetSize, ReadResult);
+
+    // Validate
+    if (ReadResult != (size_t)SoundAsset->AssetSize)
+        return nullptr;
+
+    return DecodeOpusInterleaved(SoundBuffer.get(), SoundAsset->AssetSize, 0, SoundAsset->FrameRate, SoundAsset->ChannelsCount, SoundAsset->FrameCount);
+}
+
+std::unique_ptr<XSound> SABSupport::DecodeOpusInterleaved(uint8_t* OpusBuffer, size_t OpusBufferSize, size_t OpusDataOffset, uint32_t FrameRate, uint32_t Channels, uint32_t FrameCount)
+{
+    // Initialize Opus
+    int ErrorCode;
+    auto Decoder = opus_decoder_create(FrameRate, Channels, &ErrorCode);
+
+    if (ErrorCode != OPUS_OK)
+        return nullptr;
+
+    // Create new buffer for each 960 frame block
+    auto PCMBuffer = std::make_unique<opus_int16[]>(960 * 2 * (size_t)Channels);
+
+    // Allocate the sound asset
+    auto SoundResult = std::make_unique<XSound>();
+
+    // Output Writer (Note: Frame Count in Asset isn't 100% accurate, so we add on some padding
+    //                      to account for 960 frame split so that we can avoid realloc)
+    MemoryWriter TempWriter((FrameRate + 4096) * 2 * Channels);
+
+    // Offset to the data, depending on the buffer
+    size_t OpusDataSize = OpusBufferSize;
+    size_t OpusConsumed = 0;
+    size_t PCMDataSize = 0;
+
+    // Consume Opus Data
+    while (OpusConsumed < OpusDataSize)
+    {
+        uint16_t BlockSize = *(uint16_t*)(OpusBuffer + OpusConsumed + OpusDataOffset);
+        OpusConsumed += 2;
+
+        auto DecoderResult = opus_decode(
+            Decoder,
+            (OpusBuffer + OpusConsumed + OpusDataOffset),
+            BlockSize,
+            PCMBuffer.get(),
+            960,
+            0);
+
+        // Any negative is a failure in Opus
+        if (DecoderResult < 0)
+            return nullptr;
+
+        // Output to Buffer
+        TempWriter.Write((uint8_t*)PCMBuffer.get(), 960 * 2 * Channels);
+
+        // Advance Info
+        OpusConsumed += BlockSize;
+        PCMDataSize += 960 * 2 * (size_t)Channels;
+    }
+
+    // Prepare to read the sound data, for WAV, we must include a WAV header...
+    auto Result = std::make_unique<XSound>();
+
+    // The offset of which to store the data
+    uint32_t DataOffset = 0;
+
+    // We'll convert all BOCW sounds to 16bit PCM WAV
+    Result->DataBuffer = new int8_t[PCMDataSize + (size_t)Sound::GetMaximumWAVHeaderSize()];
+    Result->DataType = SoundDataTypes::WAV_WithHeader;
+    Result->DataSize = (uint32_t)(PCMDataSize + Sound::GetMaximumWAVHeaderSize());
+
+    DataOffset += Sound::GetMaximumWAVHeaderSize();
+
+    // Make the header
+    Sound::WriteWAVHeaderToStream(Result->DataBuffer, (uint32_t)FrameRate, (uint32_t)Channels, (uint32_t)PCMDataSize);
+
+    // Copy output
+    std::memcpy(Result->DataBuffer + DataOffset, TempWriter.GetCurrentStream(), PCMDataSize);
+
+    return Result;
+}
+
 
 void SABSupport::HandleSABv4(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex)
 {
@@ -498,6 +624,74 @@ void SABSupport::HandleSABv15(BinaryReader& Reader, const SABFileHeader& Header,
 
         // All Black Ops 3 (v15) entries are FLAC's with a header
         LoadedSound->DataType = SoundDataTypes::FLAC_WithHeader;
+
+        // Check do we want to skip this
+        if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
+        {
+            delete LoadedSound;
+            continue;
+        }
+
+        // Add
+        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+    }
+}
+
+void SABSupport::HandleSABv17(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex)
+{
+    // Get Settings
+    auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
+
+    // Names (sound names are not in order)
+    std::unordered_map<uint64_t, std::string> SoundNames;
+
+    // Loop and build hash table
+    for (auto& Name : NameList)
+        SoundNames[HashSoundStringV17(Name)] = Name;
+
+    // Prepare to loop and read entries
+    for (uint32_t i = 0; i < Header.EntriesCount; i++)
+    {
+        std::cout << Reader.GetPosition() << std::endl;
+
+        // Read each entry
+        auto Entry = Reader.Read<SABv17Entry>();
+
+        // Prepare to parse the information to our generic structure
+        std::string EntryName = "";
+
+        // Override if we find it
+        if (SoundNames.find(Entry.Key) != SoundNames.end())
+        {
+            // We have it in a database
+            EntryName = SoundNames.at(Entry.Key);
+        }
+        else
+        {
+            // We don't have one
+            EntryName = Strings::Format("_%llx", Entry.Key);
+        }
+
+        std::cout << EntryName << std::endl;
+
+        // Setup a new entry
+        auto LoadedSound = new CoDSound_t();
+        // Set the name, but remove all extensions first
+        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
+        LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
+
+        // Set various properties
+        LoadedSound->FrameRate = Entry.FrameRate;
+        LoadedSound->FrameCount = Entry.FrameCount;
+        LoadedSound->ChannelsCount = Entry.ChannelCount;
+        // The offset should be after the seek table, since it is not required
+        LoadedSound->AssetPointer = Entry.PrimedSize + Entry.Offset + Entry.SeekTableLength;
+        LoadedSound->AssetSize = Entry.Size;
+        LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+        LoadedSound->IsFileEntry = true;
+        LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+        // All Vanguard (v4) entries get converted to Wav
+        LoadedSound->DataType = SoundDataTypes::WAV_NeedsHeader;
 
         // Check do we want to skip this
         if (SkipBlankAudio && LoadedSound->AssetSize <= 0)

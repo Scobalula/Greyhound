@@ -37,7 +37,8 @@ enum class SupportedGames
     Ghosts,
     InfiniteWarfare,
     AdvancedWarfare,
-    WorldWar2
+    WorldWar2,
+    Vanguard,
 };
 
 // A list of supported game flags for Call of Duty

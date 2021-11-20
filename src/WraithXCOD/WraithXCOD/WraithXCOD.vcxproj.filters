@@ -195,6 +195,15 @@
     <ClCompile Include="XSUBCache.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
+    <ClCompile Include="GameVanguard.cpp">
+      <Filter>Source Files\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="VGXSUBCache.cpp">
+      <Filter>Source Files\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="VGXPAKCache.cpp">
+      <Filter>Source Files\Packages</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoDAssets.h">
@@ -366,6 +375,15 @@
       <Filter>Header Files\Games</Filter>
     </ClInclude>
     <ClInclude Include="XSUBCache.h">
+      <Filter>Header Files\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="GameVanguard.h">
+      <Filter>Header Files\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="VGXSUBCache.h">
+      <Filter>Header Files\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="VGXPAKCache.h">
       <Filter>Header Files\Packages</Filter>
     </ClInclude>
   </ItemGroup>

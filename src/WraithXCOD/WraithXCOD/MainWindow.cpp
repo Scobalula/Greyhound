@@ -15,8 +15,181 @@
 #include "SettingsWindow.h"
 #include "AboutWindow.h"
 
+// String View
+#include <string_view>
+#include <charconv>
+
 // Update cube icon callback
 #define UPDATE_CUBE_ICON (WM_USER + 137)
+
+template <typename T, T min, T defaultVal, T max>
+class RangedIntSearchValue
+{
+public:
+    T Min;
+    T Value;
+    T Max;
+
+    RangedIntSearchValue()
+    {
+        Min = min;
+        Value = defaultVal;
+        Max = max;
+    }
+
+    void SetFromSearchString(std::string view)
+    {
+        if (view.size() == 0)
+            return;
+
+        if (view[0] == '<')
+        {
+            Max = strtoll(view.data() + 1, NULL, 10);
+        }
+        else if (view[0] == '>')
+        {
+            Min = strtoll(view.data() + 1, NULL, 10);
+        }
+        else
+        {
+            Value = strtoll(view.data(), NULL, 10);
+        }
+    }
+};
+
+class StringMatch
+{
+public:
+    // The value
+    std::string Value;
+    // Whether or not to negate the result
+    bool Negate;
+
+    // Initializes String Match
+    StringMatch(std::string& value) :
+        Value(value),
+        Negate(false) { }
+
+    // Initializes String Match
+    StringMatch(std::string& value, bool negate) :
+        Value(value),
+        Negate(negate) { }
+};
+
+class SearchContext
+{
+public:
+    // List of assets to search for
+    std::vector<StringMatch> AssetNames;
+    // List of bones to search for
+    std::vector<StringMatch> BoneNames;
+    // Lod Count Search Value
+    RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> LodCount;
+    // Bone Count Search Value
+    RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> BoneCount;
+    // Frame Count Search Value
+    RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> FrameCount;
+    // Frame Rate Search Value
+    RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> Framerate;
+    // Width Search Value
+    RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> Width;
+    // Height Search Value
+    RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> Height;
+    // Sound Length Search Value
+    RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> SoundLength;
+
+    // Initializes the search context
+    SearchContext(std::string& search);
+};
+
+SearchContext::SearchContext(std::string& search)
+{
+    if (search.size() == 0)
+        return;
+
+    bool negate = false;
+
+    size_t currentIndex = 0;
+
+    if (search[currentIndex] == '!')
+    {
+        negate = true;
+        currentIndex++;
+    }
+
+    std::string currentString = search;
+    size_t currentStart = currentIndex;
+    size_t valueStart = 0;
+
+    while (currentIndex < search.length())
+    {
+        auto nextChar = search[currentIndex++];
+        auto atEnd = currentIndex == search.length();
+
+        if (nextChar == ',' || atEnd)
+        {
+            // We have a value
+            if (valueStart != 0)
+            {
+                auto name = currentString.substr(currentStart, valueStart - 1 - currentStart);
+                auto value = currentString.substr(valueStart, currentIndex - (atEnd ? 0 : 1) - valueStart);
+
+                // C# TODO: Use reflection
+                if (name == "lodcount")
+                {
+                    LodCount.SetFromSearchString(value);
+                }
+                else if (name == "bonecount")
+                {
+                    BoneCount.SetFromSearchString(value);
+                }
+                else if (name == "framecount")
+                {
+                    FrameCount.SetFromSearchString(value);
+                }
+                else if (name == "framerate")
+                {
+                    Framerate.SetFromSearchString(value);
+                }
+                else if (name == "width")
+                {
+                    Width.SetFromSearchString(value);
+                }
+                else if (name == "height")
+                {
+                    Height.SetFromSearchString(value);
+                }
+                else if (name == "length")
+                {
+                    SoundLength.SetFromSearchString(value);
+                }
+                else if (name == "bonename")
+                {
+                    auto boneName = std::string(value.data(), value.size());
+                    BoneNames.emplace_back(Strings::ToLower(Strings::Trim(boneName)));
+                }
+            }
+            // Standard asset name
+            else
+            {
+                auto view = currentString.substr(currentStart, currentIndex - currentStart - (atEnd ? 0 : 1));
+
+                if (view.size() != 0)
+                {
+                    auto assetName = std::string(view.data(), view.size());
+                    AssetNames.emplace_back(Strings::ToLower(Strings::Trim(assetName)), negate);
+                }
+            }
+
+            currentStart = currentIndex;
+            valueStart = 0;
+        }
+        else if (nextChar == ':')
+        {
+            valueStart = currentIndex;
+        }
+    }
+}
 
 BEGIN_MESSAGE_MAP(MainWindow, WraithWindow)
     ON_COMMAND(IDC_LOADGAME, OnLoadGame)
@@ -168,7 +341,7 @@ void MainWindow::OnAssetListDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
     // Convert to client points
     this->AssetListView.ScreenToClient(&CursorPos);
     // Flag result
-    UINT Flags;
+    UINT Flags = 0;
     // The item index, if selected
     int hItem = this->AssetListView.HitTest(CursorPos, &Flags);
 
@@ -303,7 +476,7 @@ void MainWindow::GetListViewInfo(LV_ITEM* ListItem, CWnd* Owner)
                     break;
                 case WraithAssetType::Animation:
                     // Anim info
-                    DetailsFmt.Format(L"Framerate: %.2f, Frames: %d", ((CoDAnim_t*)Asset)->Framerate, ((CoDAnim_t*)Asset)->FrameCount);
+                    DetailsFmt.Format(L"Framerate: %.2f, Frames: %d, Bones: %d", ((CoDAnim_t*)Asset)->Framerate, ((CoDAnim_t*)Asset)->FrameCount, ((CoDAnim_t*)Asset)->BoneCount);
                     break;
                 case WraithAssetType::Image:
                     // Validate info (Some image resources may not have information available)
@@ -337,11 +510,11 @@ void MainWindow::GetListViewInfo(LV_ITEM* ListItem, CWnd* Owner)
                 }
                 case WraithAssetType::Material:
                     // Rawfile info
-                    DetailsFmt.Format(L"Images: %d", ((CoDMaterial_t*)Asset)->ImageCount);
+                    DetailsFmt.Format(L"Images: %llu", ((CoDMaterial_t*)Asset)->ImageCount);
                     break;
                 case WraithAssetType::RawFile:
                     // Rawfile info
-                    DetailsFmt.Format(L"Size: 0x%lX", Asset->AssetSize);
+                    DetailsFmt.Format(L"Size: 0x%llx", Asset->AssetSize);
                     break;
                 case WraithAssetType::Effect:
                     // Effects info
@@ -806,22 +979,8 @@ void MainWindow::OnSearch()
 
         // Grab as a string
         std::string SearchText = Strings::ToNormalString(std::wstring((LPCWSTR)TextValue));
-        // Lowercase the string
-        std::transform(SearchText.begin(), SearchText.end(), SearchText.begin(), ::tolower);
-
-        // Whether or not to use not
-        bool isNotSearch = Strings::StartsWith(SearchText, "!");
-        // Trim the first char, if we're in NOT mode
-        if (isNotSearch) { SearchText = SearchText.substr(1); }
-
-        // Get multi results
-        auto SearchMap = Strings::SplitString(SearchText, ',', true);
-        // Trim the results
-        for (auto& Result : SearchMap)
-        {
-            // Trim it
-            Result = Strings::Trim(Result);
-        }
+        // Create Context
+        SearchContext Context(SearchText);
 
         // Iterate and append what we find
         for (auto& Asset : CoDAssets::GameAssets->LoadedAssets)
@@ -832,23 +991,170 @@ void MainWindow::OnSearch()
             std::transform(AssetName.begin(), AssetName.end(), AssetName.begin(), ::tolower);
 
             // Whether or not we can add
-            bool CanAdd = isNotSearch;
+            bool CanAdd = true;
 
-            // See if we match
-            for (auto& MapFind : SearchMap)
+            // Check type and format it
+            switch (Asset->AssetType)
+            {
+            case WraithAssetType::Model:
+            {
+                auto XModelBoneCount = (int64_t)((CoDModel_t*)Asset)->BoneCount;
+                auto XModelLodCount = (int64_t)((CoDModel_t*)Asset)->LodCount;
+                auto XModelBoneNames = ((CoDModel_t*)Asset)->BoneNames;
+
+                if (Context.BoneCount.Value != -1 && XModelBoneCount != Context.BoneCount.Value)
+                    CanAdd = false;
+                if (XModelBoneCount < Context.BoneCount.Min)
+                    CanAdd = false;
+                if (XModelBoneCount > Context.BoneCount.Max)
+                    CanAdd = false;
+
+                if (Context.LodCount.Value != -1 && XModelLodCount != Context.LodCount.Value)
+                    CanAdd = false;
+                if (XModelLodCount < Context.LodCount.Min)
+                    CanAdd = false;
+                if (XModelLodCount > Context.LodCount.Max)
+                    CanAdd = false;
+
+                if (!Context.BoneNames.empty())
+                {
+                    bool XModelBoneMatch = false;
+
+                    for (auto& BoneName : Context.BoneNames)
+                    {
+                        for (auto& XModelBoneName : XModelBoneNames)
+                        {
+                            // If we match, add, then stop
+                            auto Result = XModelBoneName.find(BoneName.Value);
+                            // Check match type
+                            if (Result != std::string::npos)
+                            {
+                                XModelBoneMatch = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!XModelBoneMatch)
+                        CanAdd = false;
+                }
+
+                break;
+            }
+            case WraithAssetType::Animation:
+            {
+                auto XAnimBoneCount = (int64_t)((CoDAnim_t*)Asset)->BoneCount;
+                auto XAnimFrameCount = (int64_t)((CoDAnim_t*)Asset)->FrameCount;
+                auto XAnimFrameRate = ((CoDAnim_t*)Asset)->Framerate;
+                auto XAnimBoneNames = ((CoDAnim_t*)Asset)->BoneNames;
+
+                if (Context.BoneCount.Value != -1 && XAnimBoneCount != Context.BoneCount.Value)
+                    CanAdd = false;
+                if (XAnimBoneCount < Context.BoneCount.Min)
+                    CanAdd = false;
+                if (XAnimBoneCount > Context.BoneCount.Max)
+                    CanAdd = false;
+
+                if (Context.FrameCount.Value != -1 && XAnimFrameCount != Context.FrameCount.Value)
+                    CanAdd = false;
+                if (XAnimFrameCount < Context.FrameCount.Min)
+                    CanAdd = false;
+                if (XAnimFrameCount > Context.FrameCount.Max)
+                    CanAdd = false;
+
+                if (Context.Framerate.Value != -1 && XAnimFrameRate != Context.Framerate.Value)
+                    CanAdd = false;
+                if (XAnimFrameRate < Context.Framerate.Min)
+                    CanAdd = false;
+                if (XAnimFrameRate > Context.Framerate.Max)
+                    CanAdd = false;
+
+                if (!Context.BoneNames.empty())
+                {
+                    bool XModelBoneMatch = false;
+
+                    for (auto& XAnimBoneName : XAnimBoneNames)
+                    {
+                        for (auto& BoneName : Context.BoneNames)
+                        {
+                            // If we match, add, then stop
+                            auto Result = XAnimBoneName.find(BoneName.Value);
+                            // Check match type
+                            if (Result != std::string::npos)
+                            {
+                                XModelBoneMatch = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!XModelBoneMatch)
+                        CanAdd = false;
+                }
+
+                break;
+            }
+            case WraithAssetType::Image:
+            {
+                auto ImageWidth = (int64_t)((CoDImage_t*)Asset)->Width;
+                auto ImageHeight = (int64_t)((CoDImage_t*)Asset)->Height;
+
+                if (Context.Width.Value != -1 && ImageWidth != Context.Width.Value)
+                    CanAdd = false;
+                if (ImageWidth < Context.Width.Min)
+                    CanAdd = false;
+                if (ImageWidth > Context.Width.Max)
+                    CanAdd = false;
+
+                if (Context.Height.Value != -1 && ImageHeight != Context.Height.Value)
+                    CanAdd = false;
+                if (ImageHeight < Context.Height.Min)
+                    CanAdd = false;
+                if (ImageHeight > Context.Height.Max)
+                    CanAdd = false;
+
+                break;
+            }
+            case WraithAssetType::Sound:
+            {
+                auto SoundLength = (int64_t)((CoDSound_t*)Asset)->Length;
+
+                if (Context.SoundLength.Value != -1 && SoundLength != Context.SoundLength.Value)
+                    CanAdd = false;
+                if (SoundLength < Context.SoundLength.Min)
+                    CanAdd = false;
+                if (SoundLength > Context.SoundLength.Max)
+                    CanAdd = false;
+
+                break;
+            }
+            }
+
+            // At this point we've checked out with value checks, skip names
+            // if other values haven't checked
+            if (!CanAdd)
+                continue;
+
+            bool AssetNameMatch = true;
+
+            for (auto& MapFind : Context.AssetNames)
             {
                 // If we match, add, then stop
-                auto Result = AssetName.find(MapFind);
+                auto Result = AssetName.find(MapFind.Value);
 
                 // Check match type
-                if (!isNotSearch && Result != std::string::npos)
+                if (Result == std::string::npos && MapFind.Negate)
                 {
-                    CanAdd = true;
+                    AssetNameMatch = true;
                     break;
                 }
-                else if (isNotSearch && Result != std::string::npos)
+                if (Result == std::string::npos && !MapFind.Negate)
                 {
-                    CanAdd = false;
+                    AssetNameMatch = false;
+                }
+                else
+                {
+                    AssetNameMatch = true;
                     break;
                 }
 
@@ -857,24 +1163,31 @@ void MainWindow::OnSearch()
                 {
                     // Convert to hex string
                     std::stringstream HashValue;
-                    HashValue << std::hex << FNVHash(MapFind) << std::dec;
+                    HashValue << std::hex << FNVHash(MapFind.Value) << std::dec;
 
                     // If we match, add, then stop
-                    auto Result = AssetName.find(HashValue.str());
+                    Result = AssetName.find(HashValue.str());
                     
                     // Check match type
-                    if (!isNotSearch && Result != std::string::npos)
+                    if (Result == std::string::npos && MapFind.Negate)
                     {
-                        CanAdd = true;
+                        AssetNameMatch = true;
                         break;
                     }
-                    else if (isNotSearch && Result != std::string::npos)
+                    if (Result == std::string::npos && !MapFind.Negate)
                     {
-                        CanAdd = false;
+                        AssetNameMatch = false;
+                    }
+                    else
+                    {
+                        AssetNameMatch = true;
                         break;
                     }
                 }
             }
+
+            if (!AssetNameMatch)
+                CanAdd = false;
 
             // Check to add
             if (CanAdd)

@@ -21,6 +21,10 @@
 #include "CoDAssets.h"
 #include "FileSystems.h"
 
+// Debug Helper
+#include <dbghelp.h>
+#pragma comment(lib, "dbghelp.lib")
+
 // Allow modern GUI controls
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 // The WraithX App Instance
@@ -101,6 +105,35 @@ static void CleanupFilesystem()
     FileSystems::DeleteDirectory(FileSystems::CombinePath(CurrentPath, "Temp"));
 }
 
+LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
+{
+    MessageBoxA(NULL, "Greyhound has encountered a fatal error and must close.\n\nA dump file will be written to where Greyhound's exe is located, please provide this and as much information as you can when reporting this crash.", "Greyhound", MB_OK | MB_ICONERROR);
+    
+    HANDLE hFile = CreateFile(
+        L"crash_dump.dmp",
+        GENERIC_READ | GENERIC_WRITE,
+        FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+        NULL,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL
+    );
+    MINIDUMP_EXCEPTION_INFORMATION mei;
+    mei.ThreadId = GetCurrentThreadId();
+    mei.ClientPointers = TRUE;
+    mei.ExceptionPointers = ExceptionInfo;
+    MiniDumpWriteDump(
+        GetCurrentProcess(),
+        GetCurrentProcessId(),
+        hFile,
+        MiniDumpNormal,
+        &mei,
+        NULL,
+        NULL);
+
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
 // Main entry point of app
 #ifdef _DEBUG
 int main(int argc, char** argv)
@@ -108,6 +141,9 @@ int main(int argc, char** argv)
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #endif
 {
+    // Assign filter before anything
+    SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
+
     // Hook theme callbacks
     WraithTheme::OnLoadIconResource = LoadIconResource;
     WraithTheme::OnLoadImageResource = LoadImageResource;

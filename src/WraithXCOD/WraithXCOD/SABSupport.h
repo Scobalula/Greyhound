@@ -24,6 +24,13 @@ public:
 
     // Loads a sound file from a SAB package
     static std::unique_ptr<XSound> LoadSound(const CoDSound_t* SoundAsset);
+    // Loads a sound file from a SAB package that uses Opus
+    static std::unique_ptr<XSound> LoadOpusSound(const CoDSound_t* SoundAsset);
+
+    // -- Decoding functions
+
+    // Decodes an Opus Buffer
+    static std::unique_ptr<XSound> DecodeOpusInterleaved(uint8_t* OpusBuffer, size_t OpusBufferSize, size_t OpusDataOffset, uint32_t FrameRate, uint32_t Channels, uint32_t FrameCount);
 
 private:
 
@@ -42,6 +49,8 @@ private:
     static void HandleSABv14(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex);
     // Handle reading entries for a v15 SAB file (0xF)
     static void HandleSABv15(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex);
+    // Handle reading entries for a v17 SAB file (0x11)
+    static void HandleSABv17(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex);
     // Handle reading entries for a v21 SAB file (0x15)
     static void HandleSABv21(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex, const std::string FileName);
 };

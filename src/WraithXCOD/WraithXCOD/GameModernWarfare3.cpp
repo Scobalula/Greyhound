@@ -161,6 +161,7 @@ bool GameModernWarfare3::LoadAssets()
             LoadedAnim->AssetPointer = AnimationOffset;
             LoadedAnim->Framerate = AnimResult.Framerate;
             LoadedAnim->FrameCount = AnimResult.NumFrames;
+            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
 
             // Check placeholder configuration, "void" is the base xanim
             if (AnimName == "void")
