@@ -15,7 +15,7 @@
 # in the templates via {{ site.myvariable }}.
 title: Greyhound
 description: A general purpose asset extractor for Call of Duty.
-baseurl: "/greyhound" # the subpath of your site, e.g. /blog
+baseurl: "/Greyhound" # the subpath of your site, e.g. /blog
 url: "https://scobalula.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 
 permalink: pretty
