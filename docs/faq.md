@@ -45,7 +45,7 @@ Greyhound itself does not interfere with the game and simply performs Read opera
 
 That being said, using Greyhound is completely at your own risk and you are responsible for anything that happens while using it.
 
-## I want to get into makig 3D Renders using Greyhound, how can I do that?
+## I want to get into making 3D Renders using Greyhound, how can I do that?
 
 There are tons of resources, tutorials, and software available to help you get into making 3D art using Greyhound.
 
