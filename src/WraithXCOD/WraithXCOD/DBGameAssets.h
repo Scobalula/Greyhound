@@ -3256,9 +3256,7 @@ struct MW4XModelSurface
     uint16_t StatusFlag;
     uint16_t VertexCount;
     uint16_t FacesCount;
-
     uint16_t Padding6;
-
     uint8_t VertListCount;
 
     uint8_t PaddingNew[11];
@@ -3273,7 +3271,7 @@ struct MW4XModelSurface
     // Offset 6 - Unknown, might be normal values, not always present (4 * Vertex Count)
     // Offset 7 - Not seen yet; Always -1
     // Offset 8 - Not seen yet; Always -1
-    uint32_t Offsets[8];
+    uint32_t Offsets[12];
 
     uint64_t MeshBufferPointer;
     uint64_t Padding3;
@@ -3588,6 +3586,42 @@ struct BOCWXModelSurface
     uint32_t VerticiesIndex;
     uint32_t FacesIndex;
     uint8_t Padding2[0x20];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct BOCWXModelMeshInfo
+{
+    uint8_t StatusFlag;
+    uint8_t Flag2;
+    uint8_t Flag3;
+    uint8_t Flag4;
+
+    uint32_t VertexCount;
+    uint32_t WeightCount;
+    uint32_t FacesCount;
+    uint32_t BlendCount;
+    uint32_t BlendShapeCount;
+    uint8_t Padding[0x8];
+
+    uint64_t XModelMeshBufferPtr;
+    uint32_t XModelMeshBufferSize;
+
+    uint32_t VertexOffset;
+    uint32_t UVOffset;
+    uint32_t FacesOffset;
+    uint32_t WeightsOffset;
+    uint32_t BlendshapesOffset;
+
+    uint8_t UnknownData[360];
+
+    uint32_t FuckKnows;
+    uint32_t ShapeCount;
+    uint32_t FuckKnowsAgain;
+    uint32_t HowTheFuck;
+    uint64_t BlendShapeNames;
+    uint64_t BlendShapeIndexes;
+    uint64_t BlendShapeCounts;
 };
 #pragma pack(pop)
 

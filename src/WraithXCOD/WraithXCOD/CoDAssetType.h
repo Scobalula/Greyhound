@@ -306,6 +306,8 @@ struct XModel_t
     uint32_t RootBoneCount;
     // The model cosmetic bone count
     uint32_t CosmeticBoneCount;
+    // The model blendshape count
+    uint32_t BlendShapeCount;
 
     // A pointer to bone name string indicies
     uint64_t BoneIDsPtr;
@@ -327,6 +329,9 @@ struct XModel_t
 
     // A pointer to the bone collision data, hitbox offsets
     uint64_t BoneInfoPtr;
+
+    // A pointer to the blendshape names
+    uint64_t BlendShapeNamesPtr;
 
     // A list of lods per this model
     std::vector<XModelLod_t> ModelLods;
@@ -394,6 +399,10 @@ struct XAnim_t
     uint64_t LongIndiciesPtr;
     // A pointer to animation notetracks
     uint64_t NotificationsPtr;
+    // A pointer to blendshape names
+    uint64_t BlendShapeNamesPtr;
+    // A pointer to blendshape weights
+    uint64_t BlendShapeWeightsPtr;
 
     // A pointer to animation delta translations
     uint64_t DeltaTranslationPtr;
@@ -424,6 +433,8 @@ struct XAnim_t
     uint32_t TotalBoneCount;
     // The count of notetracks
     uint32_t NotificationCount;
+    // The count of blendshape weights
+    uint32_t BlendShapeWeightCount;
 };
 
 struct XImageDDS

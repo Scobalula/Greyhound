@@ -184,7 +184,7 @@ bool GameModernWarfare4::LoadOffsets()
 
         // Attempt to locate via heuristic searching (Note: As of right now, none of the functions got inlined)
         auto DBAssetsScan      = CoDAssets::GameInstance->Scan("48 8D 04 40 4C 8D 8E ?? ?? ?? ?? 4D 8D 0C C1 8D 42 FF");
-        auto StringTableScan   = CoDAssets::GameInstance->Scan("4D 8B C7 48 03 1D ?? ?? ?? ?? 49 8B D5");
+        auto StringTableScan   = CoDAssets::GameInstance->Scan("4D 8B C7 48 03 1D ?? ?? ?? ?? 48 8D 4B 08");
 
         // Check that we had hits
         if (DBAssetsScan > 0 && StringTableScan > 0)
@@ -792,20 +792,20 @@ std::unique_ptr<XModel_t> GameModernWarfare4::ReadXModel(const CoDModel_t* Model
                 // Read the surface data
                 auto SurfaceInfo = CoDAssets::GameInstance->Read<MW4XModelSurface>(XSurfacePtr);
 
-                sizeof(MW4XModelSurface);
-
                 // Apply surface info
-                SubmeshReference.RigidWeightsPtr = SurfaceInfo.RigidWeightsPtr;
-                SubmeshReference.VertListcount   = SurfaceInfo.VertListCount;
-                SubmeshReference.VertexCount     = SurfaceInfo.VertexCount;
-                SubmeshReference.FaceCount       = SurfaceInfo.FacesCount;
-                SubmeshReference.VertexPtr       = SurfaceInfo.Offsets[0];
-                SubmeshReference.FacesPtr        = SurfaceInfo.Offsets[1];
-                SubmeshReference.VertexColorPtr  = SurfaceInfo.Offsets[3];
-                SubmeshReference.Scale           = fmaxf(fmaxf(SurfaceInfo.Min, SurfaceInfo.Scale), SurfaceInfo.Max);
-                SubmeshReference.XOffset         = SurfaceInfo.XOffset;
-                SubmeshReference.YOffset         = SurfaceInfo.YOffset;
-                SubmeshReference.ZOffset         = SurfaceInfo.ZOffset;
+                SubmeshReference.RigidWeightsPtr  = SurfaceInfo.RigidWeightsPtr;
+                SubmeshReference.VertListcount    = SurfaceInfo.VertListCount;
+                SubmeshReference.VertexCount      = SurfaceInfo.VertexCount;
+                SubmeshReference.FaceCount        = SurfaceInfo.FacesCount;
+                SubmeshReference.VertexPtr        = SurfaceInfo.Offsets[0];
+                SubmeshReference.VertexUVsPtr     = SurfaceInfo.Offsets[2];
+                SubmeshReference.VertexNormalsPtr = SurfaceInfo.Offsets[3];
+                SubmeshReference.FacesPtr         = SurfaceInfo.Offsets[4];
+                SubmeshReference.VertexColorPtr   = SurfaceInfo.Offsets[6];
+                SubmeshReference.Scale            = fmaxf(fmaxf(SurfaceInfo.Min, SurfaceInfo.Scale), SurfaceInfo.Max);
+                SubmeshReference.XOffset          = SurfaceInfo.XOffset;
+                SubmeshReference.YOffset          = SurfaceInfo.YOffset;
+                SubmeshReference.ZOffset          = SurfaceInfo.ZOffset;
 
                 // Assign weights
                 SubmeshReference.WeightCounts[0] = SurfaceInfo.WeightCounts[0];
@@ -1064,15 +1064,16 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     // RGBA
     case 7: ImageInfo.ImageFormat = 28; break;
     // BC1
-    case 33:
-    case 34:
-    case 35: ImageInfo.ImageFormat = 71; break;
-    case 36: ImageInfo.ImageFormat = 74; break;
-    case 38: ImageInfo.ImageFormat = 77; break;
-    case 39: ImageInfo.ImageFormat = 80; break;
+    case 35:
+    case 36:
+    case 37: ImageInfo.ImageFormat = 71; break;
+    case 38: ImageInfo.ImageFormat = 74; break;
+    case 39: ImageInfo.ImageFormat = 77; break;
+    case 40: ImageInfo.ImageFormat = 80; break;
+    case 41: ImageInfo.ImageFormat = 80; break;
     // BC7
-    case 44: 
-    case 45: ImageInfo.ImageFormat = 98; break;
+    case 46: 
+    case 47: ImageInfo.ImageFormat = 98; break;
     // Fall back to BC1
     default: ImageInfo.ImageFormat = 71; break;
     }
@@ -1220,6 +1221,14 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
         // Prepare it for submeshes
         ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());
 
+        // Readers for all data types, global so that we can use them when streaming...
+        MemoryReader VertexPosReader;
+        MemoryReader VertexNormReader;
+        MemoryReader VertexUVReader;
+        MemoryReader VertexColorReader;
+        MemoryReader VertexWeightReader;
+        MemoryReader FaceIndiciesReader;
+
         // Iterate over submeshes
         for (auto& Submesh : ModelLOD.Submeshes)
         {
@@ -1239,8 +1248,11 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             if(ResultModel->BoneCount() > 1)
                 PrepareVertexWeights(VertexWeights, Submesh);
 
-            // Jump to vertex position data, advance to this submeshes verticies
-            MeshReader.SetPosition(Submesh.VertexPtr);
+            // Vertex Readers
+            VertexPosReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.VertexPtr, Submesh.VertexCount * sizeof(uint64_t), true);
+            VertexNormReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.VertexNormalsPtr, Submesh.VertexCount * sizeof(uint32_t), true);
+            VertexUVReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.VertexUVsPtr, Submesh.VertexCount * sizeof(uint32_t), true);
+            FaceIndiciesReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.FacesPtr, Submesh.FaceCount * sizeof(uint16_t) * 3, true);
 
             // Iterate over verticies
             for (uint32_t i = 0; i < Submesh.VertexCount; i++)
@@ -1248,21 +1260,20 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
                 // Make a new vertex
                 auto& Vertex = Mesh.AddVertex();
 
-                auto StreamVertex = MeshReader.Read<MW4GfxStreamVertex>();
-
+                // Read Vertex
+                auto VertexPosition = VertexPosReader.Read<uint64_t>();
 
                 // Read and assign position
                 Vertex.Position = Vector3(
-                    (((((StreamVertex.PackedPosition >> 0)  & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.XOffset,
-                    (((((StreamVertex.PackedPosition >> 21) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.YOffset,
-                    (((((StreamVertex.PackedPosition >> 42) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.ZOffset);
+                    (((((VertexPosition >> 00) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.XOffset,
+                    (((((VertexPosition >> 21) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.YOffset,
+                    (((((VertexPosition >> 42) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.ZOffset);
 
-
-                // Add UV layer
-                Vertex.AddUVLayer(HalfFloats::ToFloat(StreamVertex.UVUPosition), HalfFloats::ToFloat(StreamVertex.UVVPosition));
+                // Read Tangent/Normal
+                auto QTangent = VertexNormReader.Read<uint32_t>();
 
                 // Add normal
-                Vertex.Normal = UnpackNormalQuat(StreamVertex.NormalQuaternion);
+                Vertex.Normal = UnpackNormalQuat(QTangent);
 
                 // Apply Color (some models don't store colors, so we need to check ptr below)
                 Vertex.Color[0] = 255;
@@ -1270,10 +1281,17 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
                 Vertex.Color[2] = 255;
                 Vertex.Color[3] = 255;
 
+                // Read and set UVs
+                auto UVU = HalfFloats::ToFloat(VertexUVReader.Read<uint16_t>());
+                auto UVV = HalfFloats::ToFloat(VertexUVReader.Read<uint16_t>());
+
+                // Set it
+                Vertex.AddUVLayer(UVU, UVV);
+
                 // Assign weights
                 auto& WeightValue = VertexWeights[i];
 
-                // Iterate
+                //// Iterate
                 for (uint32_t w = 0; w < WeightValue.WeightCount; w++)
                 {
                     // Add new weight
@@ -1284,28 +1302,24 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
             // Jump to color data, if it's stored and we want it
             if (ExportColors && Submesh.VertexColorPtr != 0xFFFFFFFF)
             {
-                // Jump to vertex position data, advance to this submeshes verticies
-                MeshReader.SetPosition(Submesh.VertexColorPtr);
+                VertexColorReader.Setup((int8_t*)MeshDataBuffer.get() + Submesh.VertexColorPtr, Submesh.VertexCount * sizeof(uint32_t), true);
 
                 // Iterate over verticies
                 for (uint32_t i = 0; i < Submesh.VertexCount; i++)
                 {
                     // Apply Color (some models don't store colors, so we need to check ptr below)
-                    Mesh.Verticies[i].Color[0] = MeshReader.Read<uint8_t>();
-                    Mesh.Verticies[i].Color[1] = MeshReader.Read<uint8_t>();
-                    Mesh.Verticies[i].Color[2] = MeshReader.Read<uint8_t>();
-                    Mesh.Verticies[i].Color[3] = MeshReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[0] = VertexColorReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[1] = VertexColorReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[2] = VertexColorReader.Read<uint8_t>();
+                    Mesh.Verticies[i].Color[3] = VertexColorReader.Read<uint8_t>();
                 }
             }
-
-            // Jump to face data, advance to this submeshes faces
-            MeshReader.SetPosition(Submesh.FacesPtr);
 
             // Iterate over faces
             for (uint32_t i = 0; i < Submesh.FaceCount; i++)
             {
                 // Read data
-                auto Face = MeshReader.Read<MW4GfxStreamFace>();
+                auto Face = FaceIndiciesReader.Read<MW4GfxStreamFace>();
 
                 // Add the face
                 Mesh.AddFace(Face.Index1, Face.Index2, Face.Index3);
@@ -1317,7 +1331,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((28 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
 }
 void GameModernWarfare4::PerformInitialSetup()
 {

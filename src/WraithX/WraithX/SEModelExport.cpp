@@ -272,4 +272,27 @@ void SEModel::ExportSEModel(const WraithModel& Model, const std::string& FileNam
         Writer.WriteNullTerminatedString(Material.NormalMapName);
         Writer.WriteNullTerminatedString(Material.SpecularMapName);
     }
+
+    Writer.Write<uint64_t>(0xA646E656C424553);
+    Writer.Write<uint64_t>(Model.BlendShapes.size());
+
+    for (auto& BlendShapeName : Model.BlendShapes)
+    {
+        Writer.WriteNullTerminatedString(BlendShapeName);
+    }
+
+    // Iterate and produce meshes
+    for (auto& Mesh : Model.Submeshes)
+    {
+        for (auto& Vertex : Mesh.Verticies)
+        {
+            Writer.Write<uint32_t>((uint32_t)Vertex.BlendShapeDeltas.size());
+
+            for (auto& Delta : Vertex.BlendShapeDeltas)
+            {
+                Writer.Write<uint32_t>(Delta.first);
+                Writer.Write<Vector3>(Delta.second);
+            }
+        }
+    }
 }

@@ -397,4 +397,24 @@ void SEAnim::ExportSEAnim(const WraithAnim& Animation, const std::string& FileNa
             }
         }
     }
+
+    Writer.Write<uint64_t>(0xA646E656C424553);
+    Writer.Write<uint64_t>(Animation.AnimationBlendShapeWeightKeys.size());
+
+    for (auto& BlendShape : Animation.AnimationBlendShapeWeightKeys)
+    {
+        Writer.WriteNullTerminatedString(BlendShape.first);
+    }
+
+    // Iterate and produce meshes
+    for (auto& BlendShape : Animation.AnimationBlendShapeWeightKeys)
+    {
+        Writer.Write<uint32_t>((uint32_t)BlendShape.second.size());
+
+        for (auto& Weight : BlendShape.second)
+        {
+            Writer.Write<uint32_t>(Weight.Frame);
+            Writer.Write<Vector3>(Weight.Value);
+        }
+    }
 }

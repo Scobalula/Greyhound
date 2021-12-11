@@ -153,6 +153,17 @@ void WraithAnim::AddScaleKey(const std::string Bone, uint32_t Frame, float X, fl
     AnimationScaleKeys[Bone].push_back(NewFrame);
 }
 
+void WraithAnim::AddBlendShapeKey(const std::string Shape, uint32_t Frame, float X, float Y, float Z)
+{
+    // Make it
+    WraithAnimFrame<Vector3> NewFrame;
+    // Set values
+    NewFrame.Frame = Frame;
+    NewFrame.Value = Vector3(X, Y, Z);
+    // Add the key itself
+    AnimationBlendShapeWeightKeys[Shape].push_back(NewFrame);
+}
+
 void WraithAnim::AddNoteTrack(const std::string Notification, uint32_t Frame)
 {
     // Add it

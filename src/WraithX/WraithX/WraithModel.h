@@ -84,6 +84,8 @@ public:
 
     // The position of this vertex
     Vector3 Position;
+    // A list of blendshape delta positions
+    std::vector<std::pair<uint32_t, Vector3>> BlendShapeDeltas;
     // A list of weights for this vertex
     std::vector<WraithVertexWeight> Weights;
     // The vertex normal of this vertex
@@ -207,6 +209,8 @@ public:
 
     // -- Model data
 
+    // A list of blend shapes in this model
+    std::vector<std::string> BlendShapes;
     // A list of bones in this model
     std::vector<WraithBone> Bones;
     // A list of submeshes in this model

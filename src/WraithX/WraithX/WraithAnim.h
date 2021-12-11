@@ -50,6 +50,8 @@ public:
     std::unordered_map<std::string, std::vector<WraithAnimFrame<Quaternion>>> AnimationRotationKeys;
     // A list of animation keys, by bone, for scales
     std::unordered_map<std::string, std::vector<WraithAnimFrame<Vector3>>> AnimationScaleKeys;
+    // A list of animation blendshape weight keys per axis
+    std::unordered_map<std::string, std::vector<WraithAnimFrame<Vector3>>> AnimationBlendShapeWeightKeys;
     // A list of animation keys, for notetracks
     std::unordered_map<std::string, std::vector<uint32_t>> AnimationNotetracks;
     // A list of animation modifiers, by bone
@@ -83,6 +85,8 @@ public:
     void AddRotationKey(const std::string Bone, uint32_t Frame, float X, float Y, float Z, float W);
     // Add a scale key for the specified bone, on the given frame, with a Vector3
     void AddScaleKey(const std::string Bone, uint32_t Frame, float X, float Y, float Z);
+    // Add a blendshape key for the specified shape, on the given frame, with a Vector3 for weight
+    void AddBlendShapeKey(const std::string Shape, uint32_t Frame, float X, float Y, float Z);
 
     // Add a notification at the specified frame
     void AddNoteTrack(const std::string Notification, uint32_t Frame);
