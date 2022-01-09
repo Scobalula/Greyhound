@@ -59,6 +59,8 @@ public:
     uint32_t FrameCount;
     // The number of frames
     uint32_t BoneCount;
+    // The number of shapes
+    uint32_t ShapeCount;
 
     // Modern games
     bool isSiegeAnim;
@@ -208,6 +210,8 @@ struct XModelSubmesh_t
     uint16_t WeightCounts[8];
     // A pointer to weight data
     uint64_t WeightsPtr;
+    // A pointer to blendshapes data
+    uint64_t BlendShapesPtr;
 
     // Submesh Scale
     float Scale;

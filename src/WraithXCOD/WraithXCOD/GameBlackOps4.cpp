@@ -790,6 +790,7 @@ bool GameBlackOps4::LoadAssets()
             LoadedAnim->FrameCount = Asset.NumFrames;
             LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
             LoadedAnim->BoneCount = Asset.TotalBoneCount;
+            LoadedAnim->ShapeCount = (uint32_t) * (uint16_t*)&Asset.Unknown[0];
 
             // Parse bone names if requested
             if (NeedsExtInfo)
@@ -993,22 +994,25 @@ std::unique_ptr<XAnim_t> GameBlackOps4::ReadXAnim(const CoDAnim_t* Animation)
         Anim->BoneIndexSize = 4;
 
         // Copy over counts
-        Anim->NoneRotatedBoneCount = AnimData.NoneRotatedBoneCount;
-        Anim->TwoDRotatedBoneCount = AnimData.TwoDRotatedBoneCount;
-        Anim->NormalRotatedBoneCount = AnimData.NormalRotatedBoneCount;
-        Anim->TwoDStaticRotatedBoneCount = AnimData.TwoDStaticRotatedBoneCount;
+        Anim->NoneRotatedBoneCount         = AnimData.NoneRotatedBoneCount;
+        Anim->TwoDRotatedBoneCount         = AnimData.TwoDRotatedBoneCount;
+        Anim->NormalRotatedBoneCount       = AnimData.NormalRotatedBoneCount;
+        Anim->TwoDStaticRotatedBoneCount   = AnimData.TwoDStaticRotatedBoneCount;
         Anim->NormalStaticRotatedBoneCount = AnimData.NormalStaticRotatedBoneCount;
-        Anim->NormalTranslatedBoneCount = AnimData.NormalTranslatedBoneCount;
-        Anim->PreciseTranslatedBoneCount = AnimData.PreciseTranslatedBoneCount;
-        Anim->StaticTranslatedBoneCount = AnimData.StaticTranslatedBoneCount;
-        Anim->NoneTranslatedBoneCount = AnimData.NoneTranslatedBoneCount;
-        Anim->TotalBoneCount = AnimData.TotalBoneCount;
-        Anim->NotificationCount = AnimData.NotificationCount;
+        Anim->NormalTranslatedBoneCount    = AnimData.NormalTranslatedBoneCount;
+        Anim->PreciseTranslatedBoneCount   = AnimData.PreciseTranslatedBoneCount;
+        Anim->StaticTranslatedBoneCount    = AnimData.StaticTranslatedBoneCount;
+        Anim->NoneTranslatedBoneCount      = AnimData.NoneTranslatedBoneCount;
+        Anim->TotalBoneCount               = AnimData.TotalBoneCount;
+        Anim->NotificationCount            = AnimData.NotificationCount;
 
         // Copy delta
-        Anim->DeltaTranslationPtr = AnimDeltaData.DeltaTranslationsPtr;
-        Anim->Delta2DRotationsPtr = AnimDeltaData.Delta2DRotationsPtr;
-        Anim->Delta3DRotationsPtr = AnimDeltaData.Delta3DRotationsPtr;
+        Anim->DeltaTranslationPtr   = AnimDeltaData.DeltaTranslationsPtr;
+        Anim->Delta2DRotationsPtr   = AnimDeltaData.Delta2DRotationsPtr;
+        Anim->Delta3DRotationsPtr   = AnimDeltaData.Delta3DRotationsPtr;
+        Anim->BlendShapeNamesPtr    = AnimData.UnknownPtr;
+        Anim->BlendShapeWeightsPtr  = AnimData.UnknownZero1;
+        Anim->BlendShapeWeightCount = (uint32_t)*(uint16_t*)&AnimData.Unknown[0];
 
         // Set types, we use quata for BO4
         Anim->RotationType = AnimationKeyTypes::QuatPackingA;
@@ -1296,12 +1300,63 @@ std::unique_ptr<XImageDDS> GameBlackOps4::LoadXImage(const XImage_t& Image)
     return nullptr;
 }
 
+#pragma pack(push, 1)
+struct BO4XModelMeshInfoEx
+{
+    uint8_t StatusFlag;
+    uint8_t Flag2;
+    uint8_t Flag3;
+    uint8_t Flag4;
+
+    uint32_t VertexCount;
+    uint32_t WeightCount;
+    uint32_t FacesCount;
+
+    uint8_t Padding[0x10];
+
+    uint64_t XModelMeshBufferPtr;
+    uint32_t XModelMeshBufferSize;
+
+    uint32_t VertexOffset;
+    uint32_t UVOffset;
+    uint32_t FacesOffset;
+    uint32_t WeightsOffset;
+    uint32_t BlendShapesOffset;
+    uint8_t Pad[416];
+    uint32_t BlendShapeCount;
+    uint32_t UnknownPossibleValueOrPad;
+    uint64_t BlendShapeNames;
+    uint64_t BlendShapeIndexes;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct Bo4GfxBlendShapeVert
+{
+    uint16_t FlagsAndShapeIndex;
+    uint16_t X;
+    uint16_t Y;
+    uint16_t Z;
+    uint16_t Unk0; // Possibly Normal/Tangent
+    uint16_t Unk1; // Possibly Normal/Tangent
+    uint16_t Unk2; // Possibly Normal/Tangent
+    uint16_t Unk3; // Possibly Normal/Tangent
+};
+#pragma pack(pop)
+
+struct Bo4BlendShapeInfo
+{
+    uint32_t Name;
+    uint32_t Index;
+};
+
+
 void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Check if we want Vertex Colors
     bool ExportColors = (SettingsManager::GetSetting("exportvtxcolor", "true") == "true");
     // Read the mesh information
-    auto MeshInfo = CoDAssets::GameInstance->Read<BO4XModelMeshInfo>(ModelLOD.LODStreamInfoPtr);
+    auto MeshInfo = CoDAssets::GameInstance->Read<BO4XModelMeshInfoEx>(ModelLOD.LODStreamInfoPtr);
 
     // A buffer for the mesh data
     std::unique_ptr<uint8_t[]> MeshDataBuffer = nullptr;
@@ -1357,6 +1412,57 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
         // Prepare it for submeshes
         ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());
 
+        // Start by reading blendshape info
+        auto Vertices = std::make_unique<std::vector<std::pair<uint32_t, Vector3>>[]>(MeshInfo.VertexCount);
+
+        // Check if we have blendshapes
+        if (MeshInfo.BlendShapeCount != 0 && MeshInfo.BlendShapeCount <= 256)
+        {
+            // Index map
+            uint32_t Indexes[256];
+            // Read names
+            for (uint32_t i = 0; i < MeshInfo.BlendShapeCount; i++)
+            {
+                auto TargetInfo = CoDAssets::GameInstance->Read<Bo4BlendShapeInfo>(MeshInfo.BlendShapeIndexes + i * sizeof(Bo4BlendShapeInfo));
+                ResultModel->BlendShapes.push_back(CoDAssets::GameStringHandler(TargetInfo.Name));
+                Indexes[TargetInfo.Index] = i;
+            }
+
+            // Jump to Blendshapes
+            MeshReader.SetPosition(MeshInfo.BlendShapesOffset);
+            // Read count
+            auto TargetCount = MeshReader.Read<uint32_t>();
+            // Create offset buffer
+            auto Offsets = std::make_unique<uint32_t[]>(TargetCount);
+            MeshReader.Read(TargetCount * sizeof(uint32_t), (int8_t*)Offsets.get());
+
+            // Load each target
+            for (uint32_t i = 0; i < TargetCount; i++)
+            {
+                // Jump to this target
+                MeshReader.SetPosition((uint64_t)MeshInfo.BlendShapesOffset + Offsets[i]);
+                // Read Info
+                auto VertexIndex = MeshReader.Read<uint32_t>();
+                auto ShapeCount = MeshReader.Read<uint32_t>();
+
+                // Load each shape for this vertex
+                for (uint32_t j = 0; j < ShapeCount; j++)
+                {
+                    // Load and unpack index and deltas
+                    auto ShapeValue = MeshReader.Read<Bo4GfxBlendShapeVert>();
+                    auto ShapeIndex = ShapeValue.FlagsAndShapeIndex >> 8;
+
+                    Vertices[VertexIndex].push_back(std::make_pair(
+                        (uint32_t)Indexes[ShapeIndex],
+                        Vector3(
+                            HalfFloats::ToFloat(ShapeValue.Unk0),
+                            HalfFloats::ToFloat(ShapeValue.Unk1),
+                            HalfFloats::ToFloat(ShapeValue.Unk2)
+                        )));
+                }
+            }
+        }
+
         // Iterate over submeshes
         for (auto& Submesh : ModelLOD.Submeshes)
         {
@@ -1390,6 +1496,9 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
             {
                 // Grab the reference
                 auto& Vertex = Mesh.Verticies[i];
+
+                // Set Shapes
+                Vertex.BlendShapeDeltas = Vertices[Submesh.VertexPtr + i];
 
                 // Read vertex data
                 auto VertexData = MeshReader.Read<GfxStreamVertex>();

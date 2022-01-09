@@ -309,6 +309,7 @@ bool GameBlackOpsCW::LoadAssets()
             LoadedAnim->Framerate    = Asset.Framerate;
             LoadedAnim->FrameCount   = Asset.NumFrames;
             LoadedAnim->BoneCount    = Asset.TotalBoneCount;
+            LoadedAnim->ShapeCount   = (uint32_t) * (uint16_t*)&Asset.Unknown[0];
             LoadedAnim->AssetStatus  = WraithAssetStatus::Loaded;
 
             // Parse bone names if requested
@@ -563,17 +564,20 @@ std::unique_ptr<XAnim_t> GameBlackOpsCW::ReadXAnim(const CoDAnim_t* Animation)
         Anim->BoneIndexSize = 4;
 
         // Copy over counts
-        Anim->NoneRotatedBoneCount         = AnimData.NoneRotatedBoneCount;
-        Anim->TwoDRotatedBoneCount         = AnimData.TwoDRotatedBoneCount;
-        Anim->NormalRotatedBoneCount       = AnimData.NormalRotatedBoneCount;
-        Anim->TwoDStaticRotatedBoneCount   = AnimData.TwoDStaticRotatedBoneCount;
-        Anim->NormalStaticRotatedBoneCount = AnimData.NormalStaticRotatedBoneCount;
-        Anim->NormalTranslatedBoneCount    = AnimData.NormalTranslatedBoneCount;
-        Anim->PreciseTranslatedBoneCount   = AnimData.PreciseTranslatedBoneCount;
-        Anim->StaticTranslatedBoneCount    = AnimData.StaticTranslatedBoneCount;
-        Anim->NoneTranslatedBoneCount      = AnimData.NoneTranslatedBoneCount;
-        Anim->TotalBoneCount               = AnimData.TotalBoneCount;
-        Anim->NotificationCount            = AnimData.NotificationCount;
+        Anim->NoneRotatedBoneCount            = AnimData.NoneRotatedBoneCount;
+        Anim->TwoDRotatedBoneCount            = AnimData.TwoDRotatedBoneCount;
+        Anim->NormalRotatedBoneCount          = AnimData.NormalRotatedBoneCount;
+        Anim->TwoDStaticRotatedBoneCount      = AnimData.TwoDStaticRotatedBoneCount;
+        Anim->NormalStaticRotatedBoneCount    = AnimData.NormalStaticRotatedBoneCount;
+        Anim->NormalTranslatedBoneCount       = AnimData.NormalTranslatedBoneCount;
+        Anim->PreciseTranslatedBoneCount      = AnimData.PreciseTranslatedBoneCount;
+        Anim->StaticTranslatedBoneCount       = AnimData.StaticTranslatedBoneCount;
+        Anim->NoneTranslatedBoneCount         = AnimData.NoneTranslatedBoneCount;
+        Anim->TotalBoneCount                  = AnimData.TotalBoneCount;
+        Anim->NotificationCount               = AnimData.NotificationCount;
+        Anim->BlendShapeNamesPtr              = AnimData.UnknownPtr;
+        Anim->BlendShapeWeightsPtr            = AnimData.UnknownZero1;
+        Anim->BlendShapeWeightCount           = (uint32_t)*(uint16_t*)&AnimData.Unknown[0];
 
         // Copy delta
         Anim->DeltaTranslationPtr = AnimDeltaData.DeltaTranslationsPtr;
@@ -984,12 +988,32 @@ std::unique_ptr<XImageDDS> GameBlackOpsCW::LoadXImage(const XImage_t& Image)
     return nullptr;
 }
 
+struct BlendShapeTargetInfo
+{
+    uint32_t Name;
+    uint32_t Index;
+};
+
+struct BlendShapeVertexInfo
+{
+    uint32_t Offset;
+    uint32_t Count;
+};
+
+struct BlendShapeVertex
+{
+    uint16_t VertexIndex;
+    uint16_t X;
+    uint16_t Y;
+    uint16_t Z;
+};
+
 void GameBlackOpsCW::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Check if we want Vertex Colors
     bool ExportColors = (SettingsManager::GetSetting("exportvtxcolor", "true") == "true");
     // Read the mesh information
-    auto MeshInfo = CoDAssets::GameInstance->Read<BO4XModelMeshInfo>(ModelLOD.LODStreamInfoPtr);
+    auto MeshInfo = CoDAssets::GameInstance->Read<BOCWXModelMeshInfo>(ModelLOD.LODStreamInfoPtr);
 
     // A buffer for the mesh data
     std::unique_ptr<uint8_t[]> MeshDataBuffer = nullptr;
@@ -1041,6 +1065,49 @@ void GameBlackOpsCW::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_p
         // Prepare it for submeshes
         ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());
 
+        // Start by reading blendshape info
+        auto Vertices = std::make_unique<std::vector<std::pair<uint32_t, Vector3>>[]>(MeshInfo.VertexCount);
+
+        if (MeshInfo.BlendShapeIndexes != 0 && MeshInfo.BlendShapeCounts != 0)
+        {
+            for (size_t i = 0; i < ((size_t)MeshInfo.ShapeCount + (size_t)MeshInfo.FuckKnowsAgain); i++)
+            {
+                auto TargetInfo = CoDAssets::GameInstance->Read<BlendShapeTargetInfo>(MeshInfo.BlendShapeIndexes + i * sizeof(BlendShapeTargetInfo));
+                auto VertexInfo = CoDAssets::GameInstance->Read<BlendShapeVertexInfo>(MeshInfo.BlendShapeCounts + TargetInfo.Index * sizeof(BlendShapeVertexInfo));
+
+                // TODO: It seems like this might be Normal/Tangent data if we hit the same
+                // shape again, there must be a flag for it, Blender doesn't support setting them so
+                // not sure if it is worth ripping them 
+                // See: c_t9_eng_hero_park_head from campaign
+                if (TargetInfo.Index >= MeshInfo.ShapeCount)
+                    continue;
+
+                // Now we can be sure this is a unique shape, and we're hitting the first instance
+                // which will be delta positions
+                auto ShapeIndex = ResultModel->BlendShapes.size();
+                ResultModel->BlendShapes.push_back(CoDAssets::GameStringHandler(TargetInfo.Name));
+                // Jump to vertex position data, advance to this submeshes verticies
+                MeshReader.SetPosition(MeshInfo.BlendshapesOffset + (size_t)VertexInfo.Offset);
+
+                for (size_t j = 0; j < (size_t)VertexInfo.Count; j++)
+                {
+                    auto ValueForVertex = MeshReader.Read<BlendShapeVertex>();
+
+                    auto X = HalfFloats::ToFloat(ValueForVertex.X);
+                    auto Y = HalfFloats::ToFloat(ValueForVertex.Y);
+                    auto Z = HalfFloats::ToFloat(ValueForVertex.Z);
+
+                    Vertices[ValueForVertex.VertexIndex].push_back(std::make_pair(
+                        (uint32_t)ShapeIndex,
+                        Vector3(
+                        HalfFloats::ToFloat(ValueForVertex.X),
+                        HalfFloats::ToFloat(ValueForVertex.Y),
+                        HalfFloats::ToFloat(ValueForVertex.Z)
+                    )));
+                }
+            }
+        }
+
         // Iterate over submeshes
         for (auto& Submesh : ModelLOD.Submeshes)
         {
@@ -1064,6 +1131,7 @@ void GameBlackOpsCW::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_p
 
                 // Read and assign position
                 Vertex.Position = MeshReader.Read<Vector3>();
+                Vertex.BlendShapeDeltas = Vertices[Submesh.VertexPtr + i];
             }
 
             // Jump to vertex info data, advance to this submeshes info, seek further for extended vertex info

@@ -8,7 +8,6 @@
 #include "CoDRawImageTranslator.h"
 #include "CoDXPoolParser.h"
 #include "DBGameFiles.h"
-
 // We need the following WraithX classes
 #include "Strings.h"
 #include "FileSystems.h"
@@ -16,6 +15,7 @@
 #include "TextWriter.h"
 #include "SettingsManager.h"
 #include "HalfFloats.h"
+#include "BinaryReader.h"
 
 // -- Initialize built-in game offsets databases
 
@@ -139,109 +139,27 @@ bool GameModernWarfare4::LoadOffsets()
     // Attempt to load the game offsets
     if (CoDAssets::GameInstance != nullptr)
     {
-        // We need the base address of the MW4 Module for ASLR + Heuristics
-        auto BaseAddress = CoDAssets::GameInstance->GetMainModuleAddress();
+        // Locate IW8 Database
+        auto DBFile = FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "IW8Database.db");
 
-        // Check built-in offsets via game exe mode (SP)
-        for (auto& GameOffsets : SinglePlayerOffsets)
+        if (FileSystems::FileExists(DBFile))
         {
-            // Read required offsets (XANIM, XMODEL, XIMAGE, RAWFILE RELATED...)
-            auto AnimPoolData           = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
-            auto ModelPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
-            auto ImagePoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
-            auto SoundPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
-            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 22));
-            auto MaterialPoolData       = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 11));
+            BinaryReader DBReader;
+
+            if (!DBReader.Open(DBFile, true))
+            {
+                return false;
+            }
+
+            auto FirstXAsset = DBReader.Read<uint64_t>();
+            auto LastXAsset = DBReader.Read<uint64_t>();
+            auto StringPool = DBReader.Read<uint64_t>();
 
             // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundTransientPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
-
-            // Verify via first xmodel asset
-            auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]));
-            // Check
-            if (FirstXModelName == "axis_guide_createfx")
-            {
-                // Verify string table, otherwise we are all set
-                CoDAssets::GameOffsetInfos.emplace_back(BaseAddress + GameOffsets.StringTable);
-                // Read and apply sizes
-                CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(SoundPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(SoundTransientPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
-                // Return success
-                return true;
-            }
-            // Reset
-            CoDAssets::GameOffsetInfos.clear();
-        }
-
-        // Attempt to locate via heuristic searching (Note: As of right now, none of the functions got inlined)
-        auto DBAssetsScan      = CoDAssets::GameInstance->Scan("48 8D 04 40 4C 8D 8E ?? ?? ?? ?? 4D 8D 0C C1 8D 42 FF");
-        auto StringTableScan   = CoDAssets::GameInstance->Scan("4D 8B C7 48 03 1D ?? ?? ?? ?? 48 8D 4B 08");
-
-        // Check that we had hits
-        if (DBAssetsScan > 0 && StringTableScan > 0)
-        {
-            // Load info and verify
-            auto GameOffsets = DBGameInfo(
-                // Resolve pool info from LEA
-                CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0x7) + BaseAddress,
-                // We don't use size offsets
-                0,
-                // Resolve strings from LEA
-                CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x6) + (StringTableScan + 0xA)),
-                // We don't use package offsets
-                0
-            );
-
-            // In debug, print the info for easy additions later!
-#if _DEBUG
-            // Format the output
-            printf("Heuristic: { 0x%llX, 0x0, 0x%llX, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
-#endif
-
-            // Read required offsets (XANIM, XMODEL, XIMAGE)
-            auto AnimPoolData           = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 7));
-            auto ModelPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 9));
-            auto ImagePoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 19));
-            auto SoundPoolData          = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 21));
-            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 22));
-            auto MaterialPoolData       = CoDAssets::GameInstance->Read<MW4XAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(MW4XAssetPoolData) * 11));
-
-            // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundTransientPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
-
-            // Verify via first xmodel asset
-            auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]));
-            // Check
-            if (FirstXModelName == "axis_guide_createfx")
-            {
-                // Verify string table, otherwise we are all set
-                CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
-                // Read and apply sizes
-                CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(SoundPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(SoundTransientPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
-                // Return success
-                return true;
-            }
-            // Reset
-            CoDAssets::GameOffsetInfos.clear();
+            CoDAssets::GameOffsetInfos.emplace_back(FirstXAsset);
+            CoDAssets::GameOffsetInfos.emplace_back(StringPool);
+            CoDAssets::GamePoolSizes.emplace_back(0);
+            return true;
         }
     }
 
@@ -249,15 +167,135 @@ bool GameModernWarfare4::LoadOffsets()
     return false;
 }
 
+struct CeleriumXAsset
+{
+    uint32_t Type;
+    uint32_t HeaderSize;
+    uint64_t ID;
+    bool Temp;
+    uint64_t Owner;
+    uint64_t Previous;
+    uint64_t Next;
+    uint64_t Header;
+};
+
+// Parse the pool, givin the current offset and asset type
+void CeleriumPoolParser(uint64_t PoolOffset, std::function<void(CeleriumXAsset&)> OnAssetParsed)
+{
+    // Loop and check if each asset is valid, if so, perform callback
+    for (auto Current = CoDAssets::GameInstance->Read<CeleriumXAsset>(PoolOffset); ; Current = CoDAssets::GameInstance->Read<CeleriumXAsset>(Current.Next))
+    {
+        // We should process this asset
+        OnAssetParsed(Current);
+
+        if (Current.Next == 0)
+        {
+            break;
+        }
+    }
+}
+
 bool GameModernWarfare4::LoadAssets()
 {
     // Prepare to load game assets, into the AssetPool
-    bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
-    bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
-    bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
-    bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
-    bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
+    bool NeedsAnims     = (SettingsManager::GetSetting("showxanim", "true") == "true");
+    bool NeedsModels    = (SettingsManager::GetSetting("showxmodel", "true") == "true");
+    bool NeedsImages    = (SettingsManager::GetSetting("showximage", "false") == "true");
+    bool NeedsSounds    = (SettingsManager::GetSetting("showxsounds", "false") == "true");
+    bool NeedsRawFiles  = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
+
+
+    CeleriumPoolParser(CoDAssets::GameOffsetInfos[0], [NeedsModels](CeleriumXAsset& Asset)
+        {
+            switch (Asset.Type)
+            {
+            case 7:
+            {
+                // Read
+                auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(Asset.Header);
+                // Validate and load if need be
+                auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+
+                // Log it
+                CoDAssets::LogXAsset("Anim", AnimName);
+
+                // Make and add
+                auto LoadedAnim = new CoDAnim_t();
+                // Set
+                LoadedAnim->AssetName = AnimName;
+                LoadedAnim->AssetPointer = Asset.Header;
+                LoadedAnim->Framerate = AnimResult.Framerate;
+                LoadedAnim->FrameCount = AnimResult.NumFrames;
+                LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
+                LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+
+                // Check placeholder configuration, "void" is the base xanim
+                if (AnimName == "void")
+                {
+                    LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
+                }
+                else if (Asset.Temp)
+                {
+                    // Set as placeholder, data matches void
+                    LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
+                }
+                else
+                {
+                    // Set
+                    LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
+                }
+
+                // Add
+                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+                break;
+            }
+            case 9:
+            {
+                // Read
+                auto ModelResult = CoDAssets::GameInstance->Read<MW4XModel>(Asset.Header);
+                // Validate and load if need be
+                auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+                // Make and add
+                auto LoadedModel = new CoDModel_t();
+                // Set
+                LoadedModel->AssetName = ModelName;
+                LoadedModel->AssetPointer = Asset.Header;
+                // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
+                if ((ModelResult.NumBones + ModelResult.UnkBoneCount) > 1 && ModelResult.ParentListPtr == 0)
+                    LoadedModel->BoneCount = 0;
+                else
+                    LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
+                LoadedModel->LodCount = ModelResult.NumLods;
+
+                // Log it
+                CoDAssets::LogXAsset("Model", ModelName);
+
+                // Check placeholder configuration, "empty_model" is the base xmodel swap
+                if (ModelName == "void")
+                {
+                    LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
+                }
+                else if (Asset.Temp)
+                {
+                    // Set as placeholder, data matches void, or the model has no lods
+                    LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
+                }
+                else
+                {
+                    // Set
+                    LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
+                }
+
+                // Add
+                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
+                break;
+            }
+            }
+        });
+
+
+    return true;
 
     // Check if we need assets
     if (NeedsAnims)
@@ -279,57 +317,7 @@ bool GameModernWarfare4::LoadAssets()
         // Loop and read
         for (uint32_t i = 0; i < AnimationCount; i++)
         {
-            // Read
-            auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(AnimationOffset);
 
-            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-            if ((AnimResult.NamePtr > MinimumPoolOffset && AnimResult.NamePtr < MaximumPoolOffset) || AnimResult.NamePtr == 0)
-            {
-                // Advance
-                AnimationOffset += sizeof(MW4XAnim);
-                // Skip this asset
-                continue;
-            }
-
-            // Validate and load if need be
-            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
-
-            // Log it
-            CoDAssets::LogXAsset("Anim", AnimName);
-
-            // Make and add
-            auto LoadedAnim = new CoDAnim_t();
-            // Set
-            LoadedAnim->AssetName = AnimName;
-            LoadedAnim->AssetPointer = AnimationOffset;
-            LoadedAnim->Framerate = AnimResult.Framerate;
-            LoadedAnim->FrameCount = AnimResult.NumFrames;
-            LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
-
-            // Check placeholder configuration, "void" is the base xanim
-            if (AnimName == "void")
-            {
-                // Set as placeholder animation
-                PlaceholderAnim = AnimResult;
-                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else if (AnimResult.BoneIDsPtr == PlaceholderAnim.BoneIDsPtr && AnimResult.DataBytePtr == PlaceholderAnim.DataBytePtr && AnimResult.DataShortPtr == PlaceholderAnim.DataShortPtr && AnimResult.DataIntPtr == PlaceholderAnim.DataIntPtr && AnimResult.RandomDataBytePtr == PlaceholderAnim.RandomDataBytePtr && AnimResult.RandomDataIntPtr == PlaceholderAnim.RandomDataIntPtr && AnimResult.RandomDataShortPtr == PlaceholderAnim.RandomDataShortPtr && AnimResult.NotificationsPtr == PlaceholderAnim.NotificationsPtr && AnimResult.DeltaPartsPtr == PlaceholderAnim.DeltaPartsPtr)
-            {
-                // Set as placeholder, data matches void
-                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else
-            {
-                // Set
-                LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-            }
-
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
-
-            // Advance
-            AnimationOffset += sizeof(MW4XAnim);
         }
     }
 
@@ -1330,8 +1318,9 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
+    auto PtrToString = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + Index * sizeof(uint64_t));
     // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((28 * Index) + CoDAssets::GameOffsetInfos[6] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString(PtrToString);
 }
 void GameModernWarfare4::PerformInitialSetup()
 {

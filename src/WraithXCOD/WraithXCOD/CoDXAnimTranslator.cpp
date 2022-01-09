@@ -204,7 +204,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
                 }
             }
         }
-        
+
         // Clean up
         if (KeyData != nullptr)
         {
@@ -610,29 +610,29 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         // Handle per-game specific data
         switch (CoDAssets::GameID)
         {
-            case SupportedGames::WorldAtWar:
-            case SupportedGames::BlackOps:
-            case SupportedGames::BlackOps2:
-            case SupportedGames::ModernWarfare:
-            case SupportedGames::ModernWarfare2:
-            case SupportedGames::ModernWarfare3:
-            case SupportedGames::QuantumSolace:
-                // Build translations for 32bit games
-                DeltaTranslations32(Anim, FrameSize, Animation);
+        case SupportedGames::WorldAtWar:
+        case SupportedGames::BlackOps:
+        case SupportedGames::BlackOps2:
+        case SupportedGames::ModernWarfare:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::QuantumSolace:
+            // Build translations for 32bit games
+            DeltaTranslations32(Anim, FrameSize, Animation);
             break;
-            case SupportedGames::Ghosts:
-            case SupportedGames::AdvancedWarfare:
-            case SupportedGames::ModernWarfareRemastered:
-            case SupportedGames::ModernWarfare2Remastered:
-            case SupportedGames::InfiniteWarfare:
-            case SupportedGames::BlackOps3:
-            case SupportedGames::BlackOps4:
-            case SupportedGames::BlackOpsCW:
-            case SupportedGames::WorldWar2:
-            case SupportedGames::ModernWarfare4:
-            case SupportedGames::Vanguard:
-                // Build translations for 64bit games
-                DeltaTranslations64(Anim, FrameSize, Animation);
+        case SupportedGames::Ghosts:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::InfiniteWarfare:
+        case SupportedGames::BlackOps3:
+        case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
+        case SupportedGames::WorldWar2:
+        case SupportedGames::ModernWarfare4:
+        case SupportedGames::Vanguard:
+            // Build translations for 64bit games
+            DeltaTranslations64(Anim, FrameSize, Animation);
             break;
         }
     }
@@ -644,30 +644,30 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         // Handle per-game specific data
         switch (CoDAssets::GameID)
         {
-            case SupportedGames::WorldAtWar:
-            case SupportedGames::BlackOps:
-            case SupportedGames::BlackOps2:
-            case SupportedGames::ModernWarfare:
-            case SupportedGames::ModernWarfare2:
-            case SupportedGames::ModernWarfare3:
-            case SupportedGames::QuantumSolace:
-                // Build 2d rotations for 32bit games
-                Delta2DRotations32(Anim, FrameSize, Animation);
+        case SupportedGames::WorldAtWar:
+        case SupportedGames::BlackOps:
+        case SupportedGames::BlackOps2:
+        case SupportedGames::ModernWarfare:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::QuantumSolace:
+            // Build 2d rotations for 32bit games
+            Delta2DRotations32(Anim, FrameSize, Animation);
             break;
-            case SupportedGames::Ghosts:
-            case SupportedGames::AdvancedWarfare:
-            case SupportedGames::ModernWarfareRemastered:
-            case SupportedGames::ModernWarfare2Remastered:
-            case SupportedGames::InfiniteWarfare:
-            case SupportedGames::BlackOps3:
-            case SupportedGames::BlackOps4:
-            case SupportedGames::BlackOpsCW:
-            case SupportedGames::WorldWar2:
-            case SupportedGames::ModernWarfare4:
-            case SupportedGames::Vanguard:
-                // Build 2d rotations for 64bit games
-                Delta2DRotations64(Anim, FrameSize, Animation);
-                break;
+        case SupportedGames::Ghosts:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::InfiniteWarfare:
+        case SupportedGames::BlackOps3:
+        case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
+        case SupportedGames::WorldWar2:
+        case SupportedGames::ModernWarfare4:
+        case SupportedGames::Vanguard:
+            // Build 2d rotations for 64bit games
+            Delta2DRotations64(Anim, FrameSize, Animation);
+            break;
         }
     }
 
@@ -706,38 +706,53 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
     // Notifications appear in their own pointer, but have some game specific structures
     switch (CoDAssets::GameID)
     {
-        case SupportedGames::WorldAtWar:
-        case SupportedGames::BlackOps:
-        case SupportedGames::BlackOps2:
-        case SupportedGames::ModernWarfare:
-        case SupportedGames::ModernWarfare2:
-        case SupportedGames::ModernWarfare3:
-        case SupportedGames::ModernWarfare4:
-        case SupportedGames::Ghosts:
-        case SupportedGames::AdvancedWarfare:
-        case SupportedGames::ModernWarfareRemastered:
-        case SupportedGames::ModernWarfare2Remastered:
-        case SupportedGames::InfiniteWarfare:
-        case SupportedGames::WorldWar2:
-        case SupportedGames::QuantumSolace:
-            // Build standard notetracks
-            NotetracksStandard(Anim, Animation);
-            break;
-        case SupportedGames::BlackOps3:
-            // Black Ops 3 has a new format
-            NotetracksBO3(Anim, Animation);
-            break;
-        case SupportedGames::BlackOps4:
-            // Black Ops 4 has a new format
-            NotetracksBO4(Anim, Animation);
-        case SupportedGames::BlackOpsCW:
-            // Black Ops CW has a new format
-            NotetracksCW(Anim, Animation);
-            break;
-        case SupportedGames::Vanguard:
-            // Build standard notetracks
-            NotetracksVG(Anim, Animation);
-            break;
+    case SupportedGames::WorldAtWar:
+    case SupportedGames::BlackOps:
+    case SupportedGames::BlackOps2:
+    case SupportedGames::ModernWarfare:
+    case SupportedGames::ModernWarfare2:
+    case SupportedGames::ModernWarfare3:
+    case SupportedGames::ModernWarfare4:
+    case SupportedGames::Ghosts:
+    case SupportedGames::AdvancedWarfare:
+    case SupportedGames::ModernWarfareRemastered:
+    case SupportedGames::ModernWarfare2Remastered:
+    case SupportedGames::InfiniteWarfare:
+    case SupportedGames::WorldWar2:
+    case SupportedGames::QuantumSolace:
+        // Build standard notetracks
+        NotetracksStandard(Anim, Animation);
+        break;
+    case SupportedGames::BlackOps3:
+        // Black Ops 3 has a new format
+        NotetracksBO3(Anim, Animation);
+        break;
+    case SupportedGames::BlackOps4:
+        // Black Ops 4 has a new format
+        NotetracksBO4(Anim, Animation);
+        break;
+    case SupportedGames::BlackOpsCW:
+        // Black Ops CW has a new format
+        NotetracksCW(Anim, Animation);
+        break;
+    case SupportedGames::Vanguard:
+        // Build standard notetracks
+        NotetracksVG(Anim, Animation);
+        break;
+    }
+
+    // Stage 12: Blendshapes, this is only supported by some newer games
+    switch (CoDAssets::GameID)
+    {
+    case SupportedGames::BlackOps4:
+    case SupportedGames::BlackOpsCW:
+        // Black Ops 4 has a new format
+        BlendShapesBO4(Anim, Animation);
+        break;
+    //case SupportedGames::Vanguard:
+    //case SupportedGames::ModernWarfare:
+    //    // Modern Warfare has a new format
+    //    BlendShapesMW(Anim, Animation);
     }
 
     // Return it
@@ -901,6 +916,104 @@ void CoDXAnimTranslator::NotetracksVG(const std::unique_ptr<WraithAnim>& Anim, c
         Animation->NotificationsPtr += 16;
     }
 }
+
+// TODO: Move to header
+struct XAnimBlendShapeTargetInfo
+{
+    uint32_t Name;
+    uint32_t Index;
+};
+
+struct XAnimBlendShapeFrames
+{
+    uint32_t FrameCount;
+    uint32_t Pad;
+    uint64_t Frames;
+    uint64_t Weights;
+};
+
+void CoDXAnimTranslator::BlendShapesBO4(const std::unique_ptr<WraithAnim>& Anim, const std::unique_ptr<XAnim_t>& Animation)
+{
+    // Loop over blendshapes
+    for (uint32_t i = 0; i < Animation->BlendShapeWeightCount; i++)
+    {
+        // Read the blendshape
+        auto BlendShapeInfo = CoDAssets::GameInstance->Read<XAnimBlendShapeTargetInfo>(Animation->BlendShapeNamesPtr + i * sizeof(XAnimBlendShapeTargetInfo));
+        auto BlendShapeName = CoDAssets::GameStringHandler(BlendShapeInfo.Name);
+        auto BlendShapeFrames = CoDAssets::GameInstance->Read<XAnimBlendShapeFrames>(Animation->BlendShapeWeightsPtr + BlendShapeInfo.Index * sizeof(XAnimBlendShapeFrames));
+
+        auto Frames = std::make_unique<uint16_t[]>(BlendShapeFrames.FrameCount);
+        auto Weights = std::make_unique<Vector3[]>(BlendShapeFrames.FrameCount);
+
+        CoDAssets::GameInstance->Read((uint8_t*)Frames.get(), BlendShapeFrames.Frames, BlendShapeFrames.FrameCount * sizeof(uint16_t));
+        CoDAssets::GameInstance->Read((uint8_t*)Weights.get(), BlendShapeFrames.Weights, BlendShapeFrames.FrameCount * sizeof(Vector3));
+
+        for (uint32_t i = 0; i < Animation->FrameCount; i++)
+        {
+            // Look up the next shape index by frame
+            size_t FrameIndex = 0;
+
+            for (size_t j = 0; j < BlendShapeFrames.FrameCount; j++)
+            {
+                if (i < Frames[j])
+                {
+                    FrameIndex = j - 1;
+                    std::cout << FrameIndex << "\n";
+                    break;
+                }
+            }
+
+            // Now we need this frame, and the next frame
+            auto CurrentFrame  = (float)Frames[FrameIndex];
+            auto CurrentWeight = Weights[FrameIndex];
+            auto NextFrame     = (float)Frames[FrameIndex + 1];
+            auto NextWeight    = Weights[FrameIndex + 1];
+
+            // Perform weighted interpolation
+            float frameDelta = (i - CurrentFrame) / (NextFrame - CurrentFrame);
+            float v = 0.0f;
+
+            v += CurrentWeight.X * ((1.0 - frameDelta) * (1.0 - frameDelta) * (1.0 - frameDelta));
+            v += (CurrentWeight.Y * 3.0) * (1.0 - frameDelta) * (1.0 - frameDelta) * frameDelta;
+            v += (CurrentWeight.Z * 3.0) * (1.0 - frameDelta) * frameDelta * frameDelta;
+            v += NextWeight.X * frameDelta * frameDelta * frameDelta;
+
+            Anim->AddBlendShapeKey(BlendShapeName, i, v, 0, 0);
+        }
+    }
+}
+
+void CoDXAnimTranslator::BlendShapesMW(const std::unique_ptr<WraithAnim>& Anim, const std::unique_ptr<XAnim_t>& Animation)
+{
+    // Read all blendshapes for every frame
+    auto ShapeWeights = std::make_unique<uint16_t[]>(Animation->BlendShapeWeightCount * ((uint64_t)Animation->FrameCount + 1));
+    auto Result = CoDAssets::GameInstance->Read((uint8_t*)ShapeWeights.get(), Animation->BlendShapeWeightsPtr, Animation->BlendShapeWeightCount * ((uint64_t)Animation->FrameCount + 1) * sizeof(uint16_t));
+    size_t ShapeIndex = 0;
+
+    // Store map of all blendshapes
+    std::vector<std::string> Shapes(Animation->BlendShapeWeightCount);
+    // First, grab names
+    for (uint32_t i = 0; i < Animation->BlendShapeWeightCount; i++)
+    {
+        auto BlendShapeName = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Animation->BlendShapeNamesPtr + i * sizeof(uint32_t)));
+        Shapes[i] = BlendShapeName;
+    }
+
+    for (uint32_t j = 0; j < (Animation->FrameCount + 1); j++)
+    {
+        auto FrameValues = &ShapeWeights[(size_t)j * Animation->BlendShapeWeightCount];
+
+        for (uint32_t i = 0; i < Animation->BlendShapeWeightCount; i++)
+        {
+            if (Shapes[i] == "blinkSL" && j == 47)
+                __debugbreak();
+
+            // Seems to be / 16384.50 in exe? more testing needed, dump raw values for now
+            Anim->AddBlendShapeKey(Shapes[i], j, FrameValues[i], 0, 0);
+        }
+    }
+}
+
 
 void CoDXAnimTranslator::DeltaTranslations32(const std::unique_ptr<WraithAnim>& Anim, uint32_t FrameSize, const std::unique_ptr<XAnim_t>& Animation)
 {

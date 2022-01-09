@@ -302,6 +302,7 @@ bool GameVanguard::LoadAssets()
             LoadedAnim->FrameCount = AnimResult.NumFrames;
             LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
             LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+            LoadedAnim->ShapeCount = *(uint16_t*)&AnimResult.Padding3[3];
 
             // Check placeholder configuration, "void" is the base xanim
             if (AnimName == "void")
@@ -758,17 +759,20 @@ std::unique_ptr<XAnim_t> GameVanguard::ReadXAnim(const CoDAnim_t* Animation)
         Anim->BoneIndexSize = 4;
 
         // Copy over counts
-        Anim->NoneRotatedBoneCount = AnimData.NoneRotatedBoneCount;
-        Anim->TwoDRotatedBoneCount = AnimData.TwoDRotatedBoneCount;
-        Anim->NormalRotatedBoneCount = AnimData.NormalRotatedBoneCount;
-        Anim->TwoDStaticRotatedBoneCount = AnimData.TwoDStaticRotatedBoneCount;
+        Anim->NoneRotatedBoneCount         = AnimData.NoneRotatedBoneCount;
+        Anim->TwoDRotatedBoneCount         = AnimData.TwoDRotatedBoneCount;
+        Anim->NormalRotatedBoneCount       = AnimData.NormalRotatedBoneCount;
+        Anim->TwoDStaticRotatedBoneCount   = AnimData.TwoDStaticRotatedBoneCount;
         Anim->NormalStaticRotatedBoneCount = AnimData.NormalStaticRotatedBoneCount;
-        Anim->NormalTranslatedBoneCount = AnimData.NormalTranslatedBoneCount;
-        Anim->PreciseTranslatedBoneCount = AnimData.PreciseTranslatedBoneCount;
-        Anim->StaticTranslatedBoneCount = AnimData.StaticTranslatedBoneCount;
-        Anim->NoneTranslatedBoneCount = AnimData.NoneTranslatedBoneCount;
-        Anim->TotalBoneCount = AnimData.TotalBoneCount;
-        Anim->NotificationCount = AnimData.NotificationCount;
+        Anim->NormalTranslatedBoneCount    = AnimData.NormalTranslatedBoneCount;
+        Anim->PreciseTranslatedBoneCount   = AnimData.PreciseTranslatedBoneCount;
+        Anim->StaticTranslatedBoneCount    = AnimData.StaticTranslatedBoneCount;
+        Anim->NoneTranslatedBoneCount      = AnimData.NoneTranslatedBoneCount;
+        Anim->TotalBoneCount               = AnimData.TotalBoneCount;
+        Anim->NotificationCount            = AnimData.NotificationCount;
+        Anim->BlendShapeWeightCount        = *(uint16_t*)&AnimData.Padding3[3];
+        Anim->BlendShapeNamesPtr           = *(uint64_t*)&AnimData.Padding3[11];
+        Anim->BlendShapeWeightsPtr         = *(uint64_t*)&AnimData.Padding3[19];
 
         // Copy delta
         Anim->DeltaTranslationPtr = AnimDeltaData.DeltaTranslationsPtr;
@@ -835,6 +839,9 @@ std::unique_ptr<XModel_t> GameVanguard::ReadXModel(const CoDModel_t* Model)
 
         // Global matricies
         ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
+
+        // Blend shape info
+        ModelAsset->BlendShapeNamesPtr = *(uint64_t*)&ModelData.Padding4[64];
 
         // Prepare to parse lods
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
@@ -904,6 +911,7 @@ std::unique_ptr<XModel_t> GameVanguard::ReadXModel(const CoDModel_t* Model)
                 SubmeshReference.WeightCounts[7] = SurfaceInfo.WeightCounts[7];
                 // Weight pointer
                 SubmeshReference.WeightsPtr = SurfaceInfo.WeightsPtr;
+                SubmeshReference.BlendShapesPtr = *(uint64_t*)&SurfaceInfo.Padding7[8];
 
                 // Read this submesh's material handle
                 auto MaterialHandle = CoDAssets::GameInstance->Read<uint64_t>(ModelData.MaterialHandlesPtr);
@@ -1295,7 +1303,36 @@ Vector3 VanguardUnpackNormalQuat(uint32_t packedQuat)
     }
 }
 
-void GameVanguard::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
+struct VGBlendShapeInfo
+{
+    uint16_t ShapeCount;
+    uint16_t NameCount;
+    uint16_t Unk1;
+    uint64_t WeightNames;
+    uint64_t UnkPtr;
+};
+
+struct VGBlendShapeMap
+{
+    uint16_t NameIndex;
+    uint16_t ShapeIndex;
+    float UnknownOne;
+};
+
+struct MeshBlendShapesData
+{
+    uint64_t VertexShapes;
+    uint64_t UnkDataPtr;
+    uint32_t VertexShapesDataSize;
+    uint16_t ShapeCount;
+    uint16_t UnkCount;
+    uint16_t NumVertexExtended;
+    uint16_t NumVerts;
+    uint16_t UnkValue0;
+    uint16_t UnkValue;
+};
+
+void GameVanguard::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Scale to use
     auto ScaleConstant = (1.0f / 0x1FFFFF) * 2.0f;
@@ -1362,6 +1399,27 @@ void GameVanguard::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr
         MemoryReader VertexColorReader;
         MemoryReader VertexWeightReader;
         MemoryReader FaceIndiciesReader;
+
+        // Start with blendshapes
+        std::unique_ptr<uint32_t[]> ShapeIndices = nullptr;
+
+        if (Model->BlendShapeNamesPtr != 0)
+        {
+            auto BlendShapeInfo = CoDAssets::GameInstance->Read<VGBlendShapeInfo>(Model->BlendShapeNamesPtr);
+
+            ShapeIndices = std::make_unique<uint32_t[]>(BlendShapeInfo.ShapeCount);
+
+            for (size_t i = 0; i < BlendShapeInfo.NameCount; i++)
+            {
+                ResultModel->BlendShapes.push_back(CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(BlendShapeInfo.WeightNames + i * sizeof(uint32_t))));
+            }
+
+            for (size_t i = 0; i < BlendShapeInfo.ShapeCount; i++)
+            {
+                auto ShapeMap = CoDAssets::GameInstance->Read<VGBlendShapeMap>(BlendShapeInfo.UnkPtr + i * sizeof(VGBlendShapeMap));
+                ShapeIndices[ShapeMap.ShapeIndex] = ShapeMap.NameIndex;
+            }
+        }
 
         // Iterate over submeshes
         for (auto& Submesh : ModelLOD.Submeshes)
@@ -1456,6 +1514,50 @@ void GameVanguard::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr
 
                 // Add the face
                 Mesh.AddFace(Face.Index1, Face.Index2, Face.Index3);
+            }
+
+            // Check for blendshapes
+            // cs_blendshapes_no_tangent_frame.hlsl/cs_blendshapes_unified_main
+            if (Submesh.BlendShapesPtr != 0)
+            {
+                uintptr_t ResultSize = 0;
+                auto MeshBlendShapeInfo = CoDAssets::GameInstance->Read<MeshBlendShapesData>(Submesh.BlendShapesPtr);
+                auto BlendShapeReader   = MemoryReader(CoDAssets::GameInstance->Read(MeshBlendShapeInfo.VertexShapes, MeshBlendShapeInfo.VertexShapesDataSize, ResultSize), MeshBlendShapeInfo.VertexShapesDataSize);
+                auto NumVerts           = (size_t)MeshBlendShapeInfo.NumVerts;
+                auto NumVertsExtended   = (size_t)MeshBlendShapeInfo.NumVertexExtended;
+                auto NumVertsTotal      = NumVerts + NumVertsExtended;
+
+                // Not sure if correct, I've never seen a model contain shape verts with extended data AND just positions
+                for (size_t i = 0; i < NumVertsTotal; i++)
+                {
+                    BlendShapeReader.SetPosition(i * 8);
+
+                    auto VertexIndex = BlendShapeReader.Read<uint16_t>();
+                    auto ShapeCount  = BlendShapeReader.Read<uint16_t>();
+                    auto DataOffset  = BlendShapeReader.Read<uint32_t>();
+
+                    BlendShapeReader.SetPosition((uint64_t)DataOffset * (i < NumVertsExtended ? 16 : 8));
+
+                    for (size_t j = 0; j < ShapeCount; j++)
+                    {
+                        auto VertexShapeIndex = BlendShapeReader.Read<uint16_t>();
+                        auto X = HalfFloats::ToFloat(BlendShapeReader.Read<uint16_t>());
+                        auto Y = HalfFloats::ToFloat(BlendShapeReader.Read<uint16_t>());
+                        auto Z = HalfFloats::ToFloat(BlendShapeReader.Read<uint16_t>());
+
+                        // TODO
+                        if (i < NumVertsExtended)
+                            BlendShapeReader.Advance(8);
+
+                        Mesh.Verticies[VertexIndex].BlendShapeDeltas.push_back(std::make_pair(
+                            (uint32_t)ShapeIndices[VertexShapeIndex],
+                            Vector3(
+                                Z,
+                                Y,
+                                X
+                            )));
+                    }
+                }
             }
         }
     }

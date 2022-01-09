@@ -50,9 +50,9 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
     // Bone matrix size
     uintptr_t ReadDataSize = 0;
     // Calculated matricies size
-    auto GlobalMatrixLength = (sizeof(DObjAnimMat) * (Model->BoneCount + Model->CosmeticBoneCount));
-    auto LocalTranslationLength = (sizeof(Vector3) * ((Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
-    auto LocalRotationLength = (sizeof(QuatData) * ((Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
+    auto GlobalMatrixLength = (sizeof(DObjAnimMat) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount)));
+    auto LocalTranslationLength = (sizeof(Vector3) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
+    auto LocalRotationLength = (sizeof(QuatData) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
     // Read global matrix data
     auto GlobalMatrixData = MemoryReader(CoDAssets::GameInstance->Read(Model->BaseMatriciesPtr, GlobalMatrixLength, ReadDataSize), ReadDataSize);
     auto LocalTranslationData = MemoryReader(CoDAssets::GameInstance->Read(Model->TranslationsPtr, LocalTranslationLength, ReadDataSize), ReadDataSize);
@@ -278,7 +278,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         case SupportedGames::BlackOpsCW:            GameBlackOpsCW::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::WorldWar2:             GameWorldWar2::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::ModernWarfare4:        GameModernWarfare4::LoadXModel(LodReference, ModelResult); break;
-        case SupportedGames::Vanguard:              GameVanguard::LoadXModel(LodReference, ModelResult); break;
+        case SupportedGames::Vanguard:              GameVanguard::LoadXModel(Model, LodReference, ModelResult); break;
         }
     }
     else

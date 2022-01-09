@@ -436,7 +436,7 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "s2_sp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::SP },
     { "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
     // Modern Warfare 4
-    { "modernwarfare.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
+    { "Celerium.Native.CLI.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
     // Modern Warfare 2 Remastered
     { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
     // 007 Quantum Solace
@@ -601,7 +601,7 @@ LoadGameResult CoDAssets::LoadGame()
             CleanupPackageCache();
             // Load from casc and on demand
             GamePackageCache = std::make_unique<CASCCache>();
-            GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
+            GamePackageCache->LoadPackageCacheAsync("C:\\Battlenet\\Call of Duty Modern Warfare");
             OnDemandCache = std::make_unique<XPAKCache>();
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "xpak_cache"));
             // Load as normally

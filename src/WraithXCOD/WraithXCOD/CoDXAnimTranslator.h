@@ -35,6 +35,11 @@ private:
     // Build Notetracks (VG)
     static void NotetracksVG(const std::unique_ptr<WraithAnim>& Anim, const std::unique_ptr<XAnim_t>& Animation);
 
+    // Build Notetracks (BO4/CW)
+    static void BlendShapesBO4(const std::unique_ptr<WraithAnim>& Anim, const std::unique_ptr<XAnim_t>& Animation);
+    // Build Notetracks (MW)
+    static void BlendShapesMW(const std::unique_ptr<WraithAnim>& Anim, const std::unique_ptr<XAnim_t>& Animation);
+
     // Build Delta Translations for 32bit games
     static void DeltaTranslations32(const std::unique_ptr<WraithAnim>& Anim, uint32_t FrameSize, const std::unique_ptr<XAnim_t>& Animation);
     // Build Delta Translations for 64bit games

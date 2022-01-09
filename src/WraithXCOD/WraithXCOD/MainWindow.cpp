@@ -89,6 +89,8 @@ public:
     RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> BoneCount;
     // Frame Count Search Value
     RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> FrameCount;
+    // Shape Count Search Value
+    RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> ShapeCount;
     // Frame Rate Search Value
     RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> Framerate;
     // Width Search Value
@@ -97,6 +99,7 @@ public:
     RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> Height;
     // Sound Length Search Value
     RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> SoundLength;
+
 
     // Initializes the search context
     SearchContext(std::string& search);
@@ -146,6 +149,10 @@ SearchContext::SearchContext(std::string& search)
                 else if (name == "framecount")
                 {
                     FrameCount.SetFromSearchString(value);
+                }
+                else if (name == "shapecount")
+                {
+                    ShapeCount.SetFromSearchString(value);
                 }
                 else if (name == "framerate")
                 {
@@ -1045,6 +1052,7 @@ void MainWindow::OnSearch()
             {
                 auto XAnimBoneCount = (int64_t)((CoDAnim_t*)Asset)->BoneCount;
                 auto XAnimFrameCount = (int64_t)((CoDAnim_t*)Asset)->FrameCount;
+                auto XAnimShapeCount = (int64_t)((CoDAnim_t*)Asset)->ShapeCount;
                 auto XAnimFrameRate = ((CoDAnim_t*)Asset)->Framerate;
                 auto XAnimBoneNames = ((CoDAnim_t*)Asset)->BoneNames;
 
@@ -1053,6 +1061,13 @@ void MainWindow::OnSearch()
                 if (XAnimBoneCount < Context.BoneCount.Min)
                     CanAdd = false;
                 if (XAnimBoneCount > Context.BoneCount.Max)
+                    CanAdd = false;
+
+                if (Context.ShapeCount.Value != -1 && XAnimShapeCount != Context.ShapeCount.Value)
+                    CanAdd = false;
+                if (XAnimShapeCount < Context.ShapeCount.Min)
+                    CanAdd = false;
+                if (XAnimShapeCount > Context.ShapeCount.Max)
                     CanAdd = false;
 
                 if (Context.FrameCount.Value != -1 && XAnimFrameCount != Context.FrameCount.Value)
