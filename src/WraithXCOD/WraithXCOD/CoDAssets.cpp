@@ -436,7 +436,7 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "s2_sp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::SP },
     { "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
     // Modern Warfare 4
-    { "Celerium.Native.CLI.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
+    { "Celerium.UI.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
     // Modern Warfare 2 Remastered
     { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
     // 007 Quantum Solace

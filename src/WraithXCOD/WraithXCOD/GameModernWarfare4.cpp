@@ -176,6 +176,7 @@ struct CeleriumXAsset
     uint64_t Owner;
     uint64_t Previous;
     uint64_t Next;
+    uint64_t FirstChild;
     uint64_t Header;
 };
 
@@ -290,6 +291,34 @@ bool GameModernWarfare4::LoadAssets()
                 // Add
                 CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
                 break;
+            }
+            case 19:
+            {
+                // Read
+                auto ImageResult = CoDAssets::GameInstance->Read<MW4GfxImage>(Asset.Header);
+                // Validate and load if need be
+                auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
+
+                // Log it
+                CoDAssets::LogXAsset("Image", ImageName);
+
+                // Check if it's streamed
+                if (ImageResult.LoadedMipLevels > 0)
+                {
+
+                    // Make and add
+                    auto LoadedImage = new CoDImage_t();
+                    // Set
+                    LoadedImage->AssetName = ImageName;
+                    LoadedImage->AssetPointer = Asset.Header;
+                    LoadedImage->Width = (uint16_t)ImageResult.LoadedMipWidth;
+                    LoadedImage->Height = (uint16_t)ImageResult.LoadedMipHeight;
+                    LoadedImage->Format = ImageResult.ImageFormat;
+                    LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
+
+                    // Add
+                    CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
+                }
             }
             }
         });
