@@ -110,6 +110,29 @@ struct MW4SoundAliasNamingInfo
     uint64_t SecondaryPtr;
 };
 
+struct CeleriumXAssetPool
+{
+    uint64_t FirstXAsset;
+    uint64_t LastXAsset;
+    uint64_t LookupTable;
+};
+
+struct CeleriumXAsset
+{
+    uint32_t Type;
+    uint32_t HeaderSize;
+    uint64_t ID;
+    uint32_t Temp;
+    uint64_t Owner;
+    uint64_t Previous;
+    uint64_t Next;
+    uint64_t FirstChild;
+    uint64_t LastChild;
+    uint64_t Header;
+    uint64_t ExtendedDataSize;
+    uint64_t ExtendedData;
+};
+
 // Calculates the hash of a sound string
 uint32_t MW4HashSoundString(const std::string& Value)
 {
@@ -151,13 +174,16 @@ bool GameModernWarfare4::LoadOffsets()
                 return false;
             }
 
-            auto FirstXAsset = DBReader.Read<uint64_t>();
-            auto LastXAsset = DBReader.Read<uint64_t>();
-            auto StringPool = DBReader.Read<uint64_t>();
+            auto XAssetPoolCount     = DBReader.Read<uint64_t>();
+            auto XAssetPools         = DBReader.Read<uint64_t>();
+            auto StringPool          = DBReader.Read<uint64_t>();
+            auto StringPoolSize      = DBReader.Read<uint64_t>();
 
             // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(FirstXAsset);
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<CeleriumXAssetPool>(XAssetPools + sizeof(CeleriumXAssetPool) * 7).FirstXAsset);
             CoDAssets::GameOffsetInfos.emplace_back(StringPool);
+
+            // Celerium doesn't use pool sizes
             CoDAssets::GamePoolSizes.emplace_back(0);
             return true;
         }
@@ -166,19 +192,6 @@ bool GameModernWarfare4::LoadOffsets()
     // Failed
     return false;
 }
-
-struct CeleriumXAsset
-{
-    uint32_t Type;
-    uint32_t HeaderSize;
-    uint64_t ID;
-    bool Temp;
-    uint64_t Owner;
-    uint64_t Previous;
-    uint64_t Next;
-    uint64_t FirstChild;
-    uint64_t Header;
-};
 
 // Parse the pool, givin the current offset and asset type
 void CeleriumPoolParser(uint64_t PoolOffset, std::function<void(CeleriumXAsset&)> OnAssetParsed)
@@ -207,122 +220,48 @@ bool GameModernWarfare4::LoadAssets()
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
 
 
-    CeleriumPoolParser(CoDAssets::GameOffsetInfos[0], [NeedsModels](CeleriumXAsset& Asset)
+    if (NeedsAnims)
+    {
+        CeleriumPoolParser(CoDAssets::GameOffsetInfos[0], [](CeleriumXAsset& Asset)
         {
-            switch (Asset.Type)
-            {
-            case 7:
-            {
-                // Read
-                auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(Asset.Header);
-                // Validate and load if need be
-                auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+            // Read
+            auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(Asset.Header);
+            // Validate and load if need be
+            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
-                // Log it
-                CoDAssets::LogXAsset("Anim", AnimName);
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
 
-                // Make and add
-                auto LoadedAnim = new CoDAnim_t();
+            // Make and add
+            auto LoadedAnim = new CoDAnim_t();
+            // Set
+            LoadedAnim->AssetName = AnimName;
+            LoadedAnim->AssetPointer = Asset.Header;
+            LoadedAnim->Framerate = AnimResult.Framerate;
+            LoadedAnim->FrameCount = AnimResult.NumFrames;
+            LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
+            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+
+            // Check placeholder configuration, "void" is the base xanim
+            if (AnimName == "void")
+            {
+                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
+            }
+            else if (Asset.Temp)
+            {
+                // Set as placeholder, data matches void
+                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
+            }
+            else
+            {
                 // Set
-                LoadedAnim->AssetName = AnimName;
-                LoadedAnim->AssetPointer = Asset.Header;
-                LoadedAnim->Framerate = AnimResult.Framerate;
-                LoadedAnim->FrameCount = AnimResult.NumFrames;
                 LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-                LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
-
-                // Check placeholder configuration, "void" is the base xanim
-                if (AnimName == "void")
-                {
-                    LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
-                }
-                else if (Asset.Temp)
-                {
-                    // Set as placeholder, data matches void
-                    LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
-                }
-                else
-                {
-                    // Set
-                    LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-                }
-
-                // Add
-                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
-                break;
             }
-            case 9:
-            {
-                // Read
-                auto ModelResult = CoDAssets::GameInstance->Read<MW4XModel>(Asset.Header);
-                // Validate and load if need be
-                auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
-                // Make and add
-                auto LoadedModel = new CoDModel_t();
-                // Set
-                LoadedModel->AssetName = ModelName;
-                LoadedModel->AssetPointer = Asset.Header;
-                // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
-                if ((ModelResult.NumBones + ModelResult.UnkBoneCount) > 1 && ModelResult.ParentListPtr == 0)
-                    LoadedModel->BoneCount = 0;
-                else
-                    LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
-                LoadedModel->LodCount = ModelResult.NumLods;
 
-                // Log it
-                CoDAssets::LogXAsset("Model", ModelName);
-
-                // Check placeholder configuration, "empty_model" is the base xmodel swap
-                if (ModelName == "void")
-                {
-                    LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
-                }
-                else if (Asset.Temp)
-                {
-                    // Set as placeholder, data matches void, or the model has no lods
-                    LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
-                }
-                else
-                {
-                    // Set
-                    LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
-                }
-
-                // Add
-                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
-                break;
-            }
-            case 19:
-            {
-                // Read
-                auto ImageResult = CoDAssets::GameInstance->Read<MW4GfxImage>(Asset.Header);
-                // Validate and load if need be
-                auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
-
-                // Log it
-                CoDAssets::LogXAsset("Image", ImageName);
-
-                // Check if it's streamed
-                if (ImageResult.LoadedMipLevels > 0)
-                {
-
-                    // Make and add
-                    auto LoadedImage = new CoDImage_t();
-                    // Set
-                    LoadedImage->AssetName = ImageName;
-                    LoadedImage->AssetPointer = Asset.Header;
-                    LoadedImage->Width = (uint16_t)ImageResult.LoadedMipWidth;
-                    LoadedImage->Height = (uint16_t)ImageResult.LoadedMipHeight;
-                    LoadedImage->Format = ImageResult.ImageFormat;
-                    LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
-
-                    // Add
-                    CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
-                }
-            }
-            }
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
         });
-
+    }
 
     return true;
 
@@ -1042,6 +981,9 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
 
     // We must read the image data
     auto ImageInfo = CoDAssets::GameInstance->Read<MW4GfxImage>(Image.ImagePtr);
+    // Get Loaded Image
+    uint64_t ImagePointer = *(uint64_t*)&ImageInfo.Padding5[8];
+    uint32_t LoadedImageSize = *(uint32_t*)&ImageInfo.Padding2[7];
 
     // Calculate the largest image mip
     uint32_t LargestMip    = 0;
@@ -1078,18 +1020,53 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     // Calculate proper image format
     switch (ImageInfo.ImageFormat)
     {
-    // RGBA
-    case 7: ImageInfo.ImageFormat = 28; break;
-    // BC1
-    case 35:
-    case 36:
-    case 37: ImageInfo.ImageFormat = 71; break;
+    case 0:  ImageInfo.ImageFormat = 71; break;
+    case 1:  ImageInfo.ImageFormat = 61; break;
+    case 2:  ImageInfo.ImageFormat = 65; break;
+    case 3:  ImageInfo.ImageFormat = 65; break;
+    case 4:  ImageInfo.ImageFormat = 49; break;
+    case 5:  ImageInfo.ImageFormat = 49; break;
+    case 6:  ImageInfo.ImageFormat = 28; break;
+    case 7:  ImageInfo.ImageFormat = 28; break;
+    case 8:  ImageInfo.ImageFormat = 71; break;
+    case 9:  ImageInfo.ImageFormat = 71; break;
+    case 10: ImageInfo.ImageFormat = 63; break;
+    case 11: ImageInfo.ImageFormat = 51; break;
+    case 12: ImageInfo.ImageFormat = 56; break;
+    case 13: ImageInfo.ImageFormat = 35; break;
+    case 14: ImageInfo.ImageFormat = 11; break;
+    case 15: ImageInfo.ImageFormat = 58; break;
+    case 16: ImageInfo.ImageFormat = 54; break;
+    case 17: ImageInfo.ImageFormat = 34; break;
+    case 18: ImageInfo.ImageFormat = 10; break;
+    case 19: ImageInfo.ImageFormat = 41; break;
+    case 20: ImageInfo.ImageFormat = 16; break;
+    case 21: ImageInfo.ImageFormat = 2;  break;
+    case 22: ImageInfo.ImageFormat = 40; break;
+    case 23: ImageInfo.ImageFormat = 20; break;
+    case 24: ImageInfo.ImageFormat = 62; break;
+    case 25: ImageInfo.ImageFormat = 57; break;
+    case 26: ImageInfo.ImageFormat = 42; break;
+    case 27: ImageInfo.ImageFormat = 17; break;
+    case 28: ImageInfo.ImageFormat = 3;  break;
+    case 29: ImageInfo.ImageFormat = 25; break;
+    case 30: ImageInfo.ImageFormat = 85; break;
+    case 31: ImageInfo.ImageFormat = 85; break;
+    case 32: ImageInfo.ImageFormat = 24; break;
+    case 33: ImageInfo.ImageFormat = 67; break;
+    case 34: ImageInfo.ImageFormat = 67; break;
+    case 35: ImageInfo.ImageFormat = 71; break;
+    case 36: ImageInfo.ImageFormat = 71; break;
+    case 37: ImageInfo.ImageFormat = 74; break;
     case 38: ImageInfo.ImageFormat = 74; break;
     case 39: ImageInfo.ImageFormat = 77; break;
-    case 40: ImageInfo.ImageFormat = 80; break;
+    case 40: ImageInfo.ImageFormat = 77; break;
     case 41: ImageInfo.ImageFormat = 80; break;
-    // BC7
-    case 46: 
+    case 42: ImageInfo.ImageFormat = 84; break;
+    case 43: ImageInfo.ImageFormat = 84; break;
+    case 44: ImageInfo.ImageFormat = 95; break;
+    case 45: ImageInfo.ImageFormat = 96; break;
+    case 46: ImageInfo.ImageFormat = 98; break;
     case 47: ImageInfo.ImageFormat = 98; break;
     // Fall back to BC1
     default: ImageInfo.ImageFormat = 71; break;
@@ -1119,6 +1096,26 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     {
         // Prepare to create a MemoryDDS file
         auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
+
+        // Check for, and apply patch if required, if we got a raw result
+        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
+        {
+            // Set normal map patch
+            Result->ImagePatchType = ImagePatch::Normal_Expand;
+        }
+
+        // Return it
+        return Result;
+    }
+    else if (ImagePointer != 0)
+    {
+        auto ImageBuffer = std::make_unique<uint8_t[]>(LoadedImageSize);
+        
+        if (CoDAssets::GameInstance->Read(ImageBuffer.get(), ImagePointer, LoadedImageSize) != LoadedImageSize)
+            return nullptr;
+
+        // Prepare to create a MemoryDDS file
+        auto Result = CoDRawImageTranslator::TranslateBC(ImageBuffer, LoadedImageSize, ImageInfo.LoadedMipWidth, ImageInfo.LoadedMipHeight, ImageInfo.ImageFormat);
 
         // Check for, and apply patch if required, if we got a raw result
         if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
