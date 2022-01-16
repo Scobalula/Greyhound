@@ -180,7 +180,7 @@ bool GameModernWarfare4::LoadOffsets()
             auto StringPoolSize      = DBReader.Read<uint64_t>();
 
             // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<CeleriumXAssetPool>(XAssetPools + sizeof(CeleriumXAssetPool) * 7).FirstXAsset);
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<CeleriumXAssetPool>(XAssetPools + sizeof(CeleriumXAssetPool) * 19).FirstXAsset);
             CoDAssets::GameOffsetInfos.emplace_back(StringPool);
 
             // Celerium doesn't use pool sizes
@@ -220,46 +220,32 @@ bool GameModernWarfare4::LoadAssets()
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
 
 
-    if (NeedsAnims)
+    if (NeedsImages)
     {
         CeleriumPoolParser(CoDAssets::GameOffsetInfos[0], [](CeleriumXAsset& Asset)
         {
             // Read
-            auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(Asset.Header);
+            auto ImageResult = CoDAssets::GameInstance->Read<MW4GfxImage>(Asset.Header);
+            // Get Loaded Image
+            uint64_t ImagePointer = *(uint64_t*)&ImageResult.Padding5[8];
             // Validate and load if need be
-            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
-
+            auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
             // Log it
-            CoDAssets::LogXAsset("Anim", AnimName);
-
+            CoDAssets::LogXAsset("Image", ImageName);
+            // Check for loaded images
+            if (ImagePointer == (uint64_t)-1)
+                return;
             // Make and add
-            auto LoadedAnim = new CoDAnim_t();
+            auto LoadedImage = new CoDImage_t();
             // Set
-            LoadedAnim->AssetName = AnimName;
-            LoadedAnim->AssetPointer = Asset.Header;
-            LoadedAnim->Framerate = AnimResult.Framerate;
-            LoadedAnim->FrameCount = AnimResult.NumFrames;
-            LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
-
-            // Check placeholder configuration, "void" is the base xanim
-            if (AnimName == "void")
-            {
-                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else if (Asset.Temp)
-            {
-                // Set as placeholder, data matches void
-                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else
-            {
-                // Set
-                LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-            }
-
+            LoadedImage->AssetName = ImageName;
+            LoadedImage->AssetPointer = Asset.Header;
+            LoadedImage->Width = (uint16_t)ImageResult.LoadedMipWidth;
+            LoadedImage->Height = (uint16_t)ImageResult.LoadedMipHeight;
+            LoadedImage->Format = ImageResult.ImageFormat;
+            LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
             // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
         });
     }
 
