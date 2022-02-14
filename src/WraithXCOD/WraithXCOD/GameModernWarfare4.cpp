@@ -180,8 +180,10 @@ bool GameModernWarfare4::LoadOffsets()
             auto StringPoolSize      = DBReader.Read<uint64_t>();
 
             // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<CeleriumXAssetPool>(XAssetPools + sizeof(CeleriumXAssetPool) * 19).FirstXAsset);
             CoDAssets::GameOffsetInfos.emplace_back(StringPool);
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<CeleriumXAssetPool>(XAssetPools + sizeof(CeleriumXAssetPool) * 9).FirstXAsset);
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<CeleriumXAssetPool>(XAssetPools + sizeof(CeleriumXAssetPool) * 7).FirstXAsset);
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<CeleriumXAssetPool>(XAssetPools + sizeof(CeleriumXAssetPool) * 19).FirstXAsset);
 
             // Celerium doesn't use pool sizes
             CoDAssets::GamePoolSizes.emplace_back(0);
@@ -219,10 +221,36 @@ bool GameModernWarfare4::LoadAssets()
     bool NeedsRawFiles  = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
 
+    if (NeedsModels)
+    {
+        CeleriumPoolParser(CoDAssets::GameOffsetInfos[1], [](CeleriumXAsset& Asset)
+        {
+            // Read
+            auto ModelResult = CoDAssets::GameInstance->Read<MW4XModel>(Asset.Header);
+            // Validate and load if need be
+            auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+            // Make and add
+            auto LoadedModel = new CoDModel_t();
+            // Set
+            LoadedModel->AssetName = ModelName;
+            LoadedModel->AssetPointer = Asset.Header;
+            // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
+            if ((ModelResult.NumBones + ModelResult.UnkBoneCount) > 1 && ModelResult.ParentListPtr == 0)
+                LoadedModel->BoneCount = 0;
+            else
+                LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
+            LoadedModel->LodCount = ModelResult.NumLods;
+            LoadedModel->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            // Log it
+            CoDAssets::LogXAsset("Model", ModelName);
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
+        });
+    }
 
     if (NeedsImages)
     {
-        CeleriumPoolParser(CoDAssets::GameOffsetInfos[0], [](CeleriumXAsset& Asset)
+        CeleriumPoolParser(CoDAssets::GameOffsetInfos[3], [](CeleriumXAsset& Asset)
         {
             // Read
             auto ImageResult = CoDAssets::GameInstance->Read<MW4GfxImage>(Asset.Header);
@@ -246,6 +274,32 @@ bool GameModernWarfare4::LoadAssets()
             LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
+        });
+    }
+
+    if (NeedsAnims)
+    {
+        CeleriumPoolParser(CoDAssets::GameOffsetInfos[2], [](CeleriumXAsset& Asset)
+        {
+            // Read
+            auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(Asset.Header);
+            // Validate and load if need be
+            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
+
+            // Make and add
+            auto LoadedAnim = new CoDAnim_t();
+            // Set
+            LoadedAnim->AssetName = AnimName;
+            LoadedAnim->AssetPointer = Asset.Header;
+            LoadedAnim->Framerate = AnimResult.Framerate;
+            LoadedAnim->FrameCount = AnimResult.NumFrames;
+            LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
         });
     }
 
@@ -1330,7 +1384,7 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
 
 std::string GameModernWarfare4::LoadStringEntry(uint64_t Index)
 {
-    auto PtrToString = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + Index * sizeof(uint64_t));
+    auto PtrToString = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[0] + Index * sizeof(uint64_t));
     // Read and return (Offsets[3] = StringTable)
     return CoDAssets::GameInstance->ReadNullTerminatedString(PtrToString);
 }

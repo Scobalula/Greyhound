@@ -679,29 +679,29 @@ bool GameVanguard::LoadAssets()
         });
     }
 
-    //if (NeedsMaterials)
-    //{
-    //    // Parse the Rawfile pool
-    //    CoDXPoolParser<uint64_t, VGXMaterial>(CoDAssets::GameOffsetInfos[5], CoDAssets::GamePoolSizes[5], [](VGXMaterial& Asset, uint64_t& AssetOffset)
-    //    {
-    //        // Validate and load if need be
-    //        auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
+    if (NeedsMaterials)
+    {
+        // Parse the Rawfile pool
+        CoDXPoolParser<uint64_t, VGXMaterial>(CoDAssets::GameOffsetInfos[5], CoDAssets::GamePoolSizes[5], [](VGXMaterial& Asset, uint64_t& AssetOffset)
+        {
+            // Validate and load if need be
+            auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
 
-    //        // Log it
-    //        CoDAssets::LogXAsset("Material", MaterialName);
+            // Log it
+            CoDAssets::LogXAsset("Material", MaterialName);
 
-    //        // Make and add
-    //        auto LoadedMaterial = new CoDMaterial_t();
-    //        // Set
-    //        LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
-    //        LoadedMaterial->AssetPointer = AssetOffset;
-    //        LoadedMaterial->ImageCount = Asset.ImageCount;
-    //        LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
+            // Make and add
+            auto LoadedMaterial = new CoDMaterial_t();
+            // Set
+            LoadedMaterial->AssetName = FileSystems::GetFileName(Strings::Replace(MaterialName, "*", ""));
+            LoadedMaterial->AssetPointer = AssetOffset;
+            LoadedMaterial->ImageCount = Asset.ImageCount;
+            LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
 
-    //        // Add
-    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
-    //    });
-    //}
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
+        });
+    }
 
     // Success, error only on specific load
     return true;
@@ -1052,6 +1052,7 @@ const XMaterial_t GameVanguard::ReadXMaterial(uint64_t MaterialPointer)
     XMaterial_t Result(MaterialData.ImageCount);
     // Clean the name, then apply it
     Result.MaterialName = FileSystems::GetFileNameWithoutExtension(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr));
+    Result.MaterialName = Strings::Replace(Result.MaterialName, "*", "");
 
     // Iterate over material images, assign proper references if available
     for (uint32_t m = 0; m < MaterialData.ImageCount; m++)

@@ -1948,6 +1948,9 @@ ExportGameResult CoDAssets::ExportMaterialAsset(const CoDMaterial_t* Material, c
     case SupportedGames::BlackOpsCW:
         XMaterial = GameBlackOpsCW::ReadXMaterial(Material->AssetPointer);
         break;
+    case SupportedGames::Vanguard:
+        XMaterial = GameVanguard::ReadXMaterial(Material->AssetPointer);
+        break;
     }
 
     // Process Image Names
