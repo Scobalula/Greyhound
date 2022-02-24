@@ -29,6 +29,8 @@ public:
     static std::unique_ptr<XImageDDS> ReadXImage(const CoDImage_t* Image);
     // Reads an XSound from World War 2
     static std::unique_ptr<XSound> ReadXSound(const CoDSound_t* Sound);
+    // Reads an XMaterial from it's logical offset in memory
+    static const XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
 
     // Reads an XImageDDS from a image reference from World War 2
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
@@ -45,9 +47,4 @@ private:
     static std::array<DBGameInfo, 8> SinglePlayerOffsets;
     // A list of offsets for World War 2 multi player
     static std::array<DBGameInfo, 8> MultiPlayerOffsets;
-
-    // -- Game utilities
-
-    // Reads an XMaterial from it's logical offset in memory
-    static const XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
 };

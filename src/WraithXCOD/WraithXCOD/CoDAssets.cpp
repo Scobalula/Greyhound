@@ -1951,6 +1951,9 @@ ExportGameResult CoDAssets::ExportMaterialAsset(const CoDMaterial_t* Material, c
     case SupportedGames::Vanguard:
         XMaterial = GameVanguard::ReadXMaterial(Material->AssetPointer);
         break;
+    case SupportedGames::WorldWar2:
+        XMaterial = GameWorldWar2::ReadXMaterial(Material->AssetPointer);
+        break;
     }
 
     // Process Image Names

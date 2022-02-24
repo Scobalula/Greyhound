@@ -1206,20 +1206,55 @@ std::unique_ptr<XImageDDS> GameVanguard::LoadXImage(const XImage_t& Image)
     // Calculate proper image format
     switch (ImageInfo.ImageFormat)
     {
-    // RGBA
-    case 7: ImageInfo.ImageFormat = 28; break;
-    // BC1
-    case 35:
-    case 36:
+    case 0:  ImageInfo.ImageFormat = 71; break;
+    case 1:  ImageInfo.ImageFormat = 61; break;
+    case 2:  ImageInfo.ImageFormat = 65; break;
+    case 3:  ImageInfo.ImageFormat = 65; break;
+    case 4:  ImageInfo.ImageFormat = 49; break;
+    case 5:  ImageInfo.ImageFormat = 49; break;
+    case 6:  ImageInfo.ImageFormat = 28; break;
+    case 7:  ImageInfo.ImageFormat = 28; break;
+    case 8:  ImageInfo.ImageFormat = 71; break;
+    case 9:  ImageInfo.ImageFormat = 71; break;
+    case 10: ImageInfo.ImageFormat = 63; break;
+    case 11: ImageInfo.ImageFormat = 51; break;
+    case 12: ImageInfo.ImageFormat = 56; break;
+    case 13: ImageInfo.ImageFormat = 35; break;
+    case 14: ImageInfo.ImageFormat = 11; break;
+    case 15: ImageInfo.ImageFormat = 58; break;
+    case 16: ImageInfo.ImageFormat = 54; break;
+    case 17: ImageInfo.ImageFormat = 34; break;
+    case 18: ImageInfo.ImageFormat = 10; break;
+    case 19: ImageInfo.ImageFormat = 41; break;
+    case 20: ImageInfo.ImageFormat = 16; break;
+    case 21: ImageInfo.ImageFormat = 2;  break;
+    case 22: ImageInfo.ImageFormat = 40; break;
+    case 23: ImageInfo.ImageFormat = 20; break;
+    case 24: ImageInfo.ImageFormat = 62; break;
+    case 25: ImageInfo.ImageFormat = 57; break;
+    case 26: ImageInfo.ImageFormat = 42; break;
+    case 27: ImageInfo.ImageFormat = 17; break;
+    case 28: ImageInfo.ImageFormat = 3;  break;
+    case 29: ImageInfo.ImageFormat = 25; break;
+    case 30: ImageInfo.ImageFormat = 85; break;
+    case 31: ImageInfo.ImageFormat = 85; break;
+    case 32: ImageInfo.ImageFormat = 24; break;
+    case 33: ImageInfo.ImageFormat = 67; break;
+    case 34: ImageInfo.ImageFormat = 67; break;
+    case 35: ImageInfo.ImageFormat = 71; break;
+    case 36: ImageInfo.ImageFormat = 71; break;
     case 37: ImageInfo.ImageFormat = 71; break;
     case 38: ImageInfo.ImageFormat = 74; break;
     case 39: ImageInfo.ImageFormat = 77; break;
-    case 40: ImageInfo.ImageFormat = 80; break;
+    case 40: ImageInfo.ImageFormat = 77; break;
     case 41: ImageInfo.ImageFormat = 80; break;
-    // BC7
-    case 46: 
+    case 42: ImageInfo.ImageFormat = 84; break;
+    case 43: ImageInfo.ImageFormat = 84; break;
+    case 44: ImageInfo.ImageFormat = 95; break;
+    case 45: ImageInfo.ImageFormat = 96; break;
+    case 46: ImageInfo.ImageFormat = 98; break;
     case 47: ImageInfo.ImageFormat = 98; break;
-    // Fall back to BC1
+        // Fall back to BC1
     default: ImageInfo.ImageFormat = 71; break;
     }
 

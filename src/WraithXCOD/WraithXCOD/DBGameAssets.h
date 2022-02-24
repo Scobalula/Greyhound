@@ -2823,9 +2823,14 @@ struct WWIIXMaterial
 
     uint8_t ImageCount;
 
-    uint8_t Padding2[0x1D];
+    uint8_t Padding2[0x15];
 
+    uint64_t TechsetPtr;
     uint64_t ImageTablePtr;
+    uint64_t UnknownPtr;
+    uint64_t ConstantsPtr;
+
+    uint8_t Padding3[144];
 };
 #pragma pack(pop)
 

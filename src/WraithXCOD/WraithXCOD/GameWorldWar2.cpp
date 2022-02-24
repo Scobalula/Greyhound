@@ -100,6 +100,7 @@ bool GameWorldWar2::LoadOffsets()
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0xA)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0x15)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0x16)));
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(BaseAddress + GameOffsets.DBAssetPools + (8 * 0xD)));
             // Verify via first xmodel asset
             auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8));
             // Check
@@ -117,6 +118,7 @@ bool GameWorldWar2::LoadOffsets()
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0xA)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0x15)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0x16)));
+                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(BaseAddress + GameOffsets.DBPoolSizes + (4 * 0xD)));
                     // Return success
                     return true;
                 }
@@ -157,6 +159,7 @@ bool GameWorldWar2::LoadOffsets()
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xA)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0x15)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0x16)));
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xD)));
             // Verify via first xmodel asset
             auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8));
             // Check
@@ -174,6 +177,7 @@ bool GameWorldWar2::LoadOffsets()
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xA)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x15)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0x16)));
+                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xD)));
                     // Return success
                     return true;
                 }
@@ -192,6 +196,7 @@ bool GameWorldWar2::LoadAssets()
     bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
+    bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
 
     if (NeedsAnims)
     {
@@ -476,6 +481,28 @@ bool GameWorldWar2::LoadAssets()
         });
     }
 
+    if (NeedsMaterials)
+    {
+        // Parse the Material pool
+        CoDXPoolParser<uint64_t, WWIIXMaterial>((CoDAssets::GameOffsetInfos[4] + 8), CoDAssets::GamePoolSizes[4], [](WWIIXMaterial& Asset, uint64_t& AssetOffset)
+        {
+            // Validate and load if need be
+            auto MaterialName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr));
+
+            // Make and add
+            auto Material = new CoDMaterial_t();
+            // Set
+            Material->AssetName = Strings::Replace(MaterialName, "*", "");
+            Material->AssetPointer = AssetOffset;
+            Material->ImageCount = (uint8_t)Asset.ImageCount;
+            Material->AssetStatus = WraithAssetStatus::Loaded;
+
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(Material);
+        });
+    }
+
+
     // Success, error only on specific load
     return true;
 }
@@ -567,6 +594,7 @@ std::unique_ptr<XModel_t> GameWorldWar2::ReadXModel(const CoDModel_t* Model)
         // Return it
         return ModelAsset;
     }
+
     // Not running
     return nullptr;
 }
@@ -791,6 +819,7 @@ const XMaterial_t GameWorldWar2::ReadXMaterial(uint64_t MaterialPointer)
     XMaterial_t Result(MaterialData.ImageCount);
     // Clean the name, then apply it
     Result.MaterialName = FileSystems::GetFileNameWithoutExtension(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr));
+    Result.MaterialName = Strings::Replace(Result.MaterialName, "*", "");
 
     // Iterate over material images, assign proper references if available
     for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
@@ -1119,7 +1148,7 @@ std::unique_ptr<XImageDDS> GameWorldWar2::LoadXImage(const XImage_t& Image)
     }
 
     // Calculate table offset of the biggest mip
-    uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(WWIIGfxImage)) * (sizeof(WWIIPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[5] + (LargestMip * sizeof(WWIIPAKImageEntry));
+    uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(WWIIGfxImage)) * (sizeof(WWIIPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[6] + (LargestMip * sizeof(WWIIPAKImageEntry));
 
     // Read info
     auto ImageStreamInfo = CoDAssets::GameInstance->Read<WWIIPAKImageEntry>(PAKTableOffset);
@@ -1157,5 +1186,5 @@ std::unique_ptr<XImageDDS> GameWorldWar2::LoadXImage(const XImage_t& Image)
 std::string GameWorldWar2::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[4] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[4] + 8);
+    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
 }
