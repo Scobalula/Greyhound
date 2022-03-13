@@ -19,7 +19,7 @@ uint64_t ComputePadding(uint64_t Value)
 // Clamps a float to 16Bit Int between 32767 and -32768
 int16_t ClampFloatToShort(float Value)
 {
-    return VectorMath::Clamp<int16_t>((int16_t)(32767 * Value), -32767, 32767);
+    return VectorMath::Clamp<int16_t>((int16_t)(32767 * VectorMath::Clamp(Value, -1.0f, 1.0f)), -32767, 32767);
 }
 
 // Writes a 16bit data block
