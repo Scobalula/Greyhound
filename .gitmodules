@@ -4,3 +4,9 @@
 [submodule "src/External/Opus"]
 	path = src/External/Opus
 	url = https://github.com/xiph/opus
+[submodule "src/External/DirectXTex"]
+	path = src/External/DirectXTex
+	url = https://github.com/microsoft/DirectXTex
+[submodule "src/External/DirectXShaderCompiler"]
+	path = src/External/DirectXShaderCompiler
+	url = https://github.com/microsoft/DirectXShaderCompiler

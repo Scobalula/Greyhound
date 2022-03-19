@@ -268,7 +268,14 @@ bool Image::ConvertToFormat(std::unique_ptr<DirectX::ScratchImage>& Image, Direc
             auto TemporaryImage = std::make_unique<DirectX::ScratchImage>();
 
             // Compress the image TODO: Replace 0 with proper flags
-            auto Result = DirectX::Compress(FirstImage, ImageCount, ImageMetadata, ResultFormat, 0, DirectX::TEX_THRESHOLD_DEFAULT, *TemporaryImage);
+            auto Result = DirectX::Compress(
+                FirstImage,
+                ImageCount,
+                ImageMetadata,
+                ResultFormat,
+                DirectX::TEX_COMPRESS_DEFAULT,
+                DirectX::TEX_THRESHOLD_DEFAULT,
+                *TemporaryImage);
 
             // Ensure success
             if (!FAILED(Result))
@@ -699,7 +706,7 @@ std::unique_ptr<int8_t[]> Image::BuildDDSHeader(uint32_t Width, uint32_t Height,
     size_t ResultBuffer = 0;
 
     // Encode it
-    DirectX::_EncodeDDSHeader(Metadata, DirectX::DDS_FLAGS::DDS_FLAGS_NONE, HeaderBuffer.get(), MaximumSize, ResultBuffer, UseAlphaValue);
+    DirectX::EncodeDDSHeader(Metadata, DirectX::DDS_FLAGS::DDS_FLAGS_NONE, HeaderBuffer.get(), MaximumSize, ResultBuffer);
 
     // If we have a result size, write it to the stream
     if (ResultBuffer > 0)
@@ -741,5 +748,5 @@ void Image::InitializeImageAPI()
 void Image::ShutdownImageAPI()
 {
     // Cleanup resources
-    DirectX::CleanupWICFactory();
+    DirectX::SetWICFactory(nullptr);
 }
