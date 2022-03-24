@@ -332,7 +332,7 @@ bool GameBlackOps3::LoadAssets()
             auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr));
 
             // Check if it's streamed
-            if (Asset.LoadedMipPtr != 0 && Asset.MipLevels[0].HashID == 0)
+            // if (Asset.LoadedMipPtr != 0 && Asset.MipLevels[0].HashID == 0)
             {
                 // Make and add
                 auto LoadedImage = new CoDImage_t();
@@ -343,6 +343,7 @@ bool GameBlackOps3::LoadAssets()
                 LoadedImage->Height = (uint16_t)Asset.LoadedMipHeight;
                 LoadedImage->Format = Asset.ImageFormat;
                 LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
+                LoadedImage->Streamed = Asset.MipLevels[0].HashID != 0;
 
                 // Add
                 CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);

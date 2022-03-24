@@ -10,6 +10,7 @@ WraithAsset::WraithAsset()
     AssetName = "WraithAsset";
     AssetStatus = WraithAssetStatus::NotLoaded;
     AssetSize = -1;
+    Streamed = false;
 }
 
 WraithAsset::~WraithAsset()

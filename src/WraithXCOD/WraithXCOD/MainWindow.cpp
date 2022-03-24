@@ -99,6 +99,8 @@ public:
     RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> Height;
     // Sound Length Search Value
     RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> SoundLength;
+    // Streamed Value
+    RangedIntSearchValue<int64_t, 0,            -1, 1>            Streamed;
 
 
     // Initializes the search context
@@ -169,6 +171,10 @@ SearchContext::SearchContext(std::string& search)
                 else if (name == "length")
                 {
                     SoundLength.SetFromSearchString(value);
+                }
+                else if (name == "streamed")
+                {
+                    Streamed.SetFromSearchString(value);
                 }
                 else if (name == "bonename")
                 {
@@ -1144,6 +1150,9 @@ void MainWindow::OnSearch()
                 break;
             }
             }
+
+            if (Context.Streamed.Value != -1)
+                CanAdd = (Context.Streamed.Value == 1 && Asset->Streamed) || (Context.Streamed.Value == 0 && !Asset->Streamed);
 
             // At this point we've checked out with value checks, skip names
             // if other values haven't checked

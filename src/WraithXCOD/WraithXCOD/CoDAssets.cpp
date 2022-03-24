@@ -2138,6 +2138,36 @@ void CoDAssets::ExportMaterialImageNames(const XMaterial_t& Material, const std:
                 ImageNames.WriteLineFmt("unk_semantic_0x%X,%s", Image.SemanticHash, Image.ImageName.c_str());
             }
         }
+
+        // Check if we have settings
+        if (Material.Settings.size() > 0)
+        {
+            // Image Names Output
+            TextWriter Settings;
+
+            // Get File Name
+            auto SettingsPath = FileSystems::CombinePath(ExportPath, Material.MaterialName + "_settings.txt");
+
+            // Create File
+            Settings.Create(SettingsPath);
+
+            // Write header
+            Settings.WriteLineFmt("# Material: %s", Material.MaterialName.c_str());
+            Settings.WriteLineFmt("# Techset/Type: %s", Material.TechsetName.c_str());
+            Settings.WriteLine("name,type,x,y,z,w");
+
+            // Write each name
+            for (auto& Setting : Material.Settings)
+            {
+                Settings.WriteLineFmt("%s,%s,%f,%f,%f,%f",
+                    Setting.Name.c_str(),
+                    Setting.Type.c_str(),
+                    Setting.Data[0],
+                    Setting.Data[1],
+                    Setting.Data[2],
+                    Setting.Data[3]);
+            }
+        }
     }
     catch (...)
     {

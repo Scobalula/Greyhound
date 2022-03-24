@@ -35,6 +35,8 @@ CoDAnim_t::CoDAnim_t()
     // Defaults
     Framerate = 30.0f;
     FrameCount = 0;
+    BoneCount = 0;
+    ShapeCount = 0;
     // Set type
     AssetType = WraithAssetType::Animation;
     // Size
@@ -275,4 +277,63 @@ CoDMaterial_t::CoDMaterial_t()
 
 CoDMaterial_t::~CoDMaterial_t()
 {
+}
+
+XMaterialSetting_t::XMaterialSetting_t(
+    const char* name,
+    const char* type,
+    const float* data,
+    const size_t numElements)
+{
+    Name = name;
+    Type = type;
+
+    std::memset(Data, 0, sizeof(Data));
+    std::memcpy(Data, data, numElements * sizeof(float));
+
+    // Append element count to match HLSL names
+    if(numElements > 1)
+        Type += std::to_string(numElements);
+}
+
+XMaterialSetting_t::XMaterialSetting_t(
+    const char* name,
+    const char* type,
+    const int32_t* data,
+    const size_t numElements)
+{
+    Name = name;
+    Type = type;
+
+    std::memset(Data, 0, sizeof(Data));
+
+    for (size_t i = 0; i < numElements; i++)
+    {
+        Data[i] = (float)data[i];
+    }
+
+    // Append element count to match HLSL names
+    if (numElements > 1)
+        Type += std::to_string(numElements);
+}
+
+XMaterialSetting_t::XMaterialSetting_t(
+    const char* name,
+    const char* type,
+    const uint32_t* data,
+    const size_t numElements)
+{
+    Name = name;
+    Type = type;
+
+    std::memset(Data, 0, sizeof(Data));
+
+    for (size_t i = 0; i < numElements; i++)
+    {
+        Data[i] = (float)data[i];
+    }
+
+    // Append element count to match HLSL names
+    if (numElements > 1)
+        Type += std::to_string(numElements);
 }

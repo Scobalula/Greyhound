@@ -251,6 +251,35 @@ struct XImage_t
     std::string ImageName;
 };
 
+struct XMaterialSetting_t
+{
+    // Constructors
+    XMaterialSetting_t(
+        const char* name,
+        const char* type,
+        const float* data,
+        const size_t numElements);
+
+    XMaterialSetting_t(
+        const char* name,
+        const char* type,
+        const int32_t* data,
+        const size_t numElements);
+
+    XMaterialSetting_t(
+        const char* name,
+        const char* type,
+        const uint32_t* data,
+        const size_t numElements);
+
+    // The name
+    std::string Name;
+    // The type
+    std::string Type;
+    // The data
+    float Data[4];
+};
+
 struct XMaterial_t
 {
     // Constructor
@@ -265,6 +294,9 @@ struct XMaterial_t
 
     // A list of images
     std::vector<XImage_t> Images;
+
+    // A list of settings, if any
+    std::vector<XMaterialSetting_t> Settings;
 };
 
 struct XModelLod_t

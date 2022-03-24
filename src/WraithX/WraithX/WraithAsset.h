@@ -59,4 +59,6 @@ public:
     WraithAssetStatus AssetStatus;
     // The size of this asset, -1 = N/A
     int64_t AssetSize;
+    // Whether or not the asset is streamed
+    bool Streamed;
 };

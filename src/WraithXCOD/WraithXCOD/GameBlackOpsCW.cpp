@@ -20,6 +20,19 @@
 // We need Opus
 #include "..\..\External\Opus\include\opus.h"
 
+// We need DirectXShaderCompiler for reflection
+#include <wrl/client.h>
+#include <d3d12.h>
+#include <d3d12shader.h>
+#include "dxc/Support/dxcapi.use.h"
+#include "dxc/Support/dxcapi.use.h"
+#include "dxc/DxilContainer/DxilContainer.h"
+
+using Microsoft::WRL::ComPtr;
+
+
+#pragma comment(lib, "dxguid.lib")
+
 // -- Initialize Asset Name Cache
 
 WraithNameIndex GameBlackOpsCW::AssetNameCache = WraithNameIndex();
@@ -34,6 +47,12 @@ std::array<DBGameInfo, 1> GameBlackOpsCW::SinglePlayerOffsets =
 }};
 
 // -- Finished with databases
+
+// -- Begin DXC
+
+dxc::DxcDllSupport DXCDLLSupport;
+
+// -- End DXC
 
 // -- Begin XModelStream structures
 
@@ -825,10 +844,51 @@ struct BOCWXMaterialImage
 };
 #pragma pack(pop)
 
+struct BOCWMaterialTechniqueSet
+{
+    uint64_t Hash;
+    uint64_t Hash2;
+    uint64_t Flags;
+    uint64_t Passed[18];
+};
+
+struct BOCWMaterialTechnique
+{
+    uint64_t Hash;
+    uint8_t Padding[32];
+    uint64_t ShadersPtr;
+};
+
+struct BOCWMaterialTechniqueShader
+{
+    uint64_t Hash;
+    uint64_t ShaderPtr;
+    uint64_t ShaderSize;
+};
+
+#pragma pack(push, 1)
+struct BOCWXMaterialEx
+{
+    uint64_t NamePtr;
+    uint8_t Padding[0x20];
+    uint64_t TechsetPtr;
+    uint64_t ImageTablePtr;
+    uint64_t UnkPtr;
+    uint64_t MaterialInstanceDataPtr;
+    uint8_t Padding1[96];
+    uint64_t PerPassBuffers[13];
+    uint64_t CBuffersSize;
+    uint64_t CBuffersPtr;
+    uint8_t Padding2[40];
+    uint8_t ImageCount;
+    uint8_t Padding3[15];
+};
+#pragma pack(pop)
+
 const XMaterial_t GameBlackOpsCW::ReadXMaterial(uint64_t MaterialPointer)
 {
     // Prepare to parse the material
-    auto MaterialData = CoDAssets::GameInstance->Read<BOCWXMaterial>(MaterialPointer);
+    auto MaterialData = CoDAssets::GameInstance->Read<BOCWXMaterialEx>(MaterialPointer);
     // Mask the name (some bits are used for other stuffs)
     MaterialData.NamePtr &= 0xFFFFFFFFFFFFFFF;
     // Allocate a new material with the given image count
@@ -880,6 +940,123 @@ const XMaterial_t GameBlackOpsCW::ReadXMaterial(uint64_t MaterialPointer)
         // Advance
         MaterialData.ImageTablePtr += sizeof(BOCWXMaterialImage);
     }
+
+    // Grab pixel shader for this pass, as it'll contain the most useful reflection info.
+    // We also need to determine if this is a deferred or foward material by pointer, it's the
+    // easiest way.
+    auto TechSetData = CoDAssets::GameInstance->Read<BOCWMaterialTechniqueSet>(MaterialData.TechsetPtr);
+    auto TechSetPassIndex = TechSetData.Passed[6] != 0 ? 6 : 8;
+    auto TechSetPassData = CoDAssets::GameInstance->Read<BOCWMaterialTechnique>(TechSetData.Passed[TechSetPassIndex]);
+    auto PixelShader = CoDAssets::GameInstance->Read<BOCWMaterialTechniqueShader>(CoDAssets::GameInstance->Read<uint64_t>(TechSetPassData.ShadersPtr + 24));
+    auto PixelShaderBuffer = std::make_unique<uint8_t[]>(PixelShader.ShaderSize);
+    auto PixelShaderSize = CoDAssets::GameInstance->Read(PixelShaderBuffer.get(), PixelShader.ShaderPtr, PixelShader.ShaderSize);
+
+    // We take 2 different paths, for forward materials, we'll need to resolve their types
+    // via reflection, but for GBuffer it's a lot simpler due to the constant data
+    // so we can skip shader stuff for gbuffer materials, and skip a lot of useless
+    // info within gbuffer instance info and get exact stuff we want like tints and 
+    // ranges
+    // Still need to look into it more, but it seems to be correct to do this
+    if (TechSetPassIndex == 6)
+    {
+        // Start DXC
+        IDxcLibrary* library = nullptr;
+        ID3D12ShaderReflection* reflection{};
+        IDxcContainerReflection* pReflection{};
+        IDxcBlobEncoding* blob = nullptr;
+        ID3D12ShaderReflection* ppReflection{};
+        UINT32 shaderIdx = 0;
+        D3D12_SHADER_DESC desc{};
+
+        // Ensure we're init
+        if (!FAILED(DXCDLLSupport.Initialize()) &&
+            !FAILED(DXCDLLSupport.CreateInstance(CLSID_DxcContainerReflection, &pReflection)) &&
+            !FAILED(DXCDLLSupport.CreateInstance(CLSID_DxcLibrary, &library)) &&
+            !FAILED(library->CreateBlobWithEncodingFromPinned(PixelShaderBuffer.get(), PixelShader.ShaderSize, 0, &blob)) &&
+            !FAILED(pReflection->Load(blob)) &&
+            !FAILED(pReflection->FindFirstPartKind(hlsl::DFCC_ShaderStatistics, &shaderIdx)) &&
+            !FAILED(pReflection->GetPartReflection(shaderIdx, __uuidof(ID3D12ShaderReflection), (void**)&ppReflection)) &&
+            !FAILED(ppReflection->GetDesc(&desc)))
+        {
+            ID3D12ShaderReflectionConstantBuffer* constBuf = ppReflection->GetConstantBufferByName("$Globals");
+
+            D3D12_SHADER_BUFFER_DESC bufDesc{};
+            D3D12_SHADER_VARIABLE_DESC varDesc{};
+            D3D12_SHADER_TYPE_DESC typeDesc{};
+
+            if (!FAILED(constBuf->GetDesc(&bufDesc)))
+            {
+                auto CBuffers = std::make_unique<uint8_t[]>(MaterialData.CBuffersSize);
+                auto CBuffersSize = CoDAssets::GameInstance->Read(CBuffers.get(), MaterialData.CBuffersPtr, MaterialData.CBuffersSize);
+                auto CBufferOffset = CoDAssets::GameInstance->Read<uint32_t>(CoDAssets::GameInstance->Read<uint64_t>(MaterialData.PerPassBuffers[TechSetPassIndex] + 16));
+
+                for (UINT i = 0; i < bufDesc.Variables; i++)
+                {
+                    auto variable = constBuf->GetVariableByIndex(i);
+
+                    // From what we know in BO3, Treyarch generate these from Techsets
+                    // and therefore we assume they can only be certain types with no nested
+                    // structures, etc.
+                    if (!FAILED(variable->GetDesc(&varDesc)) && !FAILED(variable->GetType()->GetDesc(&typeDesc)))
+                    {
+                        switch (typeDesc.Type)
+                        {
+                        case D3D_SVT_BOOL:
+                        case D3D_SVT_FLOAT:
+                            Result.Settings.emplace_back(
+                                varDesc.Name,
+                                "float",
+                                (float*)(CBuffers.get() + CBufferOffset + varDesc.StartOffset),
+                                typeDesc.Columns);
+                            break;
+                        case D3D_SVT_INT:
+                            Result.Settings.emplace_back(
+                                varDesc.Name,
+                                "int",
+                                (int32_t*)(CBuffers.get() + CBufferOffset + varDesc.StartOffset),
+                                typeDesc.Columns);
+                            break;
+                        case D3D_SVT_UINT:
+                            Result.Settings.emplace_back(
+                                varDesc.Name,
+                                "uint",
+                                (uint32_t*)(CBuffers.get() + CBufferOffset + varDesc.StartOffset),
+                                typeDesc.Columns);
+                            break;
+                        }
+                    }
+                }
+            }
+#if _DEBUG
+            else
+            {
+                printf("WARNING: Failed to get $Globals for material: %s\n", Result.MaterialName.c_str());
+            }
+#endif
+        }
+    }
+    else
+    {
+        auto MaterialInstanceData = std::make_unique<uint8_t[]>(220);
+        auto MaterialInstanceDataSize = CoDAssets::GameInstance->Read(MaterialInstanceData.get(), MaterialData.MaterialInstanceDataPtr, 220);
+
+        Result.Settings.emplace_back(
+            "colorTint",
+            "float3",
+            (float*)(MaterialInstanceData.get() + 8),
+            3);
+        Result.Settings.emplace_back(
+            "specColorTint",
+            "float3",
+            (float*)(MaterialInstanceData.get() + 40),
+            3);
+        Result.Settings.emplace_back(
+            "perceptualRoughnessRange",
+            "float2",
+            (float*)(MaterialInstanceData.get() + 44),
+            2);
+    }
+
 
     // Return it
     return Result;
