@@ -1,3 +1,4 @@
+# Greyhound is no longer receiving updates and won't receive updates for new games. It's no longer enjoyable to work on, nor does working on it pay bills, the source code is here for anyone to pick it up and continue on with the project.
 # Greyhound - A fork of Wraith Archon, Call of Duty Asset Extractor
 [![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/RyqyThu)
 
