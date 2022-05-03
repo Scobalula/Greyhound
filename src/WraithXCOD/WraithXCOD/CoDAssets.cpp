@@ -127,6 +127,9 @@ ExportStatusHandler CoDAssets::OnExportStatus = nullptr;
 // Set last path
 std::string CoDAssets::LatestExportPath = "";
 
+// Set game directory
+std::string CoDAssets::GameDirectory = "";
+
 // Image Hashes from Black Ops 3's Techsets
 std::map<uint32_t, std::string> SemanticHashes = 
 {
@@ -436,7 +439,7 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "s2_sp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::SP },
     { "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
     // Modern Warfare 4
-    { "Celerium.UI.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
+    { "Parasyte.CLI.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
     // Modern Warfare 2 Remastered
     { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
     // 007 Quantum Solace
@@ -601,7 +604,7 @@ LoadGameResult CoDAssets::LoadGame()
             CleanupPackageCache();
             // Load from casc and on demand
             GamePackageCache = std::make_unique<CASCCache>();
-            GamePackageCache->LoadPackageCacheAsync("C:\\Battlenet\\Call of Duty Modern Warfare");
+            GamePackageCache->LoadPackageCacheAsync(GameDirectory);
             OnDemandCache = std::make_unique<XPAKCache>();
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "xpak_cache"));
             // Load as normally

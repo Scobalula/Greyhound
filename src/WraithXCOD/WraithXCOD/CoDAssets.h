@@ -142,6 +142,9 @@ public:
     // The game's string read handler
     static LoadStringHandler GameStringHandler;
 
+    // The directory where the game is stored.
+    static std::string GameDirectory;
+
     // -- Global game information
 
     // A list of game offsets, varies per-game

@@ -347,9 +347,9 @@ std::string ProcessReader::ReadNullTerminatedString(uintptr_t Offset)
         // Keep track of address and preallocate our result
         uintptr_t Address = Offset;
         std::string Result;
-        Result.reserve(256);
+        Result.reserve(32);
         // Keep a buffer, and null it, most strings won't be larger than this
-        char Buffer[256];
+        char Buffer[32];
         std::memset(Buffer, 0, sizeof(Buffer));
 
         while (true)

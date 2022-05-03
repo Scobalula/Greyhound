@@ -60,6 +60,7 @@ bool GameGhosts::LoadOffsets()
             // Read required offsets (XANIM, XMODEL, XIMAGE)
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 2)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 4)));
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(0x143806488));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xD)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xE)));
             // Verify via first xmodel asset
@@ -77,6 +78,7 @@ bool GameGhosts::LoadOffsets()
                     // Read and apply sizes
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 2)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
+                    CoDAssets::GamePoolSizes.emplace_back(6144);
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xD)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xE)));
                     // Return success
@@ -129,6 +131,7 @@ bool GameGhosts::LoadOffsets()
                     // Read and apply sizes
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 2)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
+                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(6144));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xD)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xE)));
                     // Return success
@@ -221,82 +224,85 @@ bool GameGhosts::LoadAssets()
 
     if (NeedsModels)
     {
-        // Models are the second offset and second pool, skip 8 byte pointer to free head
-        auto ModelOffset = CoDAssets::GameOffsetInfos[1] + 8;
-        auto ModelCount = CoDAssets::GamePoolSizes[1];
-
-        // Calculate maximum pool size
-        auto MaximumPoolOffset = (ModelCount * sizeof(GhostsXModel)) + ModelOffset;
-        // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[1];
-
-        // Store the placeholder model
-        GhostsXModel PlaceholderModel;
-        // Clear it out
-        std::memset(&PlaceholderModel, 0, sizeof(PlaceholderModel));
-
-        // Loop and read
-        for (uint32_t i = 0; i < ModelCount; i++)
+        for (size_t i = 0; i < 2; i++)
         {
-            // Read
-            auto ModelResult = CoDAssets::GameInstance->Read<GhostsXModel>(ModelOffset);
+            // Models are the second offset and second pool, skip 8 byte pointer to free head
+            auto ModelOffset = CoDAssets::GameOffsetInfos[1 + i] + 8;
+            auto ModelCount = CoDAssets::GamePoolSizes[1 + i];
 
-            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-            if ((ModelResult.NamePtr > MinimumPoolOffset && ModelResult.NamePtr < MaximumPoolOffset) || ModelResult.NamePtr == 0)
+            // Calculate maximum pool size
+            auto MaximumPoolOffset = (ModelCount * sizeof(GhostsXModel)) + ModelOffset;
+            // Store original offset
+            auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[1 + i];
+
+            // Store the placeholder model
+            GhostsXModel PlaceholderModel;
+            // Clear it out
+            std::memset(&PlaceholderModel, 0, sizeof(PlaceholderModel));
+
+            // Loop and read
+            for (uint32_t i = 0; i < ModelCount; i++)
             {
+                // Read
+                auto ModelResult = CoDAssets::GameInstance->Read<GhostsXModel>(ModelOffset);
+
+                // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
+                if ((ModelResult.NamePtr > MinimumPoolOffset && ModelResult.NamePtr < MaximumPoolOffset) || ModelResult.NamePtr == 0)
+                {
+                    // Advance
+                    ModelOffset += sizeof(GhostsXModel);
+                    // Skip this asset
+                    continue;
+                }
+
+                // Validate and load if need be
+                auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+
+                // Make and add
+                auto LoadedModel = new CoDModel_t();
+                // Set
+                LoadedModel->AssetName = ModelName;
+                LoadedModel->AssetPointer = ModelOffset;
+                LoadedModel->BoneCount = ModelResult.NumBones;
+                LoadedModel->LodCount = ModelResult.NumLods;
+
+                // Check placeholder configuration, "void" is the base xmodel
+                if (ModelName == "void")
+                {
+                    // Set as placeholder model
+                    PlaceholderModel = ModelResult;
+                    LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
+                }
+                else if (ModelResult.BoneIDsPtr == PlaceholderModel.BoneIDsPtr && ModelResult.ParentListPtr == PlaceholderModel.ParentListPtr && ModelResult.RotationsPtr == PlaceholderModel.RotationsPtr && ModelResult.TranslationsPtr == PlaceholderModel.TranslationsPtr && ModelResult.PartClassificationPtr == PlaceholderModel.PartClassificationPtr && ModelResult.BaseMatriciesPtr == PlaceholderModel.BaseMatriciesPtr && ModelResult.NumLods == PlaceholderModel.NumLods && ModelResult.MaterialHandlesPtr == PlaceholderModel.MaterialHandlesPtr && ModelResult.NumBones == PlaceholderModel.NumBones)
+                {
+                    // Set as placeholder, data matches void
+                    LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
+                }
+                else
+                {
+                    // Set
+                    LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
+                }
+
+                // Add
+                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
+
                 // Advance
                 ModelOffset += sizeof(GhostsXModel);
-                // Skip this asset
-                continue;
             }
-
-            // Validate and load if need be
-            auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
-
-            // Make and add
-            auto LoadedModel = new CoDModel_t();
-            // Set
-            LoadedModel->AssetName = ModelName;
-            LoadedModel->AssetPointer = ModelOffset;
-            LoadedModel->BoneCount = ModelResult.NumBones;
-            LoadedModel->LodCount = ModelResult.NumLods;
-
-            // Check placeholder configuration, "void" is the base xmodel
-            if (ModelName == "void")
-            {
-                // Set as placeholder model
-                PlaceholderModel = ModelResult;
-                LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else if (ModelResult.BoneIDsPtr == PlaceholderModel.BoneIDsPtr && ModelResult.ParentListPtr == PlaceholderModel.ParentListPtr && ModelResult.RotationsPtr == PlaceholderModel.RotationsPtr && ModelResult.TranslationsPtr == PlaceholderModel.TranslationsPtr && ModelResult.PartClassificationPtr == PlaceholderModel.PartClassificationPtr && ModelResult.BaseMatriciesPtr == PlaceholderModel.BaseMatriciesPtr && ModelResult.NumLods == PlaceholderModel.NumLods && ModelResult.MaterialHandlesPtr == PlaceholderModel.MaterialHandlesPtr && ModelResult.NumBones == PlaceholderModel.NumBones)
-            {
-                // Set as placeholder, data matches void
-                LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else
-            {
-                // Set
-                LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
-            }
-
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
-
-            // Advance
-            ModelOffset += sizeof(GhostsXModel);
         }
     }
 
     if (NeedsImages)
     {
         // Images are the third offset and third pool, skip 8 byte pointer to free head
-        auto ImageOffset = CoDAssets::GameOffsetInfos[2] + 8;
-        auto ImageCount = CoDAssets::GamePoolSizes[2];
+        auto ImageOffset = CoDAssets::GameOffsetInfos[3] + 8;
+        auto ImageCount = CoDAssets::GamePoolSizes[3];
 
         // Calculate maximum pool size
         auto MaximumPoolOffset = (ImageCount * sizeof(GhostsGfxImage)) + ImageOffset;
         // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
+        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
 
         // Loop and read
         for (uint32_t i = 0; i < ImageCount; i++)
@@ -361,12 +367,12 @@ bool GameGhosts::LoadAssets()
         std::set<uint64_t> UniqueEntries;
 
         // Sounds are the fourth offset and fourth pool, skip 8 byte pointer to free head
-        auto LoadedSoundOffset = CoDAssets::GameOffsetInfos[3] + 8;
-        auto LoadedSoundCount = CoDAssets::GamePoolSizes[3];
+        auto LoadedSoundOffset = CoDAssets::GameOffsetInfos[4] + 8;
+        auto LoadedSoundCount = CoDAssets::GamePoolSizes[4];
         // Calculate maximum pool size
         auto MaximumPoolOffset = (LoadedSoundCount * sizeof(GhostsSoundAlias)) + LoadedSoundOffset;
         // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
+        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[4];
 
         // Loop and read
         for (uint32_t i = 0; i < LoadedSoundCount; i++)
@@ -753,7 +759,7 @@ std::unique_ptr<XImageDDS> GameGhosts::LoadXImage(const XImage_t& Image)
     }
 
     // Calculate table offset of the biggest mip
-    uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(GhostsGfxImage)) * (sizeof(GhostsPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[5] + (LargestMip * sizeof(GhostsPAKImageEntry));
+    uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(GhostsGfxImage)) * (sizeof(GhostsPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[6] + (LargestMip * sizeof(GhostsPAKImageEntry));
 
     // Read info
     auto ImageStreamInfo = CoDAssets::GameInstance->Read<GhostsPAKImageEntry>(PAKTableOffset);
@@ -815,5 +821,5 @@ std::unique_ptr<XImageDDS> GameGhosts::LoadXImage(const XImage_t& Image)
 std::string GameGhosts::LoadStringEntry(uint64_t Index)
 {
     // Read and return (Offsets[4] = StringTable), sizes differ in SP and MP
-    return (CoDAssets::GameFlags == SupportedGameFlags::SP) ? CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[4] + 4) : CoDAssets::GameInstance->ReadNullTerminatedString((12 * Index) + CoDAssets::GameOffsetInfos[4] + 4);
+    return (CoDAssets::GameFlags == SupportedGameFlags::SP) ? CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[5] + 4) : CoDAssets::GameInstance->ReadNullTerminatedString((12 * Index) + CoDAssets::GameOffsetInfos[5] + 4);
 }
