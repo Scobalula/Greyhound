@@ -54,43 +54,44 @@ bool GameGhosts::LoadOffsets()
     // Attempt to load the game offsets
     if (CoDAssets::GameInstance != nullptr)
     {
-        // Check built-in offsets via game exe mode (SP/MP)
-        for (auto& GameOffsets : (CoDAssets::GameFlags == SupportedGameFlags::SP) ? SinglePlayerOffsets : MultiPlayerOffsets)
-        {
-            // Read required offsets (XANIM, XMODEL, XIMAGE)
-            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 2)));
-            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 4)));
-            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(0x143806488));
-            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xD)));
-            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xE)));
-            // Verify via first xmodel asset
-            auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8));
-            // Check
-            if (FirstXModelName == "void" || FirstXModelName == "empty_model")
-            {
-                // Verify string table, otherwise we are all set
-                CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
-                // Read the first string
-                if (!Strings::IsNullOrWhiteSpace(LoadStringEntry(2)))
-                {
-                    // Add ImagePackage offset
-                    CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.ImagePackageTable);
-                    // Read and apply sizes
-                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 2)));
-                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
-                    CoDAssets::GamePoolSizes.emplace_back(6144);
-                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xD)));
-                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xE)));
-                    // Return success
-                    return true;
-                }
-            }
-            // Reset
-            CoDAssets::GameOffsetInfos.clear();
-        }
+        //// Check built-in offsets via game exe mode (SP/MP)
+        //for (auto& GameOffsets : (CoDAssets::GameFlags == SupportedGameFlags::SP) ? SinglePlayerOffsets : MultiPlayerOffsets)
+        //{
+        //    // Read required offsets (XANIM, XMODEL, XIMAGE)
+        //    CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 2)));
+        //    CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 4)));
+        //    CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(0x143806488));
+        //    CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xD)));
+        //    CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xE)));
+        //    // Verify via first xmodel asset
+        //    auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1] + 8));
+        //    // Check
+        //    if (FirstXModelName == "void" || FirstXModelName == "empty_model")
+        //    {
+        //        // Verify string table, otherwise we are all set
+        //        CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
+        //        // Read the first string
+        //        if (!Strings::IsNullOrWhiteSpace(LoadStringEntry(2)))
+        //        {
+        //            // Add ImagePackage offset
+        //            CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.ImagePackageTable);
+        //            // Read and apply sizes
+        //            CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 2)));
+        //            CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
+        //            CoDAssets::GamePoolSizes.emplace_back(6144);
+        //            CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xD)));
+        //            CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xE)));
+        //            // Return success
+        //            return true;
+        //        }
+        //    }
+        //    // Reset
+        //    CoDAssets::GameOffsetInfos.clear();
+        //}
 
         // Attempt to locate via heuristic searching
         auto DBAssetsScan = CoDAssets::GameInstance->Scan("48 8B D8 48 85 C0 75 ?? F0 FF 0D");
+        auto SceneXAssetsScan = CoDAssets::GameInstance->Scan("83 3D ?? ?? ?? ?? 00 74 3F 48 8B 0D ?? ?? ?? ?? FF");
         auto StringTableScan = (CoDAssets::GameFlags == SupportedGameFlags::SP) ? CoDAssets::GameInstance->Scan("44 8B C3 41 8B C0 48 8D 35 ?? ?? ?? ?? 48") : CoDAssets::GameInstance->Scan("55 56 57 48 83 EC 30 48 8B F9 E8");
         auto PackagesTableScan = CoDAssets::GameInstance->Scan("41 57 48 83 EC 50 44 8B F9 48 8D 05");
 
@@ -111,9 +112,11 @@ bool GameGhosts::LoadOffsets()
                 // Resolve packages from LEA
                 CoDAssets::GameInstance->Read<uint32_t>(PackagesTableScan + 0xC) + (PackagesTableScan + 0x10)
                 );
+            auto SceneXAssetsOffset = CoDAssets::GameInstance->Read<uint32_t>(SceneXAssetsScan + 0xC) + SceneXAssetsScan + 0x10;
             // Read required offsets (XANIM, XMODEL, XIMAGE)
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 2)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 4)));
+            CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(SceneXAssetsOffset));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xD)));
             CoDAssets::GameOffsetInfos.emplace_back(CoDAssets::GameInstance->Read<uint64_t>(GameOffsets.DBAssetPools + (8 * 0xE)));
             // Verify via first xmodel asset
@@ -131,7 +134,7 @@ bool GameGhosts::LoadOffsets()
                     // Read and apply sizes
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 2)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 4)));
-                    CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(6144));
+                    CoDAssets::GamePoolSizes.emplace_back(SceneXAssetsScan > 0 ? 6144 : 0);
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xD)));
                     CoDAssets::GamePoolSizes.emplace_back(CoDAssets::GameInstance->Read<uint32_t>(GameOffsets.DBPoolSizes + (4 * 0xE)));
                     // Return success
