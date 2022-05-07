@@ -1809,9 +1809,9 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
             break;
         case SupportedGames::ModernWarfare4:
             if(Sound->IsFileEntry)
-                SoundData = SABSupport::LoadSound(Sound);
+                SoundData = SABSupport::LoadOpusSound(Sound);
             else
-                SoundData = GameWorldWar2::ReadXSound(Sound);
+                SoundData = GameVanguard::ReadXSound(Sound);
             break;
         case SupportedGames::Vanguard:
             if (Sound->IsFileEntry)
