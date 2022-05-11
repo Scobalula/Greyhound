@@ -19,6 +19,8 @@ public:
     static bool LoadOffsets();
     // Loads assets for Modern Warfare RM
     static bool LoadAssets();
+    // Loads assets for Modern Warfare RM (Parasyte)
+    static bool LoadAssetsPS();
 
     // Reads an XAnim from Modern Warfare RM
     static std::unique_ptr<XAnim_t> ReadXAnim(const CoDAnim_t* Animation);
@@ -29,6 +31,8 @@ public:
 
     // Reads an XImageDDS from a image reference from Modern Warfare RM
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
+    // Reads an XImageDDS from a image reference from Modern Warfare RM (Parasyte)
+    static std::unique_ptr<XImageDDS> LoadXImagePS(const XImage_t& Image);
 
 
     // Reads an XMaterial from it's logical offset in memory

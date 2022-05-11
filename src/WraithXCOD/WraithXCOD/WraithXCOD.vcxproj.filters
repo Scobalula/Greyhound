@@ -204,6 +204,9 @@
     <ClCompile Include="VGXPAKCache.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
+    <ClCompile Include="Parasyte.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoDAssets.h">
@@ -385,6 +388,9 @@
     </ClInclude>
     <ClInclude Include="VGXPAKCache.h">
       <Filter>Header Files\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Parasyte.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

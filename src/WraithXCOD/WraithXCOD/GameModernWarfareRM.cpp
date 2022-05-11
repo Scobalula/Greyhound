@@ -13,9 +13,6 @@
 #include "FileSystems.h"
 #include "SettingsManager.h"
 
-#include <string>
-using namespace std;
-
 // -- Initialize built-in game offsets databases
 
 // Modern Warfare RM SP
@@ -554,6 +551,257 @@ bool GameModernWarfareRM::LoadAssets()
     return true;
 }
 
+bool GameModernWarfareRM::LoadAssetsPS()
+{
+    // Prepare to load game assets, into the AssetPool
+    bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
+    bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
+    bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
+    bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
+    bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
+
+    // Check if we need assets
+    if (NeedsAnims)
+    {
+        auto XAnimPool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 5 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(XAnimPool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto AnimResult = CoDAssets::GameInstance->Read<MWRXAnim>(Asset.Header);
+            // Validate and load if need be
+            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
+
+            // Make and add
+            auto LoadedAnim = new CoDAnim_t();
+            // Set
+            LoadedAnim->AssetName = AnimName;
+            LoadedAnim->AssetPointer = Asset.Header;
+            LoadedAnim->Framerate = AnimResult.Framerate;
+            LoadedAnim->FrameCount = AnimResult.NumFrames;
+            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+            LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+        });
+    }
+
+    // Check if we need assets
+    if (NeedsImages)
+    {
+        auto XAnimPool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 16 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(XAnimPool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto ImageResult = CoDAssets::GameInstance->Read<MWRGfxImage>(Asset.Header);
+            // Validate and load if need be
+            auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
+
+            // Calculate the largest image mip
+            uint32_t LargestWidth = ImageResult.Width;
+            uint32_t LargestHeight = ImageResult.Height;
+
+            if (ImageResult.Streamed > 0)
+            {
+                // Loop and calculate
+                for (uint32_t i = 0; i < 3; i++)
+                {
+                    // Compare widths
+                    if (ImageResult.MipLevels[i].Width > LargestWidth)
+                    {
+                        LargestWidth = ImageResult.MipLevels[i].Width;
+                        LargestHeight = ImageResult.MipLevels[i].Height;
+                    }
+                }
+            }
+
+            // Make and add
+            auto LoadedImage = new CoDImage_t();
+            // Set
+            LoadedImage->AssetName = ImageName;
+            LoadedImage->AssetPointer = Asset.Header;
+            LoadedImage->Width = (uint16_t)LargestWidth;
+            LoadedImage->Height = (uint16_t)LargestHeight;
+            LoadedImage->Format = ImageResult.ImageFormat;
+            LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
+            LoadedImage->Streamed = ImageResult.Streamed > 0;
+
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
+        });
+    }
+
+    // Check if we need assets
+    if (NeedsMaterials)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 8 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto MaterialResult = CoDAssets::GameInstance->Read<MWRXMaterial>(Asset.Header);
+            // Validate and load if need be
+            auto MaterialName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialResult.NamePtr));
+            // Make and add
+            auto Material = new CoDMaterial_t();
+            // Set
+            Material->AssetName = Strings::Replace(MaterialName, "*", "");
+            Material->AssetPointer = Asset.Header;
+            Material->ImageCount = (uint8_t)MaterialResult.ImageCount;
+            Material->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(Material);
+        });
+    }
+
+    // Check if we need assets
+    if (NeedsModels)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto ModelResult = CoDAssets::GameInstance->Read<MWRXModel>(Asset.Header);
+            // Validate and load if need be
+            auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+            // Make and add
+            auto LoadedModel = new CoDModel_t();
+            // Set
+            LoadedModel->AssetName = ModelName;
+            LoadedModel->AssetPointer = Asset.Header;
+            LoadedModel->BoneCount = ModelResult.NumBones;
+            LoadedModel->LodCount = ModelResult.NumLods;
+            LoadedModel->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
+        });
+    }
+    // Check if we need assets
+    if (NeedsSounds)
+    {
+        // A temporary table for duplicates, since we are tracing from alias entries...
+        std::set<uint64_t> UniqueEntries;
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 17 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [&UniqueEntries](ps::XAsset64& Asset)
+        {
+            // Read
+            auto SoundResult = CoDAssets::GameInstance->Read<MWRSoundAlias>(Asset.Header);
+            // Validate and load if need be
+            auto SoundName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr);
+
+            for (uint32_t j = 0; j < SoundResult.EntryCount; j++)
+            {
+                // Load Alias
+                auto SoundAliasEntry = CoDAssets::GameInstance->Read<MWRSoundAliasEntry>(SoundResult.EntriesPtr + (j * sizeof(MWRSoundAliasEntry)));
+
+                // Load File Spec
+                auto SoundFileSpec = CoDAssets::GameInstance->Read<MWRSoundAliasFileSpec>(SoundAliasEntry.FileSpecPtr);
+                // Check type
+                if (SoundFileSpec.Type == 1)
+                {
+                    // Read Pointer to Sound
+                    auto LoadedSoundPtr = CoDAssets::GameInstance->Read<uint64_t>(SoundAliasEntry.FileSpecPtr + 8);
+                    // Validate uniqueness
+                    if (UniqueEntries.insert(LoadedSoundPtr).second == false)
+                        continue;
+                    // Read Sound
+                    auto LoadedSoundInfo = CoDAssets::GameInstance->Read<AWLoadedSound>(LoadedSoundPtr);
+
+                    // Validate and load if need be
+                    auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
+
+                    // Make and add
+                    auto LoadedSound = new CoDSound_t();
+                    // Set
+                    LoadedSound->AssetName = FileSystems::GetFileNameWithoutExtension(LoadedSoundName);
+                    LoadedSound->AssetPointer = LoadedSoundInfo.SoundDataPtr;
+                    LoadedSound->FrameRate = LoadedSoundInfo.FrameRate;
+                    LoadedSound->FrameCount = LoadedSoundInfo.FrameCount;
+                    LoadedSound->AssetSize = LoadedSoundInfo.SoundDataSize;
+                    LoadedSound->ChannelsCount = LoadedSoundInfo.Channels;
+                    LoadedSound->IsFileEntry = false;
+                    LoadedSound->FullPath = FileSystems::GetDirectoryName(LoadedSoundName);
+                    LoadedSound->DataType = (LoadedSoundInfo.Format == 7 || LoadedSoundInfo.Format == 6) ? SoundDataTypes::FLAC_WithHeader : SoundDataTypes::WAV_NeedsHeader;
+                    LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+                    LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+                    // Add
+                    CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+                }
+                else if (SoundFileSpec.Type == 2)
+                {
+                    // Read Data
+                    auto StreamedSoundInfo = CoDAssets::GameInstance->Read<AWStreamedSound>(SoundAliasEntry.FileSpecPtr + 8);
+                    // Check does it exist
+                    if (StreamedSoundInfo.Exists)
+                    {
+                        // Make and add
+                        auto LoadedSound = new CoDSound_t();
+                        // Set (we'll use the alias names since streamed audio is nameless)
+                        LoadedSound->AssetName = Strings::Format("%s_%i", Strings::ToLower(SoundName).c_str(), j);
+                        LoadedSound->IsFileEntry = true;
+                        LoadedSound->DataType = SoundDataTypes::FLAC_WithHeader;
+                        LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+                        LoadedSound->PackageIndex = StreamedSoundInfo.PackageIndex;
+                        LoadedSound->AssetPointer = StreamedSoundInfo.Offset;
+                        LoadedSound->AssetSize = StreamedSoundInfo.Size;
+                        LoadedSound->Length = StreamedSoundInfo.Length;
+                        LoadedSound->FullPath = "streamed";
+                        LoadedSound->IsLocalized = StreamedSoundInfo.Localization > 0;
+                        // Add
+                        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+                    }
+                }
+                else if (SoundFileSpec.Type == 3)
+                {
+                    // Read Primed Data
+                    auto PrimedAudioInfo = CoDAssets::GameInstance->Read<AWPrimedSound>(SoundAliasEntry.FileSpecPtr + 8);
+                    // Validate uniqueness
+                    if (UniqueEntries.insert(PrimedAudioInfo.LoadedSoundPtr).second == false)
+                        continue;
+                    // Check does it exist
+                    if (PrimedAudioInfo.Exists)
+                    {
+                        // Read Sound
+                        auto LoadedSoundInfo = CoDAssets::GameInstance->Read<AWLoadedSound>(PrimedAudioInfo.LoadedSoundPtr);
+                        // Validate and load if need be
+                        auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
+                        // Make and add
+                        auto LoadedSound = new CoDSound_t();
+                        // Set
+                        LoadedSound->AssetName = FileSystems::GetFileNameWithoutExtension(LoadedSoundName);
+                        LoadedSound->FrameRate = LoadedSoundInfo.FrameRate;
+                        LoadedSound->FrameCount = LoadedSoundInfo.FrameCount;
+                        LoadedSound->ChannelsCount = LoadedSoundInfo.Channels;
+                        LoadedSound->FullPath = FileSystems::GetDirectoryName(LoadedSoundName);
+                        LoadedSound->DataType = (LoadedSoundInfo.Format == 7 || LoadedSoundInfo.Format == 6) ? SoundDataTypes::FLAC_WithHeader : SoundDataTypes::WAV_NeedsHeader;
+                        LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+                        LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+                        LoadedSound->AssetName = FileSystems::GetFileName(LoadedSoundName);
+                        LoadedSound->IsFileEntry = true;
+                        LoadedSound->PackageIndex = PrimedAudioInfo.PackageIndex;
+                        LoadedSound->AssetPointer = PrimedAudioInfo.Offset;
+                        LoadedSound->AssetSize = PrimedAudioInfo.Size;
+                        LoadedSound->IsLocalized = PrimedAudioInfo.Localization > 0;
+                        // Add
+                        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+                    }
+                }
+                else
+                {
+#if _DEBUG
+                    // Log on debug
+                    printf("Unknown sound type: %d\n", SoundFileSpec.Type);
+#endif
+                }
+            }
+        });
+    }
+
+    // Success, error only on specific load
+    return true;
+}
+
 std::unique_ptr<XAnim_t> GameModernWarfareRM::ReadXAnim(const CoDAnim_t* Animation)
 {
     // Verify that the program is running
@@ -742,7 +990,10 @@ std::unique_ptr<XImageDDS> GameModernWarfareRM::ReadXImage(const CoDImage_t* Ima
         }
     }
     // Proxy off
-    return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
+    if(ps::state != nullptr)
+        return LoadXImagePS(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
+    else
+        return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
 }
 
 XMaterial_t GameModernWarfareRM::ReadXMaterial(uint64_t MaterialPointer)
@@ -879,8 +1130,121 @@ std::unique_ptr<XImageDDS> GameModernWarfareRM::LoadXImage(const XImage_t& Image
     return nullptr;
 }
 
+struct XImageData
+{
+    uint16_t Locale;
+    uint16_t PackageIndex;
+    uint32_t Checksum;
+    uint64_t Offset;
+    uint64_t Size;
+};
+
+std::unique_ptr<XImageDDS> GameModernWarfareRM::LoadXImagePS(const XImage_t& Image)
+{
+    // Prepare to load an image, we only support PAK images
+    uint32_t ResultSize = 0;
+
+    // We must read the image data
+    auto ImageInfo = CoDAssets::GameInstance->Read<MWRGfxImage>(Image.ImagePtr);
+    // Buffer
+    std::unique_ptr<uint8_t[]> ImageData = nullptr;
+    // Widths
+    uint32_t LargestWidth = 0;
+    uint32_t LargestHeight = 0;
+
+    // Check if the image isn't streamed, if it isn't, just exit
+    if (ImageInfo.Streamed > 0)
+    {
+        // Calculate the largest image mip
+        uint32_t LargestMip = 0;
+
+        // Loop and calculate
+        for (uint32_t i = 0; i < 3; i++)
+        {
+            // Compare widths
+            if (ImageInfo.MipLevels[i].Width > LargestWidth)
+            {
+                LargestMip = i + 1;
+                LargestWidth = ImageInfo.MipLevels[i].Width;
+                LargestHeight = ImageInfo.MipLevels[i].Height;
+            }
+        }
+
+        // Read info
+        auto ImageStreamInfo = CoDAssets::GameInstance->Read<XImageData>(Image.ImagePtr + sizeof(MWRGfxImage) + sizeof(XImageData) * LargestMip);
+        // Read image package name
+        auto ImagePackageName = Strings::Format("imagefile%i.pak", ImageStreamInfo.PackageIndex);
+        // Attempt to extract the package asset
+        ImageData = PAKSupport::AWExtractImagePackage(FileSystems::CombinePath(CoDAssets::GamePackageCache->GetPackagesPath(), ImagePackageName), ImageStreamInfo.Offset, (ImageStreamInfo.Size - ImageStreamInfo.Offset), ResultSize);
+    }
+    else
+    {
+        ResultSize = CoDAssets::GameInstance->Read<uint32_t>(Image.ImagePtr + 40);
+        LargestWidth = (uint32_t)CoDAssets::GameInstance->Read<uint16_t>(Image.ImagePtr + 44);
+        LargestHeight = (uint32_t)CoDAssets::GameInstance->Read<uint16_t>(Image.ImagePtr + 46);
+
+        ImageData = std::make_unique<uint8_t[]>(ResultSize);
+
+        if (CoDAssets::GameInstance->Read(ImageData.get(), CoDAssets::GameInstance->Read<uint64_t>(Image.ImagePtr + 56), ResultSize) != ResultSize)
+            return nullptr;
+    }
+
+    // Check
+    if (ImageData != nullptr)
+    {
+        // If we have a certain format, prepare to swizzle the data
+        if (ImageInfo.ImageFormat == 84)
+        {
+            // We must swap the R and G channels (for each 16 bytes, swap the 8-byte parts) (A2XY)
+            auto ImageDataParts = (uint64_t*)ImageData.get();
+
+            // Store position and blocks to go
+            uint32_t Position = 0;
+            uint32_t TotalBlocks = ResultSize / 8;
+
+            // Iterate and swap
+            do
+            {
+                // Hold the first one
+                auto ImagePartUpper = ImageDataParts[Position];
+
+                // Place second in first
+                ImageDataParts[Position] = ImageDataParts[Position + 1];
+                ImageDataParts[Position + 1] = ImagePartUpper;
+
+                // Advance 2
+                Position += 2;
+
+                // Loop until end
+            } while (Position < TotalBlocks);
+        }
+
+        // Prepare to create a MemoryDDS file
+        auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat, 1, (ImageInfo.MapType == (uint8_t)GfxImageMapType::MAPTYPE_CUBE));
+
+        // Check for, and apply patch if required, if we got a raw result
+        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
+        {
+            // Set normal map patch
+            Result->ImagePatchType = ImagePatch::Normal_Expand;
+        }
+
+        // Return it
+        return Result;
+    }
+
+    // Failed to load the image
+    return nullptr;
+}
+
 std::string GameModernWarfareRM::LoadStringEntry(uint64_t Index)
 {
-    // Read and return (Offsets[4] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
+    if (ps::state == nullptr)
+    {
+        return CoDAssets::GameInstance->ReadNullTerminatedString((16 * Index) + CoDAssets::GameOffsetInfos[5] + 8);
+    }
+    else
+    {
+        return CoDAssets::GameInstance->ReadNullTerminatedString(ps::state->StringsAddress + Index);
+    }
 }

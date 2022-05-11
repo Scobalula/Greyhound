@@ -439,7 +439,7 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "s2_sp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::SP },
     { "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
     // Modern Warfare 4
-    { "Parasyte.CLI.exe", SupportedGames::ModernWarfare4, SupportedGameFlags::SP },
+    { "Parasyte.CLI.exe", SupportedGames::Parasyte, SupportedGameFlags::SP },
     // Modern Warfare 2 Remastered
     { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
     // 007 Quantum Solace
@@ -455,6 +455,8 @@ FindGameResult CoDAssets::BeginGameMode()
     // Aquire a lock
     std::lock_guard<std::mutex> Lock(CodMutex);
 
+    // Clear Parasyte
+    ps::state = nullptr;
     // Result
     auto Result = FindGameResult::Success;
 
@@ -468,8 +470,11 @@ FindGameResult CoDAssets::BeginGameMode()
     // If success, load assets
     if (Result == FindGameResult::Success)
     {
-        // Load assets
-        LoadGame();
+        // Load assets, check for Parasyte
+        if (ps::state != nullptr)
+            LoadGamePS();
+        else
+            LoadGame();
     }
     else if (GameInstance != nullptr)
     {
@@ -597,18 +602,6 @@ LoadGameResult CoDAssets::LoadGame()
         case SupportedGames::ModernWarfare: Success = GameModernWarfare::LoadAssets(); break;
         case SupportedGames::ModernWarfare2: Success = GameModernWarfare2::LoadAssets(); break;
         case SupportedGames::ModernWarfare3: Success = GameModernWarfare3::LoadAssets(); break;
-        case SupportedGames::ModernWarfare4:
-            // Allocate a new XPAK Mega Cache (Must reload CASC as the game can affect it if rerunning, etc. and result in corrupt exports)
-            // TODO: Find a better solution to this, a good trigger for it to occur is relaunching the game, moving to different parts or Blizzard editing the CASC while
-            // we have a handle, then try export an image, it'll probably come out black
-            CleanupPackageCache();
-            // Load from casc and on demand
-            GamePackageCache = std::make_unique<CASCCache>();
-            GamePackageCache->LoadPackageCacheAsync(GameDirectory);
-            OnDemandCache = std::make_unique<XPAKCache>();
-            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "xpak_cache"));
-            // Load as normally
-            Success = GameModernWarfare4::LoadAssets(); break;
         case SupportedGames::Vanguard:
             CleanupPackageCache();
             // Load from casc and on demand
@@ -654,6 +647,90 @@ LoadGameResult CoDAssets::LoadGame()
 
     // Failed
     return LoadGameResult::ProcessNotRunning;
+}
+
+LoadGameResult CoDAssets::LoadGamePS()
+{
+    // Make sure the process is running
+    if (GameInstance->IsRunning())
+    {
+        // Setup the assets
+        GameAssets.reset(new AssetPool());
+        // Whether or not we loaded assets
+        bool Success = false;
+
+        // Create log, if desired
+        if (SettingsManager::GetSetting("createxassetlog", "false") == "true")
+        {
+            XAssetLogWriter = std::make_unique<TextWriter>();
+            XAssetLogWriter->Open(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "AssetLog.txt"));
+        }
+
+        // Cleanup
+        CleanupPackageCache();
+
+        // Load assets from the game
+        switch (ps::state->GameID)
+        {
+        // Modern Warfare 2019
+        case 0x3931524157444F4D:
+            GameID            = SupportedGames::ModernWarfare4;
+            GameFlags         = SupportedGameFlags::None;
+            GameXImageHandler = GameModernWarfare4::LoadXImage;
+            GameStringHandler = GameModernWarfare4::LoadStringEntry;
+            GamePackageCache  = std::make_unique<CASCCache>();
+            OnDemandCache     = std::make_unique<XPAKCache>();
+            GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
+            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
+            GameGDTProcessor->SetupProcessor("MWR");
+            Success = GameModernWarfare4::LoadAssets();
+            break;
+        // Modern Warfare Remastered
+        case 0x30305453414D4552:
+            GameID            = SupportedGames::ModernWarfareRemastered;
+            GameFlags         = SupportedGameFlags::None;
+            GameXImageHandler = GameModernWarfareRM::LoadXImagePS;
+            GameStringHandler = GameModernWarfareRM::LoadStringEntry;
+            GamePackageCache  = std::make_unique<PAKCache>();
+            GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
+            GameGDTProcessor->SetupProcessor("MWR");
+            Success = GameModernWarfareRM::LoadAssetsPS();
+            break;
+        }
+
+        // Done with logger
+        XAssetLogWriter = nullptr;
+
+        // Result check
+        if (Success)
+        {
+            // Sort the assets
+            std::stable_sort(GameAssets->LoadedAssets.begin(), GameAssets->LoadedAssets.end(), SortAssets);
+
+            // Success
+            return LoadGameResult::Success;
+        }
+        else
+        {
+            // Failed to load
+            return LoadGameResult::NoAssetsFound;
+        }
+    }
+
+    // Reset
+    if (GameAssets != nullptr)
+    {
+        // Clean up
+        GameAssets.reset();
+    }
+
+    // Failed
+    return LoadGameResult::ProcessNotRunning;
+}
+
+ps::XAsset64 CoDAssets::ParasyteRequest(const uint64_t& AssetPointer)
+{
+    return CoDAssets::GameInstance->Read<ps::XAsset64>(AssetPointer);
 }
 
 LoadGameFileResult CoDAssets::LoadFile(const std::string& FilePath)
@@ -1221,6 +1298,18 @@ bool CoDAssets::LocateGameInfo()
         // Set game string handler
         GameStringHandler = GameVanguard::LoadStringEntry;
         break;
+    case SupportedGames::Parasyte:
+        // Locate IW8 Database
+        auto DBFile = FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "Data\\CurrentHandler.parasyte_state_info");
+        Success = FileSystems::FileExists(DBFile);
+        // Validate
+        if (Success)
+        {
+            ps::state = std::make_unique<ps::State>();
+            Success = ps::state->Load(DBFile);
+        }
+        // Don't Check Offsets or Set up GDT until below
+        return Success;
     }
 
     // Setup the game's cache
@@ -2102,6 +2191,9 @@ void CoDAssets::CleanUpGame()
     {
         XAssetLogWriter.reset();
     }
+
+    // Clean up Parasyte
+    ps::state = nullptr;
 }
 
 void CoDAssets::LogXAsset(const std::string& Type, const std::string& Name)

@@ -17,6 +17,9 @@
 #include "CoDXConverter.h"
 #include "CoDGDTProcessor.h"
 
+// Parasyte
+#include "Parasyte.h"
+
 // A list of supported Call of Duty games, or none for nothing loaded
 enum class SupportedGames
 {
@@ -39,6 +42,7 @@ enum class SupportedGames
     AdvancedWarfare,
     WorldWar2,
     Vanguard,
+    Parasyte,
 };
 
 // A list of supported game flags for Call of Duty
@@ -166,6 +170,10 @@ public:
     static FindGameResult FindGame();
     // Attempts to load assets from the loaded game
     static LoadGameResult LoadGame();
+    // Attempts to load assets from the loaded game
+    static LoadGameResult LoadGamePS();
+    // Requests next XAsset
+    static ps::XAsset64 ParasyteRequest(const uint64_t& AssetPointer);
     // Attempts to load assets from a file
     static LoadGameFileResult LoadFile(const std::string& FilePath);
     // Cleans up a game if attached
