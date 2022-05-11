@@ -674,6 +674,7 @@ LoadGameResult CoDAssets::LoadGamePS()
         {
         // Modern Warfare 2019
         case 0x3931524157444F4D:
+            GameModernWarfare4::PerformInitialSetup();
             GameID            = SupportedGames::ModernWarfare4;
             GameFlags         = SupportedGameFlags::None;
             GameXImageHandler = GameModernWarfare4::LoadXImage;
