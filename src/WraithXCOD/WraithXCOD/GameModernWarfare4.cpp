@@ -1139,5 +1139,5 @@ void GameModernWarfare4::PerformInitialSetup()
 
     // Copy if not exists
     if (!FileSystems::FileExists(OurPath))
-        FileSystems::CopyFile(FileSystems::CombinePath(FileSystems::GetDirectoryName(ps::state->GameDirectory), "oo2core_7_win64.dll"), OurPath);
+        FileSystems::CopyFile(FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_7_win64.dll"), OurPath);
 }
