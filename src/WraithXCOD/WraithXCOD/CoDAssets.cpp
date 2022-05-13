@@ -455,8 +455,6 @@ FindGameResult CoDAssets::BeginGameMode()
     // Aquire a lock
     std::lock_guard<std::mutex> Lock(CodMutex);
 
-    // Clear Parasyte
-    ps::state = nullptr;
     // Result
     auto Result = FindGameResult::Success;
 
@@ -502,7 +500,8 @@ FindGameResult CoDAssets::FindGame()
 {
     // Attempt to locate one of the supported games
     auto Processes = Systems::GetProcesses();
-
+    // Clear Parasyte
+    ps::state = nullptr;
     // Reset it
     GameInstance.reset();
     // Clear out existing offsets
