@@ -121,126 +121,6 @@ struct VGGfxMip
 
 bool GameVanguard::LoadOffsets()
 {
-    // ----------------------------------------------------
-    //    Vanguard pools and sizes, XAssetPoolData is an array of pool info for each asset pool in the game
-    //    The index of the assets we use are as follows: xanim (3), xmodel (4), ximage (0x9)
-    //    Index * sizeof(MWXAssetPoolData) = the offset of the asset info in this array of data, we can verify it using the xmodel pool and checking for the model hash (0x04647533e968c910)
-    //  Notice: Vanguard doesn't store a freePoolHandle at the beginning, so we just read on.
-    //    On Vanguard, (0x04647533e968c910) will be the first xmodel
-    //    Vanguard stringtable, check entries, results may vary
-    //    Reading is: (StringIndex * 28) + StringTablePtr + 8
-    // ----------------------------------------------------
-
-    // Attempt to load the game offsets
-    if (CoDAssets::GameInstance != nullptr)
-    {
-        // We need the base address of the Vanguard Module for ASLR + Heuristics
-        auto BaseAddress = CoDAssets::GameInstance->GetMainModuleAddress();
-
-        // Check built-in offsets via game exe mode (SP)
-        for (auto& GameOffsets : SinglePlayerOffsets)
-        {
-            // Read required offsets (XANIM, XMODEL, XIMAGE, RAWFILE RELATED...)
-            auto AnimPoolData           = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 7));
-            auto ModelPoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 9));
-            auto ImagePoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 19));
-            auto SoundPoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 22));
-            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 23));
-            auto MaterialPoolData       = CoDAssets::GameInstance->Read<VGXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 11));
-
-            // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundTransientPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
-
-            // Verify via first xmodel asset
-            auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]));
-            // Check
-            if (FirstXModelName == "axis_guide_createfx")
-            {
-                // Verify string table, otherwise we are all set
-                CoDAssets::GameOffsetInfos.emplace_back(BaseAddress + GameOffsets.StringTable);
-                // Read and apply sizes
-                CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(SoundPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(SoundTransientPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
-                // Return success
-                return true;
-            }
-            // Reset
-            CoDAssets::GameOffsetInfos.clear();
-        }
-
-        // Attempt to locate via heuristic searching (Note: As of right now, none of the functions got inlined)
-        auto DBAssetsScan      = CoDAssets::GameInstance->Scan("48 63 ?? 4C 8D ?? ?? ?? ?? ?? 48 8D 0C 40 49 8B");
-        auto StringTableScan   = CoDAssets::GameInstance->Scan("BA 10 00 00 00 4C 8D ?? ?? ?? ?? ?? 3B DA B8 CD CC CC CC");
-
-        // Check that we had hits
-        if (DBAssetsScan > 0 && StringTableScan > 0)
-        {
-            // Load info and verify
-            auto GameOffsets = DBGameInfo(
-                // Resolve pool info from LEA
-                CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0x6) + DBAssetsScan + 10 - 8,
-                // We don't use size offsets
-                0,
-                // Resolve strings from LEA
-                CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x8) + (StringTableScan + 0xC),
-                // We don't use package offsets
-                0
-            );
-
-            // In debug, print the info for easy additions later!
-#if _DEBUG
-            // Format the output
-            printf("Heuristic: { 0x%llX, 0x0, 0x%llX, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
-#endif
-
-            // Read required offsets (XANIM, XMODEL, XIMAGE)
-            auto AnimPoolData           = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 7));
-            auto ModelPoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 9));
-            auto ImagePoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 19));
-            auto SoundPoolData          = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 22));
-            auto SoundTransientPoolData = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 23));
-            auto MaterialPoolData       = CoDAssets::GameInstance->Read<VGXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(VGXAssetPoolData) * 11));
-
-            // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundTransientPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
-
-            // Verify via first xmodel asset
-            auto FirstXModelName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]));
-            // Check
-            if (FirstXModelName == "axis_guide_createfx")
-            {
-                // Verify string table, otherwise we are all set
-                CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
-                // Read and apply sizes
-                CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(SoundPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(SoundTransientPoolData.PoolSize);
-                CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
-                // Return success
-                return true;
-            }
-            // Reset
-            CoDAssets::GameOffsetInfos.clear();
-        }
-    }
-
-    // Failed
     return false;
 }
 
@@ -320,206 +200,13 @@ bool GameVanguard::LoadAssets()
         });
     }
 
-    return true;
-
-    // Check if we need assets
-    if (NeedsAnims)
-    {
-        // Animations are the first offset and first pool, skip 8 byte pointer to free head
-        auto AnimationOffset = CoDAssets::GameOffsetInfos[0];
-        auto AnimationCount = CoDAssets::GamePoolSizes[0];
-
-        // Calculate maximum pool size
-        auto MaximumPoolOffset = (AnimationCount * sizeof(MW4XAnim)) + AnimationOffset;
-        // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[0];
-
-        // Store the placeholder anim
-        MW4XAnim PlaceholderAnim;
-        // Clear it out
-        std::memset(&PlaceholderAnim, 0, sizeof(PlaceholderAnim));
-
-        // Loop and read
-        for (uint32_t i = 0; i < AnimationCount; i++)
-        {
-            // Read
-            auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(AnimationOffset);
-
-            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-            if ((AnimResult.NamePtr > MinimumPoolOffset && AnimResult.NamePtr < MaximumPoolOffset) || AnimResult.NamePtr == 0)
-            {
-                // Advance
-                AnimationOffset += sizeof(MW4XAnim);
-                // Skip this asset
-                continue;
-            }
-
-            // Validate and load if need be
-            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
-
-            // Log it
-            CoDAssets::LogXAsset("Anim", AnimName);
-
-            // Make and add
-            auto LoadedAnim = new CoDAnim_t();
-            // Set
-            LoadedAnim->AssetName = AnimName;
-            LoadedAnim->AssetPointer = AnimationOffset;
-            LoadedAnim->Framerate = AnimResult.Framerate;
-            LoadedAnim->FrameCount = AnimResult.NumFrames;
-            LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
-            LoadedAnim->ShapeCount = *(uint16_t*)&AnimResult.Padding3[3];
-
-            // Check placeholder configuration, "void" is the base xanim
-            if (AnimName == "void")
-            {
-                // Set as placeholder animation
-                PlaceholderAnim = AnimResult;
-                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else if (AnimResult.BoneIDsPtr == PlaceholderAnim.BoneIDsPtr && AnimResult.DataBytePtr == PlaceholderAnim.DataBytePtr && AnimResult.DataShortPtr == PlaceholderAnim.DataShortPtr && AnimResult.DataIntPtr == PlaceholderAnim.DataIntPtr && AnimResult.RandomDataBytePtr == PlaceholderAnim.RandomDataBytePtr && AnimResult.RandomDataIntPtr == PlaceholderAnim.RandomDataIntPtr && AnimResult.RandomDataShortPtr == PlaceholderAnim.RandomDataShortPtr && AnimResult.NotificationsPtr == PlaceholderAnim.NotificationsPtr && AnimResult.DeltaPartsPtr == PlaceholderAnim.DeltaPartsPtr)
-            {
-                // Set as placeholder, data matches void
-                LoadedAnim->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else
-            {
-                // Set
-                LoadedAnim->AssetStatus = WraithAssetStatus::Loaded;
-            }
-
-            // Parse bone names if requested
-            if (NeedsExtInfo)
-            {
-                for (size_t i = 0; i < LoadedAnim->BoneCount; i++)
-                {
-                    auto BoneIndex = CoDAssets::GameInstance->Read<uint32_t>(AnimResult.BoneIDsPtr + i * 4);
-
-                    LoadedAnim->BoneNames.emplace_back(CoDAssets::GameStringHandler(BoneIndex));
-                }
-            }
-
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
-
-            // Advance
-            AnimationOffset += sizeof(MW4XAnim);
-        }
-    }
-
-    if (NeedsModels)
-    {
-        // Models are the second offset and second pool, skip 8 byte pointer to free head
-        auto ModelOffset = CoDAssets::GameOffsetInfos[1];
-        auto ModelCount = CoDAssets::GamePoolSizes[1];
-
-        // Calculate maximum pool size
-        auto MaximumPoolOffset = (ModelCount * sizeof(VGXModel)) + ModelOffset;
-        // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[1];
-
-        // Store the placeholder model
-        VGXModel PlaceholderModel;
-        // Clear it out
-        std::memset(&PlaceholderModel, 0, sizeof(PlaceholderModel));
-
-        // Loop and read
-        for (uint32_t i = 0; i < ModelCount; i++)
-        {
-            // Read
-            auto ModelResult = CoDAssets::GameInstance->Read<VGXModel>(ModelOffset);
-
-            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-            if ((ModelResult.NamePtr > MinimumPoolOffset && ModelResult.NamePtr < MaximumPoolOffset) || ModelResult.NamePtr == 0)
-            {
-                // Advance
-                ModelOffset += sizeof(VGXModel);
-                // Skip this asset
-                continue;
-            }
-
-            // Validate and load if need be
-            auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
-
-            // Make and add
-            auto LoadedModel = new CoDModel_t();
-            // Set
-            LoadedModel->AssetName = ModelName;
-            LoadedModel->AssetPointer = ModelOffset;
-            // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
-            if ((ModelResult.NumBones + ModelResult.UnkBoneCount) > 1 && ModelResult.ParentListPtr == 0)
-                LoadedModel->BoneCount = 0;
-            else
-                LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
-            LoadedModel->LodCount = ModelResult.NumLods;
-
-            // Log it
-            CoDAssets::LogXAsset("Model", ModelName);
-
-            // Check placeholder configuration, "empty_model" is the base xmodel swap
-            if (ModelName == "void")
-            {
-                // Set as placeholder model
-                PlaceholderModel = ModelResult;
-                LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else if ((ModelResult.BoneIDsPtr == PlaceholderModel.BoneIDsPtr && ModelResult.ParentListPtr == PlaceholderModel.ParentListPtr && ModelResult.RotationsPtr == PlaceholderModel.RotationsPtr && ModelResult.TranslationsPtr == PlaceholderModel.TranslationsPtr && ModelResult.PartClassificationPtr == PlaceholderModel.PartClassificationPtr && ModelResult.BaseMatriciesPtr == PlaceholderModel.BaseMatriciesPtr && ModelResult.NumLods == PlaceholderModel.NumLods && ModelResult.MaterialHandlesPtr == PlaceholderModel.MaterialHandlesPtr && ModelResult.NumBones == PlaceholderModel.NumBones) || ModelResult.NumLods == 0)
-            {
-                // Set as placeholder, data matches void, or the model has no lods
-                LoadedModel->AssetStatus = WraithAssetStatus::Placeholder;
-            }
-            else
-            {
-                // Set
-                LoadedModel->AssetStatus = WraithAssetStatus::Loaded;
-            }
-
-            // Parse bone names if requested
-            if (NeedsExtInfo)
-            {
-                for (size_t i = 0; i < LoadedModel->BoneCount; i++)
-                {
-                    auto BoneIndex = CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + i * 4);
-
-                    LoadedModel->BoneNames.emplace_back(CoDAssets::GameStringHandler(BoneIndex));
-                }
-            }
-
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
-
-            // Advance
-            ModelOffset += sizeof(VGXModel);
-        }
-    }
-
     if (NeedsImages)
     {
-        // Images are the third offset and third pool, skip 8 byte pointer to free head
-        auto ImageOffset = CoDAssets::GameOffsetInfos[2];
-        auto ImageCount = CoDAssets::GamePoolSizes[2];
-
-        // Calculate maximum pool size
-        auto MaximumPoolOffset = (ImageCount * sizeof(VGGfxImage)) + ImageOffset;
-        // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
-
-        // Loop and read
-        for (uint32_t i = 0; i < ImageCount; i++)
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 19 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
-            auto ImageResult = CoDAssets::GameInstance->Read<VGGfxImage>(ImageOffset);
-
-            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-            if ((ImageResult.NamePtr > MinimumPoolOffset && ImageResult.NamePtr < MaximumPoolOffset) || ImageResult.NamePtr == 0)
-            {
-                // Advance
-                ImageOffset += sizeof(VGGfxImage);
-                // Skip this asset
-                continue;
-            }
-
+            auto ImageResult = CoDAssets::GameInstance->Read<VGGfxImage>(Asset.Header);
             // Validate and load if need be
             auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
 
@@ -534,7 +221,7 @@ bool GameVanguard::LoadAssets()
                 auto LoadedImage = new CoDImage_t();
                 // Set
                 LoadedImage->AssetName = ImageName;
-                LoadedImage->AssetPointer = ImageOffset;
+                LoadedImage->AssetPointer = Asset.Header;
                 LoadedImage->Width = (uint16_t)ImageResult.Width;
                 LoadedImage->Height = (uint16_t)ImageResult.Height;
                 LoadedImage->Format = ImageResult.ImageFormat;
@@ -543,46 +230,26 @@ bool GameVanguard::LoadAssets()
                 // Add
                 CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
             }
-
-            // Advance
-            ImageOffset += sizeof(VGGfxImage);
-        }
+        });
     }
 
-    // Since MW now stores the entire SABL in Fast Files, we must essentially parse it in memory, SABS files can be loaded as usual.
     if (NeedsSounds)
     {
 #if _DEBUG
         TextWriter Writer;
         Writer.Open("vg_sound_names.csv");
-#endif 
-        // Images are the fourth offset and foruth pool
-        auto SoundOffset = CoDAssets::GameOffsetInfos[3];
-        auto SoundCount = CoDAssets::GamePoolSizes[3];
+#endif
 
-        // Calculate maximum pool size
-        auto MaximumPoolOffset = (SoundCount * sizeof(VGSoundBank)) + SoundOffset;
-        // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[3];
-
-        // Loop and read
-        for (uint32_t i = 0; i < SoundCount; i++)
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 22 * sizeof(ps::XAssetPool64));
+#if _DEBUG
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [&Writer](ps::XAsset64& Asset)
+#else
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+#endif
         {
             // Read
-            auto SoundResult = CoDAssets::GameInstance->Read<VGSoundBank>(SoundOffset);
-
-            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-            if ((SoundResult.NamePtr > MinimumPoolOffset && SoundResult.NamePtr < MaximumPoolOffset) || SoundResult.NamePtr == 0)
-            {
-                // Advance
-                SoundOffset += sizeof(VGSoundBank);
-                // Skip this asset
-                continue;
-            }
-
+            auto SoundResult = CoDAssets::GameInstance->Read<VGSoundBank>(Asset.Header);
             auto SoundBankInfo = CoDAssets::GameInstance->Read<VGSoundBankInfo>(SoundResult.SoundBankPtr);
-
-            std::cout << "Sound Bank: " << CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr) << " @ " << SoundOffset << std::endl;
 
             // Get Settings
             auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
@@ -596,10 +263,7 @@ bool GameVanguard::LoadAssets()
                 // The magic is ('2UX#')
                 if (Header.Magic != 0x23585532)
                 {
-                    // Advance
-                    SoundOffset += sizeof(VGSoundBank);
-                    // Skip this asset
-                    continue;
+                    return;
                 }
 
                 // Name offset
@@ -627,15 +291,15 @@ bool GameVanguard::LoadAssets()
                     // Setup a new entry
                     auto LoadedSound = new CoDSound_t();
 
-                    LoadedSound->FrameRate     = Entry.FrameRate;
-                    LoadedSound->FrameCount    = Entry.FrameCount;
+                    LoadedSound->FrameRate = Entry.FrameRate;
+                    LoadedSound->FrameCount = Entry.FrameCount;
                     LoadedSound->ChannelsCount = Entry.ChannelCount;
-                    LoadedSound->AssetPointer  = SoundBankInfo.BankFilePointer + (Entry.Offset + Entry.SeekTableLength);
-                    LoadedSound->AssetSize     = Entry.Size;
-                    LoadedSound->AssetStatus   = WraithAssetStatus::Loaded;
-                    LoadedSound->IsFileEntry   = false;
-                    LoadedSound->Length        = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
-                    LoadedSound->DataType      = SoundDataTypes::Opus_Interleaved;
+                    LoadedSound->AssetPointer = SoundBankInfo.BankFilePointer + (Entry.Offset + Entry.SeekTableLength);
+                    LoadedSound->AssetSize = Entry.Size;
+                    LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+                    LoadedSound->IsFileEntry = false;
+                    LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+                    LoadedSound->DataType = SoundDataTypes::Opus_Interleaved;
 
                     auto NameResult = AssetNameCache.NameDatabase.find(Entry.Key);
 
@@ -679,15 +343,15 @@ bool GameVanguard::LoadAssets()
                     // Setup a new entry
                     auto LoadedSound = new CoDSound_t();
 
-                    LoadedSound->FrameRate     = Entry.FrameRate;
-                    LoadedSound->FrameCount    = Entry.FrameCount;
+                    LoadedSound->FrameRate = Entry.FrameRate;
+                    LoadedSound->FrameCount = Entry.FrameCount;
                     LoadedSound->ChannelsCount = Entry.ChannelCount;
-                    LoadedSound->AssetPointer  = SoundResult.StreamedSoundsPtr + i * sizeof(SABv17Entry);
-                    LoadedSound->AssetSize     = Entry.Size;
-                    LoadedSound->AssetStatus   = WraithAssetStatus::Loaded;
-                    LoadedSound->IsFileEntry   = false;
-                    LoadedSound->Length        = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
-                    LoadedSound->DataType      = SoundDataTypes::Opus_Interleaved_Streamed;
+                    LoadedSound->AssetPointer = SoundResult.StreamedSoundsPtr + i * sizeof(SABv17Entry);
+                    LoadedSound->AssetSize = Entry.Size;
+                    LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+                    LoadedSound->IsFileEntry = false;
+                    LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+                    LoadedSound->DataType = SoundDataTypes::Opus_Interleaved_Streamed;
 
                     auto NameResult = AssetNameCache.NameDatabase.find(Entry.Key);
 
@@ -704,7 +368,7 @@ bool GameVanguard::LoadAssets()
 
 
                     // Log it
-                    CoDAssets::LogXAsset("Sound", FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
+                    CoDAssets::LogXAsset("Sound", NameResult->second);
 
 #if _DEBUG
                     Writer.WriteLineFmt("%llx,%s", Entry.Key, FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
@@ -714,29 +378,28 @@ bool GameVanguard::LoadAssets()
                     CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
                 }
             }
-
-            // Advance
-            SoundOffset += sizeof(VGSoundBank);
-        }
+        });
     }
 
     if (NeedsRawFiles)
     {
-        // Parse the Rawfile pool
-        CoDXPoolParser<uint64_t, VGSoundBank>(CoDAssets::GameOffsetInfos[4], CoDAssets::GamePoolSizes[4], [](VGSoundBank& Asset, uint64_t& AssetOffset)
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 23 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
+            // Read
+            auto SoundResult = CoDAssets::GameInstance->Read<VGSoundBank>(Asset.Header);
             // Validate and load if need be
-            auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr) + ".sabs";
+            auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr) + ".sabs";
 
             // Note actually streamer info pool
-            auto Info = CoDAssets::GameInstance->Read<VGSoundBankInfo>(Asset.SoundBankPtr);
+            auto Info = CoDAssets::GameInstance->Read<VGSoundBankInfo>(SoundResult.SoundBankPtr);
 
             // Make and add
             auto LoadedRawfile = new CoDRawFile_t();
             // Set
             LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
             LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
-            LoadedRawfile->AssetPointer = AssetOffset;
+            LoadedRawfile->AssetPointer = Asset.Header;
             LoadedRawfile->AssetSize = Info.BankFileSize;
             LoadedRawfile->RawDataPointer = Info.BankFilePointer;
             LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
@@ -748,11 +411,13 @@ bool GameVanguard::LoadAssets()
 
     if (NeedsMaterials)
     {
-        // Parse the Rawfile pool
-        CoDXPoolParser<uint64_t, VGXMaterial>(CoDAssets::GameOffsetInfos[5], CoDAssets::GamePoolSizes[5], [](VGXMaterial& Asset, uint64_t& AssetOffset)
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 11 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
+            // Read
+            auto MaterialResult = CoDAssets::GameInstance->Read<VGXMaterial>(Asset.Header);
             // Validate and load if need be
-            auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
+            auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MaterialResult.NamePtr);
 
             // Log it
             CoDAssets::LogXAsset("Material", MaterialName);
@@ -761,10 +426,9 @@ bool GameVanguard::LoadAssets()
             auto LoadedMaterial = new CoDMaterial_t();
             // Set
             LoadedMaterial->AssetName = FileSystems::GetFileName(Strings::Replace(MaterialName, "*", ""));
-            LoadedMaterial->AssetPointer = AssetOffset;
-            LoadedMaterial->ImageCount = Asset.ImageCount;
+            LoadedMaterial->AssetPointer = Asset.Header;
+            LoadedMaterial->ImageCount = MaterialResult.ImageCount;
             LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
-
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
         });
