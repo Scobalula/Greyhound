@@ -36,7 +36,7 @@ void CoDRawfileTranslator::TranslateRawfile(const CoDRawFile_t* Rawfile, const s
             // Compressed write
             uintptr_t ResultSize = 0;
             // Reader
-            auto MemReader = MemoryReader(CoDAssets::GameInstance->Read((uintptr_t)Rawfile->RawDataPointer, (uintptr_t)Rawfile->AssetSize, ResultSize), (uint64_t)ResultSize);
+            auto MemReader = MemoryReader(CoDAssets::GameInstance->Read((uintptr_t)Rawfile->RawDataPointer, (uintptr_t)Rawfile->AssetSize, ResultSize), (uint64_t)Rawfile->AssetSize);
 
             // Decompress on success
             if (MemReader.GetCurrentStream() != nullptr)
@@ -70,7 +70,7 @@ void CoDRawfileTranslator::TranslateRawfile(const CoDRawFile_t* Rawfile, const s
             // Compressed write
             uintptr_t ResultSize = 0;
             // Reader
-            auto MemReader = MemoryReader(CoDAssets::GameInstance->Read((uintptr_t)Rawfile->RawDataPointer, (uintptr_t)Rawfile->AssetSize, ResultSize), (uint64_t)ResultSize);
+            auto MemReader = MemoryReader(CoDAssets::GameInstance->Read((uintptr_t)Rawfile->RawDataPointer, (uintptr_t)Rawfile->AssetSize, ResultSize), (uint64_t)Rawfile->AssetSize);
 
             // Decompress on success
             if (MemReader.GetCurrentStream() != nullptr)

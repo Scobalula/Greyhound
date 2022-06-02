@@ -276,6 +276,21 @@
     <ClInclude Include="XMBExport.h">
       <Filter>Header Files\Exporters</Filter>
     </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image_write.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="tiny_gltf.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="GLTFExport.h">
+      <Filter>Header Files\Exporters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -498,6 +513,9 @@
       <Filter>Source Files\Exporters</Filter>
     </ClCompile>
     <ClCompile Include="XMBExport.cpp">
+      <Filter>Source Files\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="GLTFExport.cpp">
       <Filter>Source Files\Exporters</Filter>
     </ClCompile>
   </ItemGroup>

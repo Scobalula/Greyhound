@@ -184,6 +184,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "export_seanim", "true" },
             { "export_semodel", "false" },
             { "export_fbx", "false" },
+            { "export_gltf", "false" },
             { "export_directxanim", "false" },
             { "directxanim_ver", "17" },
             { "global_images", "true" },

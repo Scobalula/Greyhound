@@ -86,7 +86,7 @@ bool VGXPAKCache::LoadPackage(const std::string& FilePath)
 
 
         // Read the hash data into a buffer
-        auto HashData = MemoryReader((int8_t*)Buffer, HashResult);
+        MemoryReader HashData((int8_t*)Buffer, (size_t)HashResult);
 
         // Loop and setup entries
         for (int64_t i = 0; i < Header.HashCount; i++)

@@ -99,7 +99,8 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
             // Hash result size
             uint64_t HashResult = 0;
             // Read the hash data into a buffer
-            auto HashData = MemoryReader(Reader.Read(Header.HashCount * sizeof(BO3XPakHashEntry), HashResult), HashResult);
+            auto Buffer = Reader.Read(Header.HashCount * sizeof(BO3XPakHashEntry), HashResult);
+            auto HashData = MemoryReader(Buffer, HashResult);
 
             // Loop and insert
             for (uint64_t i = 0; i < Header.HashCount; i++)

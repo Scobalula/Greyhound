@@ -33,6 +33,21 @@ struct QSGfxVertexBuffer
     uint32_t Normal;
 };
 
+class SomeClass
+{
+public:
+    uint8_t* Buf;
+    size_t A;
+    size_t B;
+
+    SomeClass(uint8_t* buf, size_t a, size_t b)
+    {
+        Buf = buf;
+        A = a;
+        B = b;
+    }
+};
+
 std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::unique_ptr<XModel_t>& Model, uint32_t LodIndex, bool JustBones)
 {
     // Check if we want Vertex Colors
@@ -54,10 +69,9 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
     auto LocalTranslationLength = (sizeof(Vector3) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
     auto LocalRotationLength = (sizeof(QuatData) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
     // Read global matrix data
-    auto GlobalMatrixData = MemoryReader(CoDAssets::GameInstance->Read(Model->BaseMatriciesPtr, GlobalMatrixLength, ReadDataSize), ReadDataSize);
-    auto LocalTranslationData = MemoryReader(CoDAssets::GameInstance->Read(Model->TranslationsPtr, LocalTranslationLength, ReadDataSize), ReadDataSize);
-    auto LocalRotationData = MemoryReader(CoDAssets::GameInstance->Read(Model->RotationsPtr, LocalRotationLength, ReadDataSize), ReadDataSize);
-
+    auto GlobalMatrixData = MemoryReader(CoDAssets::GameInstance->Read(Model->BaseMatriciesPtr, GlobalMatrixLength, ReadDataSize), GlobalMatrixLength);
+    auto LocalTranslationData = MemoryReader(CoDAssets::GameInstance->Read(Model->TranslationsPtr, LocalTranslationLength, ReadDataSize), LocalTranslationLength);
+    auto LocalRotationData = MemoryReader(CoDAssets::GameInstance->Read(Model->RotationsPtr, LocalRotationLength, ReadDataSize), LocalRotationLength);
     // Whether or not use bone was ticked
     bool NeedsLocalPositions = true;
 
@@ -332,8 +346,8 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
                 auto VerticiesLength = (sizeof(GfxVertexBuffer) * Submesh.VertexCount);
                 auto FacesLength = (sizeof(GfxFaceBuffer) * Submesh.FaceCount);
                 // Read mesh data
-                auto VertexData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.VertexPtr, VerticiesLength, ReadDataSize), ReadDataSize);
-                auto FaceData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.FacesPtr, FacesLength, ReadDataSize), ReadDataSize);
+                auto VertexData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.VertexPtr, VerticiesLength, ReadDataSize), VerticiesLength);
+                auto FaceData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.FacesPtr, FacesLength, ReadDataSize), FacesLength);
 
                 // Iterate over verticies
                 for (uint32_t i = 0; i < Submesh.VertexCount; i++)
@@ -421,8 +435,8 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
                 auto VerticiesLength = (sizeof(QSGfxVertexBuffer) * Submesh.VertexCount);
                 auto FacesLength = (sizeof(GfxFaceBuffer) * Submesh.FaceCount);
                 // Read mesh data
-                auto VertexData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.VertexPtr, VerticiesLength, ReadDataSize), ReadDataSize);
-                auto FaceData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.FacesPtr, FacesLength, ReadDataSize), ReadDataSize);
+                auto VertexData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.VertexPtr, VerticiesLength, ReadDataSize), VerticiesLength);
+                auto FaceData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.FacesPtr, FacesLength, ReadDataSize), FacesLength);
 
                 // Iterate over verticies
                 for (uint32_t i = 0; i < Submesh.VertexCount; i++)
@@ -600,7 +614,7 @@ void CoDXModelTranslator::PrepareVertexWeightsA(std::vector<WeightsData>& Weight
     // Calculate the size of weights buffer
     auto WeightsDataLength = ((2 * Submesh.WeightCounts[0]) + (6 * Submesh.WeightCounts[1]) + (10 * Submesh.WeightCounts[2]) + (14 * Submesh.WeightCounts[3]));
     // Read the weight data
-    auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), ReadDataSize);
+    auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), WeightsDataLength);
 
     // Prepare single bone weights
     for (uint32_t w = 0; w < Submesh.WeightCounts[0]; w++)
@@ -704,7 +718,7 @@ void CoDXModelTranslator::PrepareVertexWeightsB(std::vector<WeightsData>& Weight
     // Calculate the size of weights buffer
     auto WeightsDataLength = ((2 * Submesh.WeightCounts[0]) + (6 * Submesh.WeightCounts[1]) + (10 * Submesh.WeightCounts[2]) + (14 * Submesh.WeightCounts[3]) + (18 * Submesh.WeightCounts[4]) + (22 * Submesh.WeightCounts[5]) + (26 * Submesh.WeightCounts[6]) + (30 * Submesh.WeightCounts[7]));
     // Read the weight data
-    auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), ReadDataSize);
+    auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), WeightsDataLength);
 
     // Prepare single bone weights
     for (uint32_t w = 0; w < Submesh.WeightCounts[0]; w++)
@@ -952,7 +966,7 @@ void CoDXModelTranslator::PrepareVertexWeightsC(std::vector<WeightsData>& Weight
     // Calculate the size of weights buffer
     auto WeightsDataLength = ((4 * Submesh.WeightCounts[0]) + (8 * Submesh.WeightCounts[1]) + (12 * Submesh.WeightCounts[2]) + (16 * Submesh.WeightCounts[3]) + (20 * Submesh.WeightCounts[4]) + (24 * Submesh.WeightCounts[5]) + (28 * Submesh.WeightCounts[6]) + (32 * Submesh.WeightCounts[7]));
     // Read the weight data
-    auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), ReadDataSize);
+    auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), WeightsDataLength);
 
     // Prepare single bone weights
     for (uint32_t w = 0; w < Submesh.WeightCounts[0]; w++)

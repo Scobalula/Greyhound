@@ -38,6 +38,7 @@ private:
     void OnExportSMD();
     void OnExportXMB();
     void OnExportXME();
+    void OnExportGLTF();
     void OnExportSEModel();
     void OnExportFBX();
 

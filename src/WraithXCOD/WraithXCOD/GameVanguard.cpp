@@ -255,6 +255,73 @@ bool GameVanguard::LoadAssets()
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
     bool NeedsExtInfo = (SettingsManager::GetSetting("needsextinfo", "true") == "true");
 
+    if (NeedsModels)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 9 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [&NeedsExtInfo](ps::XAsset64& Asset)
+        {
+            // Read
+            auto ModelResult = CoDAssets::GameInstance->Read<VGXModel>(Asset.Header);
+            // Validate and load if need be
+            auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+            // Make and add
+            auto LoadedModel = new CoDModel_t();
+            // Set
+            LoadedModel->AssetName = ModelName;
+            LoadedModel->AssetPointer = Asset.Header;
+            // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
+            if ((ModelResult.NumBones + ModelResult.UnkBoneCount) > 1 && ModelResult.ParentListPtr == 0)
+                LoadedModel->BoneCount = 0;
+            else
+                LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
+            LoadedModel->LodCount = ModelResult.NumLods;
+            LoadedModel->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            // Parse bone names if requested
+            if (NeedsExtInfo)
+            {
+                for (size_t i = 0; i < LoadedModel->BoneCount; i++)
+                {
+                    auto BoneIndex = CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + i * 4);
+
+                    LoadedModel->BoneNames.emplace_back(CoDAssets::GameStringHandler(BoneIndex));
+                }
+            }
+            // Log it
+            CoDAssets::LogXAsset("Model", ModelName);
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
+        });
+    }
+
+    if (NeedsAnims)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(Asset.Header);
+            // Validate and load if need be
+            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
+
+            // Make and add
+            auto LoadedAnim = new CoDAnim_t();
+            // Set
+            LoadedAnim->AssetName    = AnimName;
+            LoadedAnim->AssetPointer = Asset.Header;
+            LoadedAnim->Framerate    = AnimResult.Framerate;
+            LoadedAnim->FrameCount   = AnimResult.NumFrames;
+            LoadedAnim->AssetStatus  = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            LoadedAnim->BoneCount    = AnimResult.TotalBoneCount;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+        });
+    }
+
+    return true;
+
     // Check if we need assets
     if (NeedsAnims)
     {
@@ -742,7 +809,7 @@ std::unique_ptr<XAnim_t> GameVanguard::ReadXAnim(const CoDAnim_t* Animation)
         Anim->LoopingAnimation = (AnimData.Flags & 1);
 
         // Read the delta data
-        auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(AnimData.DeltaPartsPtr);
+        auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(*(uint64_t*)&AnimData.PaddingNew[0]);
 
         // Copy over pointers
         Anim->BoneIDsPtr = AnimData.BoneIDsPtr;
@@ -1113,7 +1180,7 @@ void GameVanguard::PrepareVertexWeights(std::vector<WeightsData>& Weights, const
         // Calculate the size of weights buffer
         auto WeightsDataLength = ((4 * Submesh.WeightCounts[0]) + (8 * Submesh.WeightCounts[1]) + (12 * Submesh.WeightCounts[2]) + (16 * Submesh.WeightCounts[3]) + (20 * Submesh.WeightCounts[4]) + (24 * Submesh.WeightCounts[5]) + (28 * Submesh.WeightCounts[6]) + (32 * Submesh.WeightCounts[7]));
         // Read the weight data
-        auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), ReadDataSize);
+        auto WeightsData = MemoryReader(CoDAssets::GameInstance->Read(Submesh.WeightsPtr, WeightsDataLength, ReadDataSize), WeightsDataLength);
 
         // Loop over the number of counts (8 in total)
         for (int i = 0; i < 8; i++)
@@ -1179,7 +1246,7 @@ std::unique_ptr<XImageDDS> GameVanguard::LoadXImage(const XImage_t& Image)
     bool OnDemand          = false;
 
     // Loop and calculate
-    for (uint32_t i = 0; i < MipCount; i++)
+    for (size_t i = 0; i < MipCount; i++)
     {
         // Compare widths
         if (MipMaps[i].Width > LargestWidth && CoDAssets::GamePackageCache->Exists(MipMaps[i].HashID))
@@ -1601,14 +1668,10 @@ void GameVanguard::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XMod
 
 std::string GameVanguard::LoadStringEntry(uint64_t Index)
 {
-    // Calculate Offset to String (Offsets[3] = StringTable)
-    auto Offset = CoDAssets::GameOffsetInfos[6] + (Index * 20);
     // Read Info
-    auto StringHash = CoDAssets::GameInstance->Read<uint64_t>(Offset + 12) & 0xFFFFFFFFFFFFFFF;
-
+    auto StringHash = CoDAssets::GameInstance->Read<uint64_t>(ps::state->StringsAddress + Index) & 0xFFFFFFFFFFFFFFF;
     // Attempt to locate string
     auto StringEntry = StringCache.NameDatabase.find(StringHash);
-
     // Not Encrypted
     if (StringEntry != StringCache.NameDatabase.end())
         return StringEntry->second;
@@ -1624,5 +1687,5 @@ void GameVanguard::PerformInitialSetup()
     auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_8_win64.dll");
     // Copy if not exists
     if (!FileSystems::FileExists(OurPath))
-        FileSystems::CopyFile(FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "oo2core_8_win64.dll"), OurPath);
+        FileSystems::CopyFile(FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_8_win64.dll"), OurPath);
 }

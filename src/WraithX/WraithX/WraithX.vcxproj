@@ -96,11 +96,13 @@
     <ClInclude Include="EndianSwap.h" />
     <ClInclude Include="FBXExport.h" />
     <ClInclude Include="FileSystems.h" />
+    <ClInclude Include="GLTFExport.h" />
     <ClInclude Include="HalfFloats.h" />
     <ClInclude Include="Hashing.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="InjectionReader.h" />
     <ClInclude Include="Instance.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="LZ4.h" />
     <ClInclude Include="LZOConf.h" />
     <ClInclude Include="LZODefs.h" />
@@ -123,11 +125,14 @@
     <ClInclude Include="SettingsManager.h" />
     <ClInclude Include="SHA1.h" />
     <ClInclude Include="Sound.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="stb_image_write.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Strings.h" />
     <ClInclude Include="Systems.h" />
     <ClInclude Include="TextReader.h" />
     <ClInclude Include="TextWriter.h" />
+    <ClInclude Include="tiny_gltf.h" />
     <ClInclude Include="ValveSMDExport.h" />
     <ClInclude Include="VectorMath.h" />
     <ClInclude Include="WebClient.h" />
@@ -175,6 +180,7 @@
     <ClCompile Include="Encryption.cpp" />
     <ClCompile Include="FBXExport.cpp" />
     <ClCompile Include="FileSystems.cpp" />
+    <ClCompile Include="GLTFExport.cpp" />
     <ClCompile Include="HalfFloats.cpp" />
     <ClCompile Include="Hashing.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -244,6 +250,9 @@
     <ClCompile Include="XXHash.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\External\DirectXTex\DirectXTex\DirectXTex_Desktop_2019_Win10.vcxproj">
+      <Project>{371b9fa9-4c90-4ac6-a123-aced756d6c77}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\External\Opus\win32\VS2015\opus.vcxproj">
       <Project>{219ec965-228a-1824-174d-96449d05f88a}</Project>
     </ProjectReference>

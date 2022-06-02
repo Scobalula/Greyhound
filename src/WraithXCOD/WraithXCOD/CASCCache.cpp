@@ -101,8 +101,6 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
         uint64_t HashResult = 0;
         // Read Buffer
         auto Buffer = Reader.Read(Header.HashCount * sizeof(BO3XPakHashEntry), HashResult);
-
-
         // Read the hash data into a buffer
         auto HashData = MemoryReader((int8_t*)Buffer.release(), HashResult);
 

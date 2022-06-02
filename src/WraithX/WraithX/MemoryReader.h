@@ -19,8 +19,8 @@ private:
     bool KeepAlive;
 
 public:
-    MemoryReader();
-    MemoryReader(int8_t* Stream, uint64_t StreamLength, bool KeepStreamAlive = false);
+    __declspec(noinline) MemoryReader();
+    __declspec(noinline) MemoryReader(int8_t* Stream, uint64_t StreamLength, bool KeepStreamAlive = false);
     ~MemoryReader();
 
     // Setup a stream for reading

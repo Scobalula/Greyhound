@@ -913,39 +913,39 @@ void GameWorldWar2::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
                 FaceIndiciesReader.Setup((int8_t*)(StreamDataBuffer.get() + CurrentPosition), Submesh.FaceCount * sizeof(uint16_t) * 3, true);
                 // Advance and skip padding
                 CurrentPosition += (Submesh.FaceCount * sizeof(uint16_t) * 3);
-                CurrentPosition = (CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
+                CurrentPosition = ((size_t)CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
 
                 // Positions
                 VertexPosReader.Setup((int8_t*)(StreamDataBuffer.get() + CurrentPosition), Submesh.VertexCount * sizeof(Vector3), true);
                 // Advance and skip padding
                 CurrentPosition += (Submesh.VertexCount * sizeof(Vector3));
-                CurrentPosition = (CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
+                CurrentPosition = ((size_t)CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
 
                 // Advance and skip tangents w/ padding
                 CurrentPosition += (Submesh.VertexCount * sizeof(uint32_t));
-                CurrentPosition = (CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
+                CurrentPosition = ((size_t)CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
 
                 // Colors
                 VertexColorReader.Setup((int8_t*)(StreamDataBuffer.get() + CurrentPosition), Submesh.VertexCount * sizeof(uint32_t), true);
                 // Advance and skip colors w/ padding
                 CurrentPosition += (Submesh.VertexCount * 4);
-                CurrentPosition = (CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
+                CurrentPosition = ((size_t)CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
 
                 // UVs
                 VertexUVReader.Setup((int8_t*)(StreamDataBuffer.get() + CurrentPosition), Submesh.VertexCount * sizeof(uint32_t), true);
                 // Advance and skip padding
                 CurrentPosition += (Submesh.VertexCount * sizeof(uint32_t));
-                CurrentPosition = (CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
+                CurrentPosition = ((size_t)CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
 
                 // Normals
                 VertexNormReader.Setup((int8_t*)(StreamDataBuffer.get() + CurrentPosition), Submesh.VertexCount * sizeof(uint32_t), true);
                 // Advance and skip padding
                 CurrentPosition += (Submesh.VertexCount * sizeof(uint32_t));
-                CurrentPosition = (CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
+                CurrentPosition = ((size_t)CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
 
                 // Advance and skip binormals w/ padding
                 CurrentPosition += (Submesh.VertexCount * sizeof(uint32_t));
-                CurrentPosition = (CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
+                CurrentPosition = ((size_t)CurrentPosition + 0x7) & 0xFFFFFFFFFFFFFFF8;
 
                 // Complex weights, if any
                 if (Submesh.VertListcount == 0)
@@ -971,23 +971,29 @@ void GameWorldWar2::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
             uintptr_t MemoryResult = 0;
 
             // Positions
-            VertexPosReader.Setup(CoDAssets::GameInstance->Read(StreamMeshExtended.VertexPositionsPtr, Submesh.VertexCount * sizeof(Vector3), MemoryResult), MemoryResult);
+            auto Buffer = CoDAssets::GameInstance->Read(StreamMeshExtended.VertexPositionsPtr, Submesh.VertexCount * sizeof(Vector3), MemoryResult);
+            VertexPosReader.Setup(Buffer, MemoryResult);
             // Normals
-            VertexNormReader.Setup(CoDAssets::GameInstance->Read(StreamMeshExtended.VertexNormalsPtr, Submesh.VertexCount * sizeof(uint32_t), MemoryResult), MemoryResult);
+            Buffer = CoDAssets::GameInstance->Read(StreamMeshExtended.VertexNormalsPtr, Submesh.VertexCount * sizeof(uint32_t), MemoryResult);
+            VertexNormReader.Setup(Buffer, MemoryResult);
             // UVs
-            VertexUVReader.Setup(CoDAssets::GameInstance->Read(StreamMeshExtended.VertexUVsPtr, Submesh.VertexCount * sizeof(uint32_t), MemoryResult), MemoryResult);
+            Buffer = CoDAssets::GameInstance->Read(StreamMeshExtended.VertexUVsPtr, Submesh.VertexCount * sizeof(uint32_t), MemoryResult);
+            VertexUVReader.Setup(Buffer, MemoryResult);
             // Colors
-            VertexColorReader.Setup(CoDAssets::GameInstance->Read(StreamMeshExtended.VertexColorsPtr, Submesh.VertexCount * sizeof(uint32_t), MemoryResult), MemoryResult);
+            Buffer = CoDAssets::GameInstance->Read(StreamMeshExtended.VertexColorsPtr, Submesh.VertexCount * sizeof(uint32_t), MemoryResult);
+            VertexColorReader.Setup(Buffer, MemoryResult);
 
             // Complex weights, if any
             if (Submesh.VertListcount == 0)
             {
                 // Read them, 0x10 per vertex
-                VertexWeightReader.Setup(CoDAssets::GameInstance->Read(StreamMeshExtended.VertexWeightsPtr, Submesh.VertexCount * 0x10, MemoryResult), MemoryResult);
+                Buffer = CoDAssets::GameInstance->Read(StreamMeshExtended.VertexWeightsPtr, (size_t)Submesh.VertexCount * 0x10, MemoryResult);
+                VertexWeightReader.Setup(Buffer, MemoryResult);
             }
 
             // Faces
-            FaceIndiciesReader.Setup(CoDAssets::GameInstance->Read(StreamMeshExtended.FacesPtr, Submesh.FaceCount * sizeof(uint16_t) * 3, MemoryResult), MemoryResult);
+            Buffer = CoDAssets::GameInstance->Read(StreamMeshExtended.FacesPtr, Submesh.FaceCount * sizeof(uint16_t) * 3, MemoryResult);
+            FaceIndiciesReader.Setup(Buffer, MemoryResult);
         }
 
         // Pre-allocate vertex weights (Data defaults to weight 1.0 on bone 0)

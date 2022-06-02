@@ -77,6 +77,7 @@
 #include "XAnimRawExport.h"
 #include "FBXExport.h"
 #include "XMBExport.h"
+#include "GLTFExport.h"
 
 // TODO: Use image usage/semantic hashes to determine image types instead when reading from XMaterials
 
@@ -444,8 +445,6 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
     // 007 Quantum Solace
     { "jb_liveengine_s.exe", SupportedGames::QuantumSolace, SupportedGameFlags::SP },
-    // Vanguard
-    { "vanguard.exe", SupportedGames::Vanguard, SupportedGameFlags::SP },
 };
 
 // -- End find game database
@@ -459,7 +458,7 @@ FindGameResult CoDAssets::BeginGameMode()
     auto Result = FindGameResult::Success;
 
     // Check if we have a game
-    if (GameInstance == nullptr || !GameInstance->IsRunning())
+    if (ps::state != nullptr || GameInstance == nullptr || !GameInstance->IsRunning())
     {
         // Load the game
         Result = FindGame();
@@ -684,6 +683,20 @@ LoadGameResult CoDAssets::LoadGamePS()
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
             GameGDTProcessor->SetupProcessor("MWR");
             Success = GameModernWarfare4::LoadAssets();
+            break;
+        // Vanguard
+        case 0x44524155474E4156:
+            GameVanguard::PerformInitialSetup();
+            GameID = SupportedGames::Vanguard;
+            GameFlags = SupportedGameFlags::None;
+            GameXImageHandler = GameVanguard::LoadXImage;
+            GameStringHandler = GameVanguard::LoadStringEntry;
+            GamePackageCache = std::make_unique<VGXSUBCache>();
+            OnDemandCache = std::make_unique<VGXPAKCache>();
+            GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
+            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
+            GameGDTProcessor->SetupProcessor("VG");
+            Success = GameVanguard::LoadAssets();
             break;
         // Modern Warfare Remastered
         case 0x30305453414D4552:
@@ -2112,6 +2125,12 @@ void CoDAssets::ExportWraithModel(const std::unique_ptr<WraithModel>& Model, con
     {
         // Export a XNALara file
         XNALara::ExportXNA(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".mesh.ascii"));
+    }
+    // Check for GLTF format
+    if (SettingsManager::GetSetting("export_gltf") == "true")
+    {
+        // Export a SEModel file
+        GLTF::ExportGLTF(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".gltf"));
     }
     // Check for SEModel format
     if (SettingsManager::GetSetting("export_semodel") == "true")

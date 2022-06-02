@@ -38,6 +38,8 @@ namespace ps
         uint32_t HeaderSize;
         // The xasset ID.
         uint64_t ID;
+        // The xasset name.
+        uint64_t Name;
         // Whether or not this asset is a tempt slot.
         uint32_t Temp;
         // Header Memory.
