@@ -749,10 +749,11 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         // Black Ops 4 has a new format
         BlendShapesBO4(Anim, Animation);
         break;
-    //case SupportedGames::Vanguard:
+    case SupportedGames::Vanguard:
     //case SupportedGames::ModernWarfare:
-    //    // Modern Warfare has a new format
-    //    BlendShapesMW(Anim, Animation);
+        // Modern Warfare has a new format
+        BlendShapesMW(Anim, Animation);
+        break;
     }
 
     // Return it
@@ -953,21 +954,11 @@ void CoDXAnimTranslator::BlendShapesBO4(const std::unique_ptr<WraithAnim>& Anim,
             // Look up the next shape index by frame
             size_t FrameIndex = 0;
 
-            for (size_t j = 0; j < BlendShapeFrames.FrameCount; j++)
-            {
-                if (i < Frames[j])
-                {
-                    FrameIndex = j - 1;
-                    std::cout << FrameIndex << "\n";
-                    break;
-                }
-            }
-
             // Now we need this frame, and the next frame
             auto CurrentFrame  = (float)Frames[FrameIndex];
-            auto CurrentWeight = Weights[FrameIndex];
+            auto& CurrentWeight = Weights[FrameIndex];
             auto NextFrame     = (float)Frames[FrameIndex + 1];
-            auto NextWeight    = Weights[FrameIndex + 1];
+            auto& NextWeight    = Weights[FrameIndex + 1];
 
             // Perform weighted interpolation
             float frameDelta = (i - CurrentFrame) / (NextFrame - CurrentFrame);
@@ -1005,11 +996,7 @@ void CoDXAnimTranslator::BlendShapesMW(const std::unique_ptr<WraithAnim>& Anim, 
 
         for (uint32_t i = 0; i < Animation->BlendShapeWeightCount; i++)
         {
-            if (Shapes[i] == "blinkSL" && j == 47)
-                __debugbreak();
-
-            // Seems to be / 16384.50 in exe? more testing needed, dump raw values for now
-            Anim->AddBlendShapeKey(Shapes[i], j, FrameValues[i], 0, 0);
+            Anim->AddBlendShapeKey(Shapes[i], j, (FrameValues[i] * 0.00030518509) - 10.0f, 0, 0);
         }
     }
 }

@@ -188,7 +188,7 @@ void GLTF::ExportGLTF(const WraithModel& Model, const std::string& FileName, boo
 			tinygltf::Image Image;
 			Image.uri = Material.DiffuseMapName;
 			tinygltf::Texture Texture;
-			Texture.source = GltfModel.images.size();
+			Texture.source = (int)GltfModel.images.size();
 			// Add image
 			GltfModel.images.push_back(Image);
 			// Add to our final lists for materials to reference from
@@ -201,11 +201,11 @@ void GLTF::ExportGLTF(const WraithModel& Model, const std::string& FileName, boo
 			tinygltf::Image Image;
 			Image.uri = Material.NormalMapName;
 			tinygltf::Texture Texture;
-			Texture.source = GltfModel.images.size();
+			Texture.source = (int)GltfModel.images.size();
 			// Add image
 			GltfModel.images.push_back(Image);
 			// Add to our final lists for materials to reference from
-			TextureMap[Material.NormalMapName] = GltfModel.textures.size();
+			TextureMap[Material.NormalMapName] = (int)GltfModel.textures.size();
 			GltfModel.textures.push_back(Texture);
 		}
 	}
@@ -266,6 +266,21 @@ void GLTF::ExportGLTF(const WraithModel& Model, const std::string& FileName, boo
 			MaxPos.Z = std::max(Vertex.Position.Z, MaxPos.Z);
 		}
 
+		if (Model.BlendShapes.size() > 0)
+		{
+			tinygltf::Value::Array TargetNames;
+
+			for (auto& Shape : Model.BlendShapes)
+			{
+				TargetNames.emplace_back(Shape);
+			}
+
+			GltfMesh.extras = tinygltf::Value(
+			{
+				{ "targetNames", tinygltf::Value(TargetNames) }
+			});
+		}
+
 		size_t NumWeights = ((MaxSkinInfluenceBuffer - 1) / 4) + 1;
 
 		// Indices
@@ -297,6 +312,49 @@ void GLTF::ExportGLTF(const WraithModel& Model, const std::string& FileName, boo
 		for (auto& Vertex : Mesh.Verticies)
 		{
 			WriteToBuffer(GltfBuffer, Vertex.Position);
+		}
+
+		if (Model.BlendShapes.size() > 0)
+		{
+			for (size_t i = 0; i < Model.BlendShapes.size(); i++)
+			{
+				// Add target for the actual mesh data
+				auto ShapePositionsView = CreateView(GltfModel, 0, GltfBuffer.data.size(), Mesh.Verticies.size() * 12, 0, TINYGLTF_TARGET_ARRAY_BUFFER);
+				auto ShapePositionsAccessor = CreateAccessor(GltfModel, ShapePositionsView, 0, Mesh.Verticies.size(), 0, TINYGLTF_COMPONENT_TYPE_FLOAT, TINYGLTF_TYPE_VEC3,
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					0.0);
+				GltfPrim.targets.push_back(
+				{
+					{ "POSITION", ShapePositionsAccessor }
+				});
+
+				// We'll need to add each vertex for this blendshape
+				// This could do with some optimization, for both space
+				// and performance, as it requires looping each vertex
+				// per shape, this ties in with better optimizing the 
+				// buffer to pack data with a stride
+				for (auto& Vertex : Mesh.Verticies)
+				{
+					Vector3 ShapeValue;
+
+					for (auto& Delta : Vertex.BlendShapeDeltas)
+					{
+						if (Delta.first == i)
+						{
+							ShapeValue = Delta.second;
+							break;
+						}
+					}
+
+					WriteToBuffer(GltfBuffer, ShapeValue * 2.54f);
+				}
+			}
 		}
 
 		// Normals
