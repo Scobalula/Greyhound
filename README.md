@@ -1,5 +1,3 @@
-# Greyhound is no longer receiving updates and won't receive updates for new games. It's no longer enjoyable to work on, nor does working on it pay bills, the source code is here for anyone to pick it up and continue on with the project.
-# Greyhound - A fork of Wraith Archon, Call of Duty Asset Extractor
 [![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/RyqyThu)
 
 Greyhound is an asset extractor various titles running on the IW Engine (primarily Call of Duty games), and is based off the famous [Wraith Archon](https://github.com/dtzxporter/WraithXArchon/) that was originally developed by DTZxPorter. Greyhound's aim is to provide people access to assets from the games for various purposes including working mods such custom zombie maps or weapon mods, 3D Art, and thumbnails for content creation.
@@ -7,6 +5,12 @@ Greyhound is an asset extractor various titles running on the IW Engine (primari
 For detailed information such as game support, settings, FAQs, etc. please refer to the wiki: [Wiki](https://scobalula.github.io/Greyhound/) Work is being done to populate the wiki with information and tutorials so stay tuned!
 
 For more support you can hop into our Discord: [https://discord.gg/RyqyThu](https://discord.gg/RyqyThu)
+
+## Ricochet Info
+
+Ricochet means we can no longer export from in-game, Parasyte is now required that works with Greyhound to allow exporting from newer titles:
+
+[https://wiki.codmods.com/docs/parasyte/index](https://wiki.codmods.com/docs/parasyte/index)
 
 ## Requirements
 
