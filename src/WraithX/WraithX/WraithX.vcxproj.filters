@@ -291,6 +291,9 @@
     <ClInclude Include="GLTFExport.h">
       <Filter>Header Files\Exporters</Filter>
     </ClInclude>
+    <ClInclude Include="CastExport.h">
+      <Filter>Header Files\Exporters</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -516,6 +519,9 @@
       <Filter>Source Files\Exporters</Filter>
     </ClCompile>
     <ClCompile Include="GLTFExport.cpp">
+      <Filter>Source Files\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="CastExport.cpp">
       <Filter>Source Files\Exporters</Filter>
     </ClCompile>
   </ItemGroup>

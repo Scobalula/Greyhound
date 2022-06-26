@@ -183,6 +183,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "export_xmbin", "false" },
             { "export_seanim", "true" },
             { "export_semodel", "false" },
+            { "export_castanim", "false" },
+            { "export_castmdl", "false" },
             { "export_fbx", "false" },
             { "export_gltf", "false" },
             { "export_directxanim", "false" },

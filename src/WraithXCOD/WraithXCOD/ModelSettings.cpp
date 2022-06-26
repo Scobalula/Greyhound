@@ -26,6 +26,7 @@ BEGIN_MESSAGE_MAP(ModelSettings, WraithWindow)
     ON_COMMAND(IDC_EXPORTXMB, OnExportXMB)
     ON_COMMAND(IDC_EXPORTXME, OnExportXME)
     ON_COMMAND(IDC_EXPORTGLTF, OnExportGLTF)
+    ON_COMMAND(IDC_EXPORTCASTMDL, OnExportCast)
     ON_COMMAND(IDC_EXPORTSEMODEL, OnExportSEModel)
 END_MESSAGE_MAP()
 
@@ -75,6 +76,7 @@ void ModelSettings::OnBeforeLoad()
     ((CButton*)GetDlgItem(IDC_EXPORTXMB))->SetCheck(SettingsManager::GetSetting("export_xmbin", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTXME))->SetCheck(SettingsManager::GetSetting("export_xmexport", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTGLTF))->SetCheck(SettingsManager::GetSetting("export_gltf", "false") == "true");
+    ((CButton*)GetDlgItem(IDC_EXPORTCASTMDL))->SetCheck(SettingsManager::GetSetting("export_castmdl", "false") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTSEMODEL))->SetCheck(SettingsManager::GetSetting("export_semodel", "false") == "true");
 }
 
@@ -164,6 +166,14 @@ void ModelSettings::OnExportGLTF()
     bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTGLTF))->GetState() & BST_CHECKED) == BST_CHECKED);
     // Set it
     SettingsManager::SetSetting("export_gltf", (CheckboxChecked) ? "true" : "false");
+}
+
+void ModelSettings::OnExportCast()
+{
+    // Whether or not we are checked
+    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTCASTMDL))->GetState() & BST_CHECKED) == BST_CHECKED);
+    // Set it
+    SettingsManager::SetSetting("export_castmdl", (CheckboxChecked) ? "true" : "false");
 }
 
 void ModelSettings::OnExportSEModel()

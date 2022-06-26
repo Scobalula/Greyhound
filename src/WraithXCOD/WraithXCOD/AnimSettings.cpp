@@ -13,6 +13,7 @@
 BEGIN_MESSAGE_MAP(AnimSettings, WraithWindow)
     ON_COMMAND(IDC_EXPORTSEANIM, OnExportSEAnim)
     ON_COMMAND(IDC_EXPORTDIRECTX, OnExportDirect)
+    ON_COMMAND(IDC_EXPORTCASTANIM, OnExportCast)
     ON_COMMAND(IDC_SKIPPREVANIM, OnSkipPrevAnim)
     ON_COMMAND(IDC_WAWCOMPAT, OnWAWCompat)
     ON_COMMAND(IDC_BO1COMPAT, OnBOCompat)
@@ -49,6 +50,7 @@ void AnimSettings::OnBeforeLoad()
     // Load up configuration
     ((CButton*)GetDlgItem(IDC_EXPORTSEANIM))->SetCheck(SettingsManager::GetSetting("export_seanim", "true") == "true");
     ((CButton*)GetDlgItem(IDC_EXPORTDIRECTX))->SetCheck(SettingsManager::GetSetting("export_directxanim", "true") == "true");
+    ((CButton*)GetDlgItem(IDC_EXPORTCASTANIM))->SetCheck(SettingsManager::GetSetting("export_castanim", "true") == "true");
     ((CButton*)GetDlgItem(IDC_SKIPPREVANIM))->SetCheck(SettingsManager::GetSetting("skipprevanim", "true") == "true");
 
     // Get directxanim version
@@ -81,6 +83,14 @@ void AnimSettings::OnExportDirect()
     bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTDIRECTX))->GetState() & BST_CHECKED) == BST_CHECKED);
     // Set it
     SettingsManager::SetSetting("export_directxanim", (CheckboxChecked) ? "true" : "false");
+}
+
+void AnimSettings::OnExportCast()
+{
+    // Whether or not we are checked
+    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTCASTANIM))->GetState() & BST_CHECKED) == BST_CHECKED);
+    // Set it
+    SettingsManager::SetSetting("export_castanim", (CheckboxChecked) ? "true" : "false");
 }
 
 void AnimSettings::OnSkipPrevAnim()

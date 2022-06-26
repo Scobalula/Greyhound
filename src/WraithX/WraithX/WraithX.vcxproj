@@ -88,6 +88,7 @@
     <ClInclude Include="Autherization.h" />
     <ClInclude Include="BinaryReader.h" />
     <ClInclude Include="BinaryWriter.h" />
+    <ClInclude Include="CastExport.h" />
     <ClInclude Include="CommandLineManager.h" />
     <ClInclude Include="Compression.h" />
     <ClInclude Include="Console.h" />
@@ -173,6 +174,7 @@
     <ClCompile Include="Autherization.cpp" />
     <ClCompile Include="BinaryReader.cpp" />
     <ClCompile Include="BinaryWriter.cpp" />
+    <ClCompile Include="CastExport.cpp" />
     <ClCompile Include="CommandLineManager.cpp" />
     <ClCompile Include="Compression.cpp" />
     <ClCompile Include="Console.cpp" />

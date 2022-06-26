@@ -78,6 +78,7 @@
 #include "FBXExport.h"
 #include "XMBExport.h"
 #include "GLTFExport.h"
+#include "CastExport.h"
 
 // TODO: Use image usage/semantic hashes to determine image types instead when reading from XMaterials
 
@@ -1477,6 +1478,12 @@ ExportGameResult CoDAssets::ExportAnimationAsset(const CoDAnim_t* Animation, con
                 // Export a SEAnim
                 SEAnim::ExportSEAnim(*Result.get(), FileSystems::CombinePath(ExportPath, Result->AssetName + ".seanim"));
             }
+            // Check for Cast format
+            if (SettingsManager::GetSetting("export_castanim") == "true")
+            {
+                // Export a Cast
+                Cast::ExportCastAnim(*Result.get(), FileSystems::CombinePath(ExportPath, Result->AssetName + ".cast"));
+            }
         }
         else
         {
@@ -2137,6 +2144,12 @@ void CoDAssets::ExportWraithModel(const std::unique_ptr<WraithModel>& Model, con
     {
         // Export a SEModel file
         SEModel::ExportSEModel(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".semodel"));
+    }
+    // Check for Cast format
+    if (SettingsManager::GetSetting("export_castmdl") == "true")
+    {
+        // Export a Cast file
+        Cast::ExportCastModel(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".cast"));
     }
     // Check for FBX format
     if (SettingsManager::GetSetting("export_fbx") == "true")

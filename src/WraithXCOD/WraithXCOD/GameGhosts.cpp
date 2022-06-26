@@ -762,7 +762,7 @@ std::unique_ptr<XImageDDS> GameGhosts::LoadXImage(const XImage_t& Image)
     }
 
     // Calculate table offset of the biggest mip
-    uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[2] + 8)) / sizeof(GhostsGfxImage)) * (sizeof(GhostsPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[6] + (LargestMip * sizeof(GhostsPAKImageEntry));
+    uint64_t PAKTableOffset = (((Image.ImagePtr - (CoDAssets::GameOffsetInfos[3] + 8)) / sizeof(GhostsGfxImage)) * (sizeof(GhostsPAKImageEntry) * 4)) + CoDAssets::GameOffsetInfos[6] + (LargestMip * sizeof(GhostsPAKImageEntry));
 
     // Read info
     auto ImageStreamInfo = CoDAssets::GameInstance->Read<GhostsPAKImageEntry>(PAKTableOffset);

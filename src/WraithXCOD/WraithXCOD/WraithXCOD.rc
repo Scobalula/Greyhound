@@ -127,6 +127,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,80,145,11
     CONTROL         "Export .XMODEL_BIN",IDC_EXPORTXMB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,170,133,11
     CONTROL         "Export .GLTF (Non-Binary)",IDC_EXPORTGLTF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,173,154,133,11
+    CONTROL         "Export .CAST",IDC_EXPORTCASTMDL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,173,170,133,11
 END
 
 IDD_ANIMSETTINGS DIALOGEX 0, 0, 350, 230
@@ -143,6 +144,7 @@ BEGIN
     CONTROL         "BO1 Compatibility",IDC_BO1COMPAT,"Button",BS_AUTORADIOBUTTON,30,78,96,11
     CONTROL         "Skip previously exported animations",IDC_SKIPPREVANIM,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,156,32,145,11
+    CONTROL         "Export .CAST",IDC_EXPORTCASTANIM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,95,109,11
 END
 
 IDD_IMAGESETTINGS DIALOGEX 0, 0, 350, 230
@@ -283,6 +285,7 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 223
         HORZGUIDE, 32
+        HORZGUIDE, 95
     END
 
     IDD_IMAGESETTINGS, DIALOG
@@ -370,8 +373,8 @@ IDI_CHECKMARK           ICON                    "..\\..\\WraithX\\Resources\\Che
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,22,0,0
- PRODUCTVERSION 1,22,0,0
+ FILEVERSION 1,23,0,0
+ PRODUCTVERSION 1,23,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -388,12 +391,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "DTZxPorter / Scobalula"
             VALUE "FileDescription", "Greyhound"
-            VALUE "FileVersion", "1.22.0.0"
+            VALUE "FileVersion", "1.23.0.0"
             VALUE "InternalName", "Greyhound"
             VALUE "LegalCopyright", "Copyright (C) 2022 DTZxPorter / Scobalula"
             VALUE "OriginalFilename", "Greyhound.exe"
             VALUE "ProductName", "Greyhound"
-            VALUE "ProductVersion", "1.22.0.0"
+            VALUE "ProductVersion", "1.23.0.0"
         END
     END
     BLOCK "VarFileInfo"
