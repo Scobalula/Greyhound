@@ -1548,6 +1548,9 @@ bool CoDAssets::ShouldExportAnim(std::string ExportPath)
     // Check it
     if (SettingsManager::GetSetting("export_seanim") == "true" && !FileSystems::FileExists(ExportPath + ".seanim"))
         Result = true;
+    // Check it
+    if (SettingsManager::GetSetting("export_castanim") == "true" && !FileSystems::FileExists(ExportPath + ".cast"))
+        Result = true;
 
     // Done
     return Result;
@@ -1582,6 +1585,12 @@ bool CoDAssets::ShouldExportModel(std::string ExportPath)
         Result = true;
     // Check it
     if (SettingsManager::GetSetting("export_semodel") == "true" && !FileSystems::FileExists(ExportPath + ".semodel"))
+        Result = true;
+    // Check it
+    if (SettingsManager::GetSetting("export_gltf") == "true" && !FileSystems::FileExists(ExportPath + ".gltf"))
+        Result = true;
+    // Check it
+    if (SettingsManager::GetSetting("export_castmdl") == "true" && !FileSystems::FileExists(ExportPath + ".cast"))
         Result = true;
     //// Check it
     //if (SettingsManager::GetSetting("export_fbx") == "true" && !FileSystems::FileExists(ExportPath + ".fbx"))
