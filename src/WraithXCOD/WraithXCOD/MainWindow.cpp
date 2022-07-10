@@ -101,6 +101,8 @@ public:
     RangedIntSearchValue<int64_t, LONGLONG_MIN, -1, LONGLONG_MAX> SoundLength;
     // Streamed Value
     RangedIntSearchValue<int64_t, 0,            -1, 1>            Streamed;
+    // Placeholder Value
+    RangedIntSearchValue<int64_t, 0,            -1, 1>            Placeholder;
 
 
     // Initializes the search context
@@ -175,6 +177,10 @@ SearchContext::SearchContext(std::string& search)
                 else if (name == "streamed")
                 {
                     Streamed.SetFromSearchString(value);
+                }
+                else if (name == "placeholder")
+                {
+                    Placeholder.SetFromSearchString(value);
                 }
                 else if (name == "bonename")
                 {
@@ -1153,6 +1159,9 @@ void MainWindow::OnSearch()
 
             if (Context.Streamed.Value != -1)
                 CanAdd = (Context.Streamed.Value == 1 && Asset->Streamed) || (Context.Streamed.Value == 0 && !Asset->Streamed);
+            if (Context.Placeholder.Value != -1)
+                CanAdd = (Context.Placeholder.Value == 1 && Asset->AssetStatus == WraithAssetStatus::Placeholder) || (Context.Placeholder.Value == 0 && Asset->AssetStatus != WraithAssetStatus::Placeholder);
+
 
             // At this point we've checked out with value checks, skip names
             // if other values haven't checked

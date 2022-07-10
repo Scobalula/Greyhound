@@ -288,7 +288,7 @@ namespace GreyhoundUpdater
                         {
                             if (ulong.TryParse(lineSplit[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out ulong id))
                             {
-                                id &= 0xFFFFFFFFFFFFFFF;
+                                // id &= 0xFFFFFFFFFFFFFFF;
                                 index.Entries[id] = lineSplit[1];
                             }
                         }

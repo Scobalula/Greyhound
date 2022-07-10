@@ -89,13 +89,13 @@ void Cast::ExportCastModel(const WraithModel& Model, const std::string& FileName
 
 		MaterialHashes.push_back(CastMaterial->Hash);
 
-		auto CastDiffuse = CastMaterial->AddNode(CastNodeId::Material, Hashing::HashXXHashString(Material.DiffuseMapName));
+		auto CastDiffuse = CastMaterial->AddNode(CastNodeId::File, Hashing::HashXXHashString(Material.DiffuseMapName));
 		CastDiffuse->SetProperty("p", Material.DiffuseMapName);
 		CastMaterial->SetProperty("albedo", CastPropertyId::Integer64, CastDiffuse->Hash);
-		auto CastNormal = CastMaterial->AddNode(CastNodeId::Material, Hashing::HashXXHashString(Material.NormalMapName));
+		auto CastNormal = CastMaterial->AddNode(CastNodeId::File, Hashing::HashXXHashString(Material.NormalMapName));
 		CastNormal->SetProperty("p", Material.NormalMapName);
 		CastMaterial->SetProperty("normal", CastPropertyId::Integer64, CastNormal->Hash);
-		auto CastSpec = CastMaterial->AddNode(CastNodeId::Material, Hashing::HashXXHashString(Material.SpecularMapName));
+		auto CastSpec = CastMaterial->AddNode(CastNodeId::File, Hashing::HashXXHashString(Material.SpecularMapName));
 		CastSpec->SetProperty("p", Material.SpecularMapName);
 		CastMaterial->SetProperty("specular", CastPropertyId::Integer64, CastSpec->Hash);
 	}
