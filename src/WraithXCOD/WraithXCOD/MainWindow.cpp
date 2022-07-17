@@ -1313,7 +1313,7 @@ BOOL MainWindow::PreTranslateMessage(MSG* pMsg)
             // Loop and output the stream
             for (auto SelectedIndex : SelectedIndicies)
             {
-                Output << LoadedAssets[SelectedIndex]->AssetName << "\n";
+                Output << LoadedAssets[SelectedIndex]->AssetName << ",";
             }
             // Attempt to open the clip board
             if (OpenClipboard())
