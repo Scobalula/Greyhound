@@ -270,6 +270,21 @@ bool GameBlackOpsCW::LoadOffsets()
     return false;
 }
 
+uint64_t CWCalculateHash(const std::string& Name)
+{
+    const uint64_t FNVPrime = 0x100000001B3;
+    const uint64_t FNVOffset = 0xCBF29CE484222325;
+
+    uint64_t Result = FNVOffset;
+
+    for (uint64_t i = 0; i < Name.size(); i++)
+    {
+        Result ^= Name[i];
+        Result *= FNVPrime;
+    }
+    return Result & 0xFFFFFFFFFFFFFFF;
+}
+
 bool GameBlackOpsCW::LoadAssets()
 {
     // Prepare to load game assets, into the AssetPool
@@ -279,6 +294,7 @@ bool GameBlackOpsCW::LoadAssets()
     bool NeedsRawFiles  = (SettingsManager::GetSetting("showxrawfiles", "false")        == "true");
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl",      "false")        == "true");
     bool NeedsSounds    = (SettingsManager::GetSetting("showxsounds",   "false")        == "true");
+    bool NeedsVerified  = (SettingsManager::GetSetting("verifiedhashes","false")        == "true");
     bool NeedsExtInfo   = (SettingsManager::GetSetting("needsextinfo",  "true")         == "true");
 
     /*
@@ -294,7 +310,7 @@ bool GameBlackOpsCW::LoadAssets()
     if (NeedsAnims)
     {
         // Parse the XAnim pool
-        CoDXPoolParser<uint64_t, BOCWXAnim>((CoDAssets::GameOffsetInfos[0]), CoDAssets::GamePoolSizes[0], [Filters, NeedsExtInfo](BOCWXAnim& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BOCWXAnim>((CoDAssets::GameOffsetInfos[0]), CoDAssets::GamePoolSizes[0], [Filters, NeedsExtInfo, NeedsVerified](BOCWXAnim& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -315,7 +331,11 @@ bool GameBlackOpsCW::LoadAssets()
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                AnimName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if (!NeedsVerified || CWCalculateHash(NewName) == Asset.NamePtr)
+                    AnimName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Anim", AnimName);
@@ -350,7 +370,7 @@ bool GameBlackOpsCW::LoadAssets()
     if (NeedsModels)
     {
         // Parse the XModel pool
-        CoDXPoolParser<uint64_t, BOCWXModel>((CoDAssets::GameOffsetInfos[1]), CoDAssets::GamePoolSizes[1], [Filters, NeedsExtInfo](BOCWXModel& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BOCWXModel>((CoDAssets::GameOffsetInfos[1]), CoDAssets::GamePoolSizes[1], [Filters, NeedsExtInfo, NeedsVerified](BOCWXModel& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -370,11 +390,15 @@ bool GameBlackOpsCW::LoadAssets()
             auto XSkeleton = CoDAssets::GameInstance->Read<BOCWXSkeleton>(Asset.XSkeletonPtr);
 
             // Validate and load if need be
-            auto ModelName = Strings::Format("xmodel_%llx", Asset.NamePtr);
+            auto& ModelName = Strings::Format("xmodel_%llx", Asset.NamePtr);
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                ModelName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if(!NeedsVerified || CWCalculateHash(NewName) == Asset.NamePtr)
+                    ModelName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Model", ModelName);
@@ -387,7 +411,6 @@ bool GameBlackOpsCW::LoadAssets()
             LoadedModel->BoneCount         = XSkeleton.BoneCounts[0] + XSkeleton.BoneCounts[1];
             LoadedModel->LodCount          = Asset.NumLods;
             LoadedModel->AssetStatus       = WraithAssetStatus::Loaded;
-
             // Parse bone names if requested
             if (NeedsExtInfo)
             {
@@ -407,7 +430,7 @@ bool GameBlackOpsCW::LoadAssets()
     if (NeedsImages)
     {
         // Parse the XModel pool
-        CoDXPoolParser<uint64_t, BOCWGfxImage>((CoDAssets::GameOffsetInfos[2]), CoDAssets::GamePoolSizes[2], [Filters](BOCWGfxImage& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BOCWGfxImage>((CoDAssets::GameOffsetInfos[2]), CoDAssets::GamePoolSizes[2], [Filters, NeedsVerified](BOCWGfxImage& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -428,13 +451,17 @@ bool GameBlackOpsCW::LoadAssets()
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                ImageName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if (!NeedsVerified || CWCalculateHash(NewName) == Asset.NamePtr)
+                    ImageName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Image", ImageName);
 
             // Check for loaded images
-            if (Asset.GfxMipsPtr != 0)
+            // if (Asset.GfxMipsPtr != 0)
             {
                 // Make and add
                 auto LoadedImage = new CoDImage_t();
@@ -445,6 +472,7 @@ bool GameBlackOpsCW::LoadAssets()
                 LoadedImage->Height       = (uint16_t)Asset.LoadedMipHeight;
                 LoadedImage->Format       = (uint16_t)Asset.ImageFormat;
                 LoadedImage->AssetStatus  = WraithAssetStatus::Loaded;
+                LoadedImage->Streamed     = Asset.GfxMipsPtr != 0;
                 // Add
                 CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
             }
@@ -454,7 +482,7 @@ bool GameBlackOpsCW::LoadAssets()
     if (NeedsMaterials)
     {
         // Parse the XModel pool
-        CoDXPoolParser<uint64_t, BOCWXMaterial>((CoDAssets::GameOffsetInfos[3]), CoDAssets::GamePoolSizes[3], [Filters](BOCWXMaterial& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BOCWXMaterial>((CoDAssets::GameOffsetInfos[3]), CoDAssets::GamePoolSizes[3], [Filters, NeedsVerified](BOCWXMaterial& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -475,7 +503,11 @@ bool GameBlackOpsCW::LoadAssets()
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                MaterialName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if (!NeedsVerified || CWCalculateHash(NewName) == Asset.NamePtr)
+                    MaterialName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Material", MaterialName);
@@ -495,7 +527,7 @@ bool GameBlackOpsCW::LoadAssets()
     if (NeedsSounds)
     {
         // Parse the XModel pool
-        CoDXPoolParser<uint64_t, BOCWSoundAsset>((CoDAssets::GameOffsetInfos[4]), CoDAssets::GamePoolSizes[4], [](BOCWSoundAsset& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BOCWSoundAsset>((CoDAssets::GameOffsetInfos[4]), CoDAssets::GamePoolSizes[4], [NeedsVerified](BOCWSoundAsset& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -505,7 +537,11 @@ bool GameBlackOpsCW::LoadAssets()
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                SoundName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if (!NeedsVerified || CWCalculateHash(NewName) == Asset.NamePtr)
+                    SoundName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Sound", SoundName);

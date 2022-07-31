@@ -1308,13 +1308,15 @@ BOOL MainWindow::PreTranslateMessage(MSG* pMsg)
         // Handle return pressed in edit control
         return TRUE;
     }
-    else if(GetFocus() == &AssetListView && (GetKeyState(VK_CONTROL) & 0x8000 && pMsg->wParam == 'C'))
+    else if(GetFocus() == &AssetListView && (GetKeyState(VK_CONTROL) & 0x8000 && (pMsg->wParam == 'C' || pMsg->wParam == 'X')))
     {
         // Grab the list of objects
         auto SelectedIndicies = AssetListView.GetSelectedItems();
         // Continue if we got some
         if (SelectedIndicies.size() > 0)
         {
+            // New line or not
+            bool NewLine = pMsg->wParam == 'C';
             // Our output
             std::stringstream Output;
             // Resolve the asset list
@@ -1322,7 +1324,10 @@ BOOL MainWindow::PreTranslateMessage(MSG* pMsg)
             // Loop and output the stream
             for (auto SelectedIndex : SelectedIndicies)
             {
-                Output << LoadedAssets[SelectedIndex]->AssetName << "\n";
+                if(NewLine)
+                    Output << LoadedAssets[SelectedIndex]->AssetName << "\n";
+                else
+                    Output << LoadedAssets[SelectedIndex]->AssetName << ",";
             }
             // Attempt to open the clip board
             if (OpenClipboard())

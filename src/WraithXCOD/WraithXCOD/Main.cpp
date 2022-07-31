@@ -205,6 +205,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "overwrite_gdt", "true" }
         });
 
+#ifndef _DEBUG
+        int argc = __argc;
+        char** argv = __argv;
+#endif
+
+        // Handle CLI 
+        for (int i = 0; i < argc; i++)
+        {
+            SettingsManager::SetSetting(argv[i], "true");
+        }
+
         // Clean up files
         CleanupFilesystem();
         // Check for updates

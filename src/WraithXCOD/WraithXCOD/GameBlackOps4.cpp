@@ -735,6 +735,21 @@ bool GameBlackOps4::LoadOffsets()
     return false;
 }
 
+uint64_t BO4CalculateHash(const std::string& Name)
+{
+    const uint64_t FNVPrime = 0x100000001B3;
+    const uint64_t FNVOffset = 0xCBF29CE484222325;
+
+    uint64_t Result = FNVOffset;
+
+    for (uint64_t i = 0; i < Name.size(); i++)
+    {
+        Result ^= Name[i];
+        Result *= FNVPrime;
+    }
+    return Result & 0xFFFFFFFFFFFFFFF;
+}
+
 bool GameBlackOps4::LoadAssets()
 {
     // Prepare to load game assets, into the AssetPool
@@ -743,6 +758,7 @@ bool GameBlackOps4::LoadAssets()
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
+    bool NeedsVerified = (SettingsManager::GetSetting("verifiedhashes", "false") == "true");
     bool NeedsExtInfo = (SettingsManager::GetSetting("needsextinfo", "true") == "true");
 
     /*
@@ -758,7 +774,7 @@ bool GameBlackOps4::LoadAssets()
     if (NeedsAnims)
     {
         // Parse the XAnim pool
-        CoDXPoolParser<uint64_t, BO4XAnim>((CoDAssets::GameOffsetInfos[0]), CoDAssets::GamePoolSizes[0], [Filters, NeedsExtInfo](BO4XAnim& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BO4XAnim>((CoDAssets::GameOffsetInfos[0]), CoDAssets::GamePoolSizes[0], [Filters, NeedsExtInfo, NeedsVerified](BO4XAnim& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -779,7 +795,11 @@ bool GameBlackOps4::LoadAssets()
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                AnimName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if (!NeedsVerified || BO4CalculateHash(NewName) == Asset.NamePtr)
+                    AnimName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Anim", AnimName);
@@ -814,7 +834,7 @@ bool GameBlackOps4::LoadAssets()
     if (NeedsModels)
     {
         // Parse the XModel pool
-        CoDXPoolParser<uint64_t, BO4XModel>((CoDAssets::GameOffsetInfos[1]), CoDAssets::GamePoolSizes[1], [Filters, NeedsExtInfo](BO4XModel& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BO4XModel>((CoDAssets::GameOffsetInfos[1]), CoDAssets::GamePoolSizes[1], [Filters, NeedsExtInfo, NeedsVerified](BO4XModel& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -835,7 +855,11 @@ bool GameBlackOps4::LoadAssets()
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                ModelName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if (!NeedsVerified || BO4CalculateHash(NewName) == Asset.NamePtr)
+                    ModelName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Model", ModelName);
@@ -869,7 +893,7 @@ bool GameBlackOps4::LoadAssets()
     if (NeedsImages)
     {
         // Parse the XModel pool
-        CoDXPoolParser<uint64_t, BO4GfxImage>((CoDAssets::GameOffsetInfos[2]), CoDAssets::GamePoolSizes[2], [Filters](BO4GfxImage& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BO4GfxImage>((CoDAssets::GameOffsetInfos[2]), CoDAssets::GamePoolSizes[2], [Filters, NeedsVerified](BO4GfxImage& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -890,7 +914,11 @@ bool GameBlackOps4::LoadAssets()
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                ImageName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if (!NeedsVerified || BO4CalculateHash(NewName) == Asset.NamePtr)
+                    ImageName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Image", ImageName);
@@ -916,7 +944,7 @@ bool GameBlackOps4::LoadAssets()
     if (NeedsMaterials)
     {
         // Parse the XModel pool
-        CoDXPoolParser<uint64_t, BO4XMaterial>((CoDAssets::GameOffsetInfos[3]), CoDAssets::GamePoolSizes[3], [Filters](BO4XMaterial& Asset, uint64_t& AssetOffset)
+        CoDXPoolParser<uint64_t, BO4XMaterial>((CoDAssets::GameOffsetInfos[3]), CoDAssets::GamePoolSizes[3], [Filters, NeedsVerified](BO4XMaterial& Asset, uint64_t& AssetOffset)
         {
             // Mask the name as hashes are 60Bit
             Asset.NamePtr &= 0xFFFFFFFFFFFFFFF;
@@ -937,7 +965,11 @@ bool GameBlackOps4::LoadAssets()
 
             // Check for an override in the name DB
             if (AssetNameCache.NameDatabase.find(Asset.NamePtr) != AssetNameCache.NameDatabase.end())
-                MaterialName = AssetNameCache.NameDatabase[Asset.NamePtr];
+            {
+                auto& NewName = AssetNameCache.NameDatabase[Asset.NamePtr];
+                if (!NeedsVerified || BO4CalculateHash(NewName) == Asset.NamePtr)
+                    MaterialName = NewName;
+            }
 
             // Log it
             CoDAssets::LogXAsset("Material", MaterialName);
