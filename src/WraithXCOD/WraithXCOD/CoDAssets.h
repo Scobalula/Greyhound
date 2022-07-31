@@ -134,6 +134,8 @@ public:
     static SupportedGames GameID;
     // The running game flags, if any
     static SupportedGameFlags GameFlags;
+    // The load game flags, if any
+    static bool VerifiedHashes;
 
     // The game's loaded assets
     static std::unique_ptr<AssetPool> GameAssets;

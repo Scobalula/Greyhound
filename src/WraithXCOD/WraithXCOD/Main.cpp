@@ -213,7 +213,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         // Handle CLI 
         for (int i = 0; i < argc; i++)
         {
-            SettingsManager::SetSetting(argv[i], "true");
+            if (strcmp(argv[i], "verifiedhashes") == 0)
+            {
+                CoDAssets::VerifiedHashes = true;
+            }
         }
 
         // Clean up files

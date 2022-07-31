@@ -93,6 +93,8 @@ std::unique_ptr<TextWriter> CoDAssets::XAssetLogWriter = nullptr;
 SupportedGames CoDAssets::GameID = SupportedGames::None;
 // Set the default flags
 SupportedGameFlags CoDAssets::GameFlags = SupportedGameFlags::None;
+// Set the default verification
+bool CoDAssets::VerifiedHashes = false;
 
 // Set game offsets
 std::vector<uint64_t> CoDAssets::GameOffsetInfos = std::vector<uint64_t>();
