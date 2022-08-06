@@ -2655,29 +2655,28 @@ struct IWGfxMip
 struct IWGfxImage
 {
     uint64_t NextHead;
-
     uint8_t Padding[16];
-
     uint8_t ImageFormat;
     uint8_t Padding5[7];
     uint8_t MapType;
-
-    uint8_t Padding2[24];
-
+    uint8_t Padding2[7];
+    uint32_t Size;
+    uint32_t Size2;
+    uint16_t LoadedWidth;
+    uint16_t LoadedHeight;
+    uint16_t LoadedDepth;
+    uint16_t LoadedArrays;
+    uint8_t Flags;
     uint8_t Streamed;
-
     uint8_t Padding3[14];
-
     uint16_t Width;
     uint16_t Height;
-
     uint8_t Padding4[4];
-
     IWGfxMip MipLevels[3];
-
     uint64_t NamePtr;
 };
 #pragma pack(pop)
+
 
 #pragma pack(push, 1)
 struct IWXModelSurface

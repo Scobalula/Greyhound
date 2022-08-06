@@ -361,6 +361,115 @@ bool GameInfiniteWarfare::LoadAssets()
     return true;
 }
 
+bool GameInfiniteWarfare::LoadAssetsPS()
+{
+    // Prepare to load game assets, into the AssetPool
+    bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
+    bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
+    bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
+    bool NeedsSounds = (SettingsManager::GetSetting("showxsounds", "false") == "true");
+    bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
+
+    // Check if we need assets
+    if (NeedsModels)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 8 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto ModelResult = CoDAssets::GameInstance->Read<IWXModel>(Asset.Header);
+            // Validate and load if need be
+            auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+            // Make and add
+            auto LoadedModel = new CoDModel_t();
+            // Set
+            LoadedModel->AssetName = ModelName;
+            LoadedModel->AssetPointer = Asset.Header;
+            LoadedModel->BoneCount = ModelResult.NumBones;
+            LoadedModel->LodCount = ModelResult.NumLods;
+            LoadedModel->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
+        });
+    }
+
+    // Check if we need assets
+    if (NeedsImages)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 18 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto ImageResult = CoDAssets::GameInstance->Read<IWGfxImage>(Asset.Header);
+            // Validate and load if need be
+            auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
+            // Calculate the largest image mip
+            uint32_t LargestWidth = ImageResult.Width;
+            uint32_t LargestHeight = ImageResult.Height;
+            // Check if it's streamed
+            if (ImageResult.Streamed > 0)
+            {
+                // Loop and calculate
+                for (uint32_t i = 0; i < 3; i++)
+                {
+                    // Compare widths
+                    if (ImageResult.MipLevels[i].Width > LargestWidth)
+                    {
+                        LargestWidth = ImageResult.MipLevels[i].Width;
+                        LargestHeight = ImageResult.MipLevels[i].Height;
+                    }
+                }
+            }
+            else
+            {
+                // Use loaded data
+                LargestWidth = ImageResult.LoadedWidth;
+                LargestHeight = ImageResult.LoadedHeight;
+            }
+            // Make and add
+            auto LoadedImage = new CoDImage_t();
+            // Set
+            LoadedImage->AssetName = ImageName;
+            LoadedImage->AssetPointer = Asset.Header;
+            LoadedImage->Width = (uint16_t)LargestWidth;
+            LoadedImage->Height = (uint16_t)LargestHeight;
+            LoadedImage->Format = ImageResult.ImageFormat;
+            LoadedImage->Streamed = ImageResult.Streamed > 0;
+            LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
+            LoadedImage->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
+        });
+    }
+
+    // Check if we need assets
+    if (NeedsAnims)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 6 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto AnimResult = CoDAssets::GameInstance->Read<IWXAnim>(Asset.Header);
+            // Validate and load if need be
+            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+            // Make and add
+            auto LoadedAnim = new CoDAnim_t();
+            // Set
+            LoadedAnim->AssetName = AnimName;
+            LoadedAnim->AssetPointer = Asset.Header;
+            LoadedAnim->Framerate = AnimResult.Framerate;
+            LoadedAnim->FrameCount = AnimResult.NumFrames;
+            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+            LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+        });
+    }
+
+    // Success, error only on specific load
+    return true;
+}
+
 std::unique_ptr<XAnim_t> GameInfiniteWarfare::ReadXAnim(const CoDAnim_t* Animation)
 {
     // Verify that the program is running
@@ -550,7 +659,10 @@ std::unique_ptr<XImageDDS> GameInfiniteWarfare::ReadXImage(const CoDImage_t* Ima
         Usage = ImageUsageType::DiffuseMap;
     }
     // Proxy off
-    return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
+    if (ps::state != nullptr)
+        return LoadXImagePS(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
+    else
+        return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
 }
 
 const XMaterial_t GameInfiniteWarfare::ReadXMaterial(uint64_t MaterialPointer)
@@ -658,8 +770,104 @@ std::unique_ptr<XImageDDS> GameInfiniteWarfare::LoadXImage(const XImage_t& Image
     return nullptr;
 }
 
+struct InfiniteWarfare_AssetFileRef
+{
+    uint64_t StartOffset;
+    uint64_t EndOffset;
+    uint16_t PackageIndex;
+};
+
+std::unique_ptr<XImageDDS> GameInfiniteWarfare::LoadXImagePS(const XImage_t& Image)
+{
+    // Prepare to load an image, we only support PAK images
+    uint32_t ResultSize = 0;
+
+    // We must read the image data
+    auto ImageInfo = CoDAssets::GameInstance->Read<IWGfxImage>(Image.ImagePtr);
+    // Buffer
+    std::unique_ptr<uint8_t[]> ImageData = nullptr;
+    // Calculate the largest image mip
+    uint32_t LargestMip = 0;
+    uint32_t LargestWidth = ImageInfo.Width;
+    uint32_t LargestHeight = ImageInfo.Height;
+
+    // Check if the image isn't streamed, if it isn't, just exit
+    if (ImageInfo.Streamed > 0)
+    {
+        // Loop and calculate
+        for (uint32_t i = 0; i < 3; i++)
+        {
+            // Compare widths
+            if (ImageInfo.MipLevels[i].Width > LargestWidth)
+            {
+                LargestMip = (i + 1);
+                LargestWidth = ImageInfo.MipLevels[i].Width;
+                LargestHeight = ImageInfo.MipLevels[i].Height;
+            }
+        }
+        // Read info
+        auto ImageStreamInfo = CoDAssets::GameInstance->Read<InfiniteWarfare_AssetFileRef>(Image.ImagePtr + sizeof(IWGfxImage) + sizeof(InfiniteWarfare_AssetFileRef) * LargestMip);
+        // Read image package name
+        auto ImagePackageName = Strings::Format("imagefile%i.pak", ImageStreamInfo.PackageIndex);
+        // Attempt to extract the package asset
+        ImageData = PAKSupport::IWExtractImagePackage(FileSystems::CombinePath(CoDAssets::GamePackageCache->GetPackagesPath(), ImagePackageName), ImageStreamInfo.StartOffset, (ImageStreamInfo.EndOffset - ImageStreamInfo.StartOffset), ResultSize);
+    }
+    else
+    {
+        // Use loaded data
+        LargestWidth = ImageInfo.LoadedWidth;
+        LargestHeight = ImageInfo.LoadedHeight;
+
+        ResultSize = CoDAssets::GameInstance->Read<uint32_t>(Image.ImagePtr + 40);
+        ImageData = std::make_unique<uint8_t[]>(ResultSize);
+
+        if (CoDAssets::GameInstance->Read(ImageData.get(), CoDAssets::GameInstance->Read<uint64_t>(Image.ImagePtr + 64), ResultSize) != ResultSize)
+            return nullptr;
+    }
+
+    // Check
+    if (ImageData != nullptr)
+    {
+        // Prepare to create a MemoryDDS file
+        auto Result = CoDRawImageTranslator::TranslateBC(
+            ImageData,
+            ResultSize,
+            LargestWidth,
+            LargestHeight,
+            ImageInfo.ImageFormat,
+            1,
+            (ImageInfo.MapType == (uint8_t)GfxImageMapType::MAPTYPE_CUBE));
+
+        // Check for, and apply patch if required, if we got a raw result
+        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
+        {
+            // Set normal map patch
+            Result->ImagePatchType = ImagePatch::Normal_COD_NOG;
+        }
+        else if (Result != nullptr && Image.ImageUsage == ImageUsageType::DiffuseMap && (SettingsManager::GetSetting("patchcolor", "true") == "true"))
+        {
+            // Set color patch
+            Result->ImagePatchType = ImagePatch::Color_StripAlpha;
+        }
+
+        // Return it
+        return Result;
+    }
+
+    // Failed to load the image
+    return nullptr;
+}
+
+
 std::string GameInfiniteWarfare::LoadStringEntry(uint64_t Index)
 {
-    // Read and return (Offsets[3] = StringTable)
-    return CoDAssets::GameInstance->ReadNullTerminatedString((20 * Index) + CoDAssets::GameOffsetInfos[3] + 8);
+    if (ps::state == nullptr)
+    {
+        // Read and return (Offsets[3] = StringTable)
+        return CoDAssets::GameInstance->ReadNullTerminatedString((20 * Index) + CoDAssets::GameOffsetInfos[3] + 8);
+    }
+    else
+    {
+        return CoDAssets::GameInstance->ReadNullTerminatedString(ps::state->StringsAddress + Index);
+    }
 }

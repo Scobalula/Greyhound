@@ -712,6 +712,17 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameGDTProcessor->SetupProcessor("MWR");
             Success = GameModernWarfareRM::LoadAssetsPS();
             break;
+        // Infinite Warfare
+        case 0x4652415749464E49:
+            GameID = SupportedGames::InfiniteWarfare;
+            GameFlags = SupportedGameFlags::None;
+            GameXImageHandler = GameInfiniteWarfare::LoadXImagePS;
+            GameStringHandler = GameInfiniteWarfare::LoadStringEntry;
+            GamePackageCache = std::make_unique<PAKCache>();
+            GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
+            GameGDTProcessor->SetupProcessor("IW");
+            Success = GameInfiniteWarfare::LoadAssetsPS();
+            break;
         }
 
         // Done with logger
