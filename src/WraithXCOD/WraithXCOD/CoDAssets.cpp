@@ -723,6 +723,17 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameGDTProcessor->SetupProcessor("IW");
             Success = GameInfiniteWarfare::LoadAssetsPS();
             break;
+        // Modern Warfare 2 Remastered
+        case 0x32305453414D4552:
+            GameID = SupportedGames::ModernWarfare2Remastered;
+            GameFlags = SupportedGameFlags::None;
+            GameXImageHandler = GameModernWarfare2RM::LoadXImagePS;
+            GameStringHandler = GameModernWarfare2RM::LoadStringEntry;
+            GamePackageCache = std::make_unique<CASCCache>();
+            GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
+            GameGDTProcessor->SetupProcessor("IW");
+            Success = GameModernWarfare2RM::LoadAssetsPS();
+            break;
         }
 
         // Done with logger

@@ -546,6 +546,16 @@ std::unique_ptr<XModel_t> GameWorldWar2::ReadXModel(const CoDModel_t* Model)
         // Global matricies
         ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
 
+#if _DEBUG
+        auto BlendsOffset = CoDAssets::GameInstance->Read<uint64_t>(ModelHeaderData.XModelPtr + 736);
+        auto BlendsCount = CoDAssets::GameInstance->Read<uint16_t>(ModelHeaderData.XModelPtr + 732);
+
+        for (int i = 0; i < BlendsCount; i++)
+        {
+            printf("%s\n", CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(BlendsOffset + i * 4)).c_str());
+        }
+#endif
+
         // Prepare to parse lods
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
         {

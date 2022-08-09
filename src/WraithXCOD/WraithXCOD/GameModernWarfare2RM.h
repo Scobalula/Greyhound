@@ -19,6 +19,8 @@ public:
     static bool LoadOffsets();
     // Loads assets for Modern Warfare 2 R2M
     static bool LoadAssets();
+    // Loads assets for Modern Warfare 2 R2M (Parasyte)
+    static bool LoadAssetsPS();
 
     // Reads an XAnim from Modern Warfare 2 R2M
     static std::unique_ptr<XAnim_t> ReadXAnim(const CoDAnim_t* Animation);
@@ -29,6 +31,9 @@ public:
 
     // Reads an XImageDDS from a image reference from Modern Warfare 2 R2M
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
+    // Reads an XImageDDS from a image reference from Modern Warfare 2 R2M (Parasyte)
+    static std::unique_ptr<XImageDDS> LoadXImagePS(const XImage_t& Image);
+
 
     // Reads a string via it's string index for Modern Warfare 2 R2M
     static std::string LoadStringEntry(uint64_t Index);

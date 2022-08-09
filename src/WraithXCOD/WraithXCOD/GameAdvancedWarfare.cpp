@@ -612,6 +612,15 @@ std::unique_ptr<XModel_t> GameAdvancedWarfare::ReadXModel(const CoDModel_t* Mode
         // Global matricies
         ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
 
+#if _DEBUG
+        auto BlendsCount = CoDAssets::GameInstance->Read<uint64_t>(Model->AssetPointer + 556);
+        auto BlendsOffset = CoDAssets::GameInstance->Read<uint64_t>(Model->AssetPointer + 600);
+
+        for (int i = 0; i < 0xCF; i++)
+        {
+            printf("%s\n", CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(BlendsOffset + i * 4)).c_str());
+        }
+#endif
         // Prepare to parse lods
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
         {
