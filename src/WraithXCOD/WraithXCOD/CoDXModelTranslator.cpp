@@ -290,7 +290,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         case SupportedGames::BlackOps3:             GameBlackOps3::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::BlackOps4:             GameBlackOps4::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::BlackOpsCW:            GameBlackOpsCW::LoadXModel(LodReference, ModelResult); break;
-        case SupportedGames::WorldWar2:             GameWorldWar2::LoadXModel(LodReference, ModelResult); break;
+        case SupportedGames::WorldWar2:             GameWorldWar2::LoadXModel(Model, LodReference, ModelResult); break;
         case SupportedGames::ModernWarfare4:        GameModernWarfare4::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::Vanguard:              GameVanguard::LoadXModel(Model, LodReference, ModelResult); break;
         }

@@ -35,7 +35,7 @@ public:
     // Reads an XImageDDS from a image reference from World War 2
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
     // Loads a streamed XModel lod, streaming from cache if need be
-    static void LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel);
+    static void LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel);
 
     // Reads a string via it's string index for World War 2
     static std::string LoadStringEntry(uint64_t Index);

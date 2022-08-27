@@ -546,15 +546,9 @@ std::unique_ptr<XModel_t> GameWorldWar2::ReadXModel(const CoDModel_t* Model)
         // Global matricies
         ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
 
-#if _DEBUG
-        auto BlendsOffset = CoDAssets::GameInstance->Read<uint64_t>(ModelHeaderData.XModelPtr + 736);
-        auto BlendsCount = CoDAssets::GameInstance->Read<uint16_t>(ModelHeaderData.XModelPtr + 732);
-
-        for (int i = 0; i < BlendsCount; i++)
-        {
-            printf("%s\n", CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(BlendsOffset + i * 4)).c_str());
-        }
-#endif
+        // Blendshapes
+        ModelAsset->BlendShapeNamesPtr = CoDAssets::GameInstance->Read<uint64_t>(ModelHeaderData.XModelPtr + 736);
+        ModelAsset->BlendShapeCount = CoDAssets::GameInstance->Read<uint16_t>(ModelHeaderData.XModelPtr + 732);
 
         // Prepare to parse lods
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
@@ -866,13 +860,50 @@ const XMaterial_t GameWorldWar2::ReadXMaterial(uint64_t MaterialPointer)
     return Result;
 }
 
-void GameWorldWar2::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
+#pragma pack(push, 1)
+struct BlendshapeMeshInfo
+{
+    uint32_t VertexCount;
+    float XScale;
+    float YScale;
+    float ZScale;
+    float Scale;
+    float Padding;
+    uint64_t DataPtr1;
+    uint64_t ViewPtr0;
+    uint64_t ViewPtr1;
+};
+#pragma pack(pop)
+#pragma pack(push, 1)
+struct WW2BlendShapeVertex
+{
+    uint16_t A;
+    uint16_t B;
+    uint16_t VertexIndex;
+    uint16_t C;
+    uint16_t Unk1;
+    uint16_t Unk2;
+    uint16_t Unk3;
+    uint16_t Unk4;
+    float Scale;
+};
+#pragma pack(pop)
+
+void GameWorldWar2::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Check if we want to read vertex colors
     bool ExportColors = (SettingsManager::GetSetting("exportvtxcolor", "true") == "true");
 
     // Prepare it for submeshes
     ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());
+
+#if _DEBUG
+    // Add blendshapes first
+    for (size_t b = 0; b < Model->BlendShapeCount; b++)
+    {
+        ResultModel->BlendShapes.push_back(CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(Model->BlendShapeNamesPtr + b * sizeof(uint32_t))));
+    }
+#endif
 
     // Iterate over submeshes
     for (auto& Submesh : ModelLOD.Submeshes)
@@ -893,6 +924,7 @@ void GameWorldWar2::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
         MemoryReader VertexColorReader;
         MemoryReader VertexWeightReader;
         MemoryReader FaceIndiciesReader;
+        MemoryReader BlendShapesReader;
 
         // A pointer to the streamed data, if any
         std::unique_ptr<uint8_t[]> StreamDataBuffer = nullptr;
@@ -1106,6 +1138,48 @@ void GameWorldWar2::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
             Face.Index2 = FaceIndiciesReader.Read<uint16_t>();
             Face.Index3 = FaceIndiciesReader.Read<uint16_t>();
         }
+
+#if _DEBUG
+        // Unpack count (cba waiting to recompile for editing 1 member in a global header file)
+        uint16_t BlendShapeCount = (StreamMeshInfo.TriIndiciesCount >> 16) & 0xFFFF;
+        uintptr_t SizeRead = 0;
+
+        // Iterate over blendshapes
+        for (uint16_t bv = 0; bv < BlendShapeCount; bv++)
+        {
+            // Read the per-blendshape info.
+            auto Info = CoDAssets::GameInstance->Read<BlendshapeMeshInfo>(StreamMeshInfo.UnknownPtr2 + bv * sizeof(BlendshapeMeshInfo));
+            // Quick exit for 0 vertex blendshaopes (WW2 stores an entry for all, but only uses some per mesh)
+            if (Info.VertexCount == 0)
+            {
+                continue;
+            }
+            auto ToRead = (size_t)Info.VertexCount * 20;
+            // Init a read for this individual buffer.
+            MemoryReader ShapeVertsReader(CoDAssets::GameInstance->Read(Info.DataPtr1, ToRead, SizeRead), ToRead, false);
+            // Verify we read marv.
+            if (SizeRead != ToRead)
+            {
+                continue;
+            }
+
+            // Now we can get some juicy shapes.
+            for (size_t k = 0; k < Info.VertexCount; k++)
+            {
+                // Read the gram gram.
+                auto ShapeVert = ShapeVertsReader.Read<WW2BlendShapeVertex>();
+
+                // Unpack the little bugger.
+                auto Offset = Vector3(
+                    ShapeVert.A * Info.Scale + Info.XScale,
+                    ShapeVert.B * Info.Scale + Info.YScale,
+                    ShapeVert.C * Info.Scale + Info.ZScale);
+
+                // Add to the indexed vertex.
+                Mesh.Verticies[ShapeVert.VertexIndex].BlendShapeDeltas.push_back(std::make_pair(bv, Offset));
+            }
+        }
+#endif
     }
 }
 

@@ -229,6 +229,13 @@ bool GameGhosts::LoadAssets()
     {
         for (size_t i = 0; i < 2; i++)
         {
+            // Verify we have xmodels, if we're reading from the scene pool, it will be empty when
+            // out of a menu
+            if (CoDAssets::GameOffsetInfos[1 + i] == 0)
+            {
+                continue;
+            }
+
             // Models are the second offset and second pool, skip 8 byte pointer to free head
             auto ModelOffset = CoDAssets::GameOffsetInfos[1 + i] + 8;
             auto ModelCount = CoDAssets::GamePoolSizes[1 + i];
