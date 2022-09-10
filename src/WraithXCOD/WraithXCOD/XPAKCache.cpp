@@ -197,11 +197,13 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
         // or where possible, use the size from the game, as this is a hefty allocation
         auto ResultBufferSize = Size == -1 ? 0x2400000 : Size;
         auto ResultBuffer = std::make_unique<uint8_t[]>(ResultBufferSize);
+        auto TempBuffer = std::make_unique<uint8_t[]>(CacheInfo.CompressedSize); // TODO: Eventually cache XPAK files and do one big read.
 
         // Loop until we have all our data
         while (DataRead < CacheInfo.CompressedSize)
         {
             // Read the block header
+            auto BlockPosition = Reader.GetPosition();
             auto BlockHeader = Reader.Read<BO3XPakDataHeader>();
 
             // Loop for block count
@@ -220,19 +222,20 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
                     // Read result
                     uint64_t ReadSize = 0;
                     // Read the block
-                    auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    Reader.Read(TempBuffer.get(), BlockSize, ReadSize);
 
                     // Check if we read data
-                    if (DataBlock != nullptr)
+                    if (ReadSize == BlockSize)
                     {
                         // Decompress the LZ4 block
-                        auto Result = Compression::DecompressLZ4Block((const int8_t*)DataBlock, (int8_t*)ResultBuffer.get() + TotalDataSize, (uint32_t)BlockSize, 0x2400000);
+                        auto Result = Compression::DecompressLZ4Block((const int8_t*)TempBuffer.get(), (int8_t*)ResultBuffer.get() + TotalDataSize, (uint32_t)BlockSize, Size - TotalDataSize);
 
                         // Append size
                         TotalDataSize += Result;
-
-                        // Clean up the buffer
-                        delete[] DataBlock;
+                    }
+                    else
+                    {
+                        return nullptr;
                     }
                 }
                 else if (CompressedFlag == 0x8)
@@ -240,22 +243,19 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
                     // Read result
                     uint64_t ReadSize = 0;
                     // Read the block
-                    auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    Reader.Read(TempBuffer.get(), BlockSize, ReadSize);
 
                     // Check if we read data
-                    if (DataBlock != nullptr)
+                    if (ReadSize == BlockSize)
                     {
                         // Read oodle decompressed size
-                        uint32_t DecompressedSize = *(uint32_t*)(DataBlock);
+                        uint32_t DecompressedSize = *(uint32_t*)(TempBuffer.get());
 
                         // Decompress the Oodle block
-                        auto Result = Siren::Decompress((const uint8_t*)DataBlock + 4, (uint32_t)BlockSize - 4, ResultBuffer.get() + TotalDataSize, DecompressedSize);
+                        auto Result = Siren::Decompress((const uint8_t*)TempBuffer.get() + 4, (uint32_t)BlockSize - 4, ResultBuffer.get() + TotalDataSize, DecompressedSize);
 
                         // Append size
                         TotalDataSize += Result;
-
-                        // Clean up the buffer
-                        delete[] DataBlock;
                     }
                 }
                 else if (CompressedFlag == 0x6)
@@ -263,21 +263,19 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
                     // Read result
                     uint64_t ReadSize = 0;
                     // Read the block
-                    auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    Reader.Read(TempBuffer.get(), BlockSize, ReadSize);
                     // Check if we're at the end of the block/less than the max block size, if so, use that
                     uint64_t RawBlockSize = std::min<uint64_t>(DecompressedSize, 262112);
                     // Subtract from our total size
                     DecompressedSize -= RawBlockSize;
 
                     // Check if we read data
-                    if (DataBlock != nullptr)
+                    if (ReadSize == BlockSize)
                     {
                         // Decompress the Oodle block
-                        auto Result = Siren::Decompress((const uint8_t*)DataBlock, (uint32_t)BlockSize, (uint8_t*)ResultBuffer.get() + TotalDataSize, RawBlockSize);
+                        auto Result = Siren::Decompress((const uint8_t*)TempBuffer.get(), (uint32_t)BlockSize, (uint8_t*)ResultBuffer.get() + TotalDataSize, RawBlockSize);
                         // Append size
                         TotalDataSize += RawBlockSize;
-                        // Clean up the buffer
-                        delete[] DataBlock;
                     }
                 }
                 else if (CompressedFlag == 0x0)
@@ -285,21 +283,18 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
                     // Read result
                     uint64_t ReadSize = 0;
                     // Read the block
-                    auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    Reader.Read(TempBuffer.get(), BlockSize, ReadSize);
                     // Subtract from our total size
                     DecompressedSize -= BlockSize;
 
                     // Check if we read data
-                    if (DataBlock != nullptr)
+                    if (ReadSize == BlockSize)
                     {
                         // We just need to append it
-                        std::memcpy(ResultBuffer.get() + TotalDataSize, DataBlock, BlockSize);
+                        std::memcpy(ResultBuffer.get() + TotalDataSize, TempBuffer.get(), BlockSize);
 
                         // Append size
                         TotalDataSize += BlockSize;
-
-                        // Clean up the buffer
-                        delete[] DataBlock;
                     }
                 }
                 else

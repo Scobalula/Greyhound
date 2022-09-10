@@ -252,7 +252,7 @@ std::vector<std::string> FileSystems::GetFiles(const std::string& Path, const st
     std::vector<std::string> FilesResult;
 
     // Build search pattern
-    auto SearchBuild = (Path[Path.length() - 1] == DirectorySeparatorChar || Path[Path.length() - 1] == AltDirectorySeparatorChar) ? Path + SearchPattern : Path + DirectorySeparatorChar + SearchPattern;
+    auto& SearchBuild = (Path[Path.length() - 1] == DirectorySeparatorChar || Path[Path.length() - 1] == AltDirectorySeparatorChar) ? Path + SearchPattern : Path + DirectorySeparatorChar + SearchPattern;
 
     // File info buffer
     WIN32_FIND_DATAA FileInfo;
@@ -290,6 +290,8 @@ std::vector<std::string> FileSystems::GetFiles(const std::string& Path, const st
                 FilesResult.push_back(CombinePath(Path, FileInfo.cFileName));
             }
         }
+        // Clear handle
+        FindClose(FirstResult);
     }
 
     // Return it

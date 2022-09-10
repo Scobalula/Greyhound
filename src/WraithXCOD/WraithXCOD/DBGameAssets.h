@@ -776,23 +776,22 @@ const struct BO3FxEffectDef
 #pragma pack(push, 1)
 struct BO3GfxMip
 {
+    uint32_t Size;
     uint16_t Width;
     uint16_t Height;
 
     uint64_t HashID;
 
-    uint8_t Padding[28];
+    uint8_t Padding[24];
 };
 #pragma pack(pop)
 
 #pragma pack(push, 1)
 struct BO3GfxImage
 {
-    uint8_t Padding[4];
-
     BO3GfxMip MipLevels[4];
 
-    uint8_t Padding2[27];
+    uint8_t Padding2[31];
 
     uint8_t LoadedMipLevels;
 

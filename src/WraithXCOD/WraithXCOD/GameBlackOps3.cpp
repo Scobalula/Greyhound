@@ -669,6 +669,7 @@ std::unique_ptr<XImageDDS> GameBlackOps3::LoadXImage(const XImage_t& Image)
     uint32_t LargestWidth = 0;
     uint32_t LargestHeight = 0;
     uint64_t LargestHash = 0;
+    uint64_t LargestSize = 0;
 
     // Loop and calculate
     for (uint32_t i = 0; i < 4; i++)
@@ -680,6 +681,7 @@ std::unique_ptr<XImageDDS> GameBlackOps3::LoadXImage(const XImage_t& Image)
             LargestWidth = ImageInfo.MipLevels[i].Width;
             LargestHeight = ImageInfo.MipLevels[i].Height;
             LargestHash = ImageInfo.MipLevels[i].HashID;
+            LargestSize = (uint64_t)(i == 0 ? ImageInfo.MipLevels[i].Size >> 4 : (ImageInfo.MipLevels[i].Size >> 4) - (ImageInfo.MipLevels[i - 1].Size >> 4));
         }
     }
 
@@ -729,25 +731,25 @@ std::unique_ptr<XImageDDS> GameBlackOps3::LoadXImage(const XImage_t& Image)
     else
     {
         // We have a streamed image, prepare to extract
-        ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(LargestHash, ResultSize);
+        ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
     }
 
-    // Prepare if we have it
-    if (ImageData != nullptr)
-    {
-        // Prepare to create a MemoryDDS file
-        auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
+    //// Prepare if we have it
+    //if (ImageData != nullptr)
+    //{
+    //    // Prepare to create a MemoryDDS file
+    //    auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
 
-        // Check for, and apply patch if required, if we got a raw result
-        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
-        {
-            // Set normal map patch
-            Result->ImagePatchType = ImagePatch::Normal_Expand;
-        }
+    //    // Check for, and apply patch if required, if we got a raw result
+    //    if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
+    //    {
+    //        // Set normal map patch
+    //        Result->ImagePatchType = ImagePatch::Normal_Expand;
+    //    }
 
-        // Return it
-        return Result;
-    }
+    //    // Return it
+    //    return Result;
+    //}
 
     // Failed to load the image
     return nullptr;
@@ -792,7 +794,7 @@ void GameBlackOps3::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
         // Result size
         uint32_t ResultSize = 0;
         // We must read from the cache
-        MeshDataBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(ModelLOD.LODStreamKey, ResultSize);
+        MeshDataBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(ModelLOD.LODStreamKey, MeshInfo.XModelMeshBufferSize, ResultSize);
         // Set size
         MeshDataBufferSize = ResultSize;
     }
