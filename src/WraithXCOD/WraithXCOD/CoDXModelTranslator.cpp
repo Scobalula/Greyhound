@@ -15,6 +15,7 @@
 #include "GameBlackOpsCW.h"
 #include "GameWorldWar2.h"
 #include "GameModernWarfare4.h"
+#include "GameModernWarfare5.h"
 #include "GameVanguard.h"
 
 // Include generic structures
@@ -94,6 +95,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         {
         case 2: BoneID = CoDAssets::GameInstance->Read<uint16_t>(BoneIDs); break;
         case 4: BoneID = CoDAssets::GameInstance->Read<uint32_t>(BoneIDs); break;
+        case 8: BoneID = CoDAssets::GameInstance->Read<uint32_t>(BoneIDs); break;
         }
 
         // Add the new bone
@@ -292,6 +294,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         case SupportedGames::BlackOpsCW:            GameBlackOpsCW::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::WorldWar2:             GameWorldWar2::LoadXModel(Model, LodReference, ModelResult); break;
         case SupportedGames::ModernWarfare4:        GameModernWarfare4::LoadXModel(LodReference, ModelResult); break;
+        case SupportedGames::ModernWarfare5:        GameModernWarfare5::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::Vanguard:              GameVanguard::LoadXModel(Model, LodReference, ModelResult); break;
         }
     }

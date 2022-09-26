@@ -9,7 +9,7 @@
 #include "TextWriter.h"
 #include "WraithModel.h"
 #include "Image.h"
-
+#include "WraithNameIndex.h"
 
 // The Call of Duty asset type
 #include "CoDAssetType.h"
@@ -34,6 +34,7 @@ enum class SupportedGames
     ModernWarfare2,
     ModernWarfare3,
     ModernWarfare4,
+    ModernWarfare5,
     QuantumSolace,
     ModernWarfareRemastered,
     ModernWarfare2Remastered,
@@ -147,6 +148,10 @@ public:
     static LoadXImageHandler GameXImageHandler;
     // The game's string read handler
     static LoadStringHandler GameStringHandler;
+    // The game's asset name database.
+    static WraithNameIndex AssetNameCache;
+    // The game's string database.
+    static WraithNameIndex StringCache;
 
     // The directory where the game is stored.
     static std::string GameDirectory;
@@ -212,6 +217,8 @@ public:
     // Gets a model asset for previewing
     static std::unique_ptr<WraithModel> GetModelForPreview(const CoDModel_t* Model);
 
+    // Gets a model hash. If one is not found, a default value is used.
+    static std::string GetHashedName(const std::string& type, const uint64_t hash);
 private:
     // -- Game utility functions, internal
 

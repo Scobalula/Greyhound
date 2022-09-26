@@ -207,6 +207,27 @@
     <ClCompile Include="Parasyte.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GameModernWarfare5Structures.cpp">
+      <Filter>Source Files\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare5.cpp">
+      <Filter>Source Files\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="FileHandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinFileSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CascFileSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="XSUBCacheV2.cpp">
+      <Filter>Source Files\Packages</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoDAssets.h">
@@ -391,6 +412,27 @@
     </ClInclude>
     <ClInclude Include="Parasyte.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare5Structures.h">
+      <Filter>Header Files\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare5.h">
+      <Filter>Header Files\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinFileSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CascFileSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XSUBCacheV2.h">
+      <Filter>Header Files\Packages</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
