@@ -50,7 +50,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\External\CascLib\src;..\..\External\DirectXShaderCompiler\include;..\..\External\DirectXTex\DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\External\CascLib-2.1\src;..\..\External\DirectXShaderCompiler\include;..\..\External\DirectXTex\DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
@@ -67,7 +67,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\External\CascLib\src;..\..\External\DirectXShaderCompiler\include;..\..\External\DirectXTex\DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\External\CascLib-2.1\src;..\..\External\DirectXShaderCompiler\include;..\..\External\DirectXTex\DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
@@ -81,7 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\External\CascLib\CascLib_vs19.vcxproj">
+    <ProjectReference Include="..\..\External\CascLib-2.1\CascLib_vs19.vcxproj">
       <Project>{78424708-1f6e-4d4b-920c-fb6d26847055}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\External\DirectXTex\DirectXTex\DirectXTex_Desktop_2019_Win10.vcxproj">

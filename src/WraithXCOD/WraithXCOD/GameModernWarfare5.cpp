@@ -810,11 +810,11 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
             LargestSize   = i == 0 ? (size_t)MipMaps[i].Size >> 4 : ((size_t)MipMaps[i].Size >> 4) - ((size_t)MipMaps[i - 1].Size >> 4);
             OnDemand      = false;
         }
-        else if (MipMaps[i].Width > LargestWidth && CoDAssets::OnDemandCache->Exists(MipMaps[i].HashID))
+        else if (CoDAssets::OnDemandCache->Exists(MipMaps[i].HashID))
         {
             LargestMip    = i;
-            LargestWidth  = MipMaps[i].Width;
-            LargestHeight = MipMaps[i].Height;
+            LargestWidth  = ImageInfo.Width >> (MipCount - i - 1);
+            LargestHeight = ImageInfo.Height >> (MipCount - i - 1);
             LargestHash   = MipMaps[i].HashID;
             LargestSize   = i == 0 ? (size_t)MipMaps[i].Size >> 4 : ((size_t)MipMaps[i].Size >> 4) - ((size_t)MipMaps[i - 1].Size >> 4);
             OnDemand      = true;
