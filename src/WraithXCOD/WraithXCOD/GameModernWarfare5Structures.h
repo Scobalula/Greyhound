@@ -135,30 +135,39 @@ struct MW5GfxMip
 };
 #pragma pack(pop)
 
+
+#pragma pack(push, 1)
+struct MW5XAnimStreamInfo
+{
+    uint64_t StreamKey;
+    uint32_t Size;
+    uint32_t Padding;
+};
+#pragma pack(pop)
+
 #pragma pack(push, 1)
 struct MW5XAnim
 {
     uint64_t Hash;
     uint64_t NamePtr;
     uint64_t BoneIDsPtr;
-    uint64_t DataBytePtr;
-    uint64_t DataShortPtr;
-    uint64_t DataIntPtr;
-    uint64_t RandomDataShortPtr;
-    uint64_t RandomDataBytePtr;
-    uint64_t RandomDataIntPtr;
-    uint64_t LongIndiciesPtr;
+    uint64_t Null;
     uint64_t NotificationsPtr;
-    uint8_t PaddingNew[0x8];
-    uint64_t DeltaPartsPtr;
-    uint8_t Padding[0xC];
+    uint8_t Padding[24];
+    uint32_t RandomDataShortCount;
+    uint32_t RandomDataByteCount;
+    uint32_t IndexCount;
 
     float Framerate;
+    float Frequency;
 
-    uint8_t Padding2[14];
+    uint32_t DataByteCount;
+    uint16_t DataShortCount;
+    uint16_t DataIntCount;
+    uint16_t RandomDataIntCount;
+    uint16_t FrameCount;
 
-    uint16_t NumFrames;
-    uint16_t Flags;
+    uint8_t Padding2[6];
 
     uint16_t NoneRotatedBoneCount;
     uint16_t TwoDRotatedBoneCount;
@@ -171,11 +180,21 @@ struct MW5XAnim
     uint16_t NoneTranslatedBoneCount;
     uint16_t TotalBoneCount;
 
-    uint8_t NotificationCount;
-
+    uint8_t NotetrackCount;
     uint8_t AssetType;
 
-    uint8_t Padding3[27];
+    uint8_t Padding3[20];
+
+    uint32_t DataByteOffset;
+    uint32_t DataShortOffset;
+    uint32_t DataIntOffset;
+    uint32_t Padding4;
+    uint64_t OffsetPtr;
+    uint64_t OffsetPtr2;
+    uint32_t StreamIndex;
+    uint32_t OffsetCount;
+    uint8_t Padding5[24];
+    uint64_t StreamInfoPtr;
 };
 #pragma pack(pop)
 

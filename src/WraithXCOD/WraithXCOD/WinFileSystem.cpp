@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "WinFileSystem.h"
 
-ps::WinFileSystem::WinFileSystem(const std::string& directory)
+WinFileSystem::WinFileSystem(const std::string& directory)
 {
 	Directory = directory;
 
@@ -18,7 +18,7 @@ ps::WinFileSystem::WinFileSystem(const std::string& directory)
 	}
 }
 
-ps::WinFileSystem::~WinFileSystem()
+WinFileSystem::~WinFileSystem()
 {
 	for (auto openHandle : OpenHandles)
 	{
@@ -28,7 +28,7 @@ ps::WinFileSystem::~WinFileSystem()
 	OpenHandles.clear();
 }
 
-HANDLE ps::WinFileSystem::OpenFile(const std::string& fileName, const std::string& mode)
+HANDLE WinFileSystem::OpenFile(const std::string& fileName, const std::string& mode)
 {
 	HANDLE result = NULL;
 	char buffer[MAX_PATH]{};
@@ -77,12 +77,12 @@ HANDLE ps::WinFileSystem::OpenFile(const std::string& fileName, const std::strin
 	return result;
 }
 
-void ps::WinFileSystem::CloseHandle(HANDLE handle)
+void WinFileSystem::CloseHandle(HANDLE handle)
 {
 	::CloseHandle(handle);
 }
 
-bool ps::WinFileSystem::Exists(const std::string& fileName)
+bool WinFileSystem::Exists(const std::string& fileName)
 {
 	auto fullPath = Directory + "\\" + fileName;
 	DWORD dwAttrib = GetFileAttributesA(fullPath.c_str());
@@ -90,7 +90,7 @@ bool ps::WinFileSystem::Exists(const std::string& fileName)
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-size_t ps::WinFileSystem::Read(HANDLE handle, uint8_t* buffer, const size_t offset, const size_t size)
+size_t WinFileSystem::Read(HANDLE handle, uint8_t* buffer, const size_t offset, const size_t size)
 {
 	DWORD sizeRead = 0;
 
@@ -103,7 +103,7 @@ size_t ps::WinFileSystem::Read(HANDLE handle, uint8_t* buffer, const size_t offs
 	return sizeRead;
 }
 
-size_t ps::WinFileSystem::Write(HANDLE handle, const uint8_t* buffer, const size_t offset, const size_t size)
+size_t WinFileSystem::Write(HANDLE handle, const uint8_t* buffer, const size_t offset, const size_t size)
 {
 	DWORD sizeWritten = 0;
 
@@ -116,7 +116,7 @@ size_t ps::WinFileSystem::Write(HANDLE handle, const uint8_t* buffer, const size
 	return sizeWritten;
 }
 
-size_t ps::WinFileSystem::Tell(HANDLE handle)
+size_t WinFileSystem::Tell(HANDLE handle)
 {
 	LARGE_INTEGER output{};
 
@@ -130,7 +130,7 @@ size_t ps::WinFileSystem::Tell(HANDLE handle)
 	return output.QuadPart;
 }
 
-size_t ps::WinFileSystem::Seek(HANDLE handle, size_t position, size_t direction)
+size_t WinFileSystem::Seek(HANDLE handle, size_t position, size_t direction)
 {
 	LARGE_INTEGER input{};
 	input.QuadPart = position;
@@ -147,7 +147,7 @@ size_t ps::WinFileSystem::Seek(HANDLE handle, size_t position, size_t direction)
 	return output.QuadPart;
 }
 
-size_t ps::WinFileSystem::Size(HANDLE handle)
+size_t WinFileSystem::Size(HANDLE handle)
 {
 	LARGE_INTEGER output{};
 
@@ -160,7 +160,7 @@ size_t ps::WinFileSystem::Size(HANDLE handle)
 	return output.QuadPart;
 }
 
-size_t ps::WinFileSystem::EnumerateFiles(const std::string& pattern, std::function<void(const std::string&, const size_t)> onFileFound)
+size_t WinFileSystem::EnumerateFiles(const std::string& pattern, std::function<void(const std::string&, const size_t)> onFileFound)
 {
 	HANDLE findHandle;
 	WIN32_FIND_DATAA findData;

@@ -213,10 +213,10 @@
     <ClCompile Include="GameModernWarfare5.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
-    <ClCompile Include="FileHandle.cpp">
+    <ClCompile Include="CoDFileHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileSystem.cpp">
+    <ClCompile Include="CoDFileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WinFileSystem.cpp">
@@ -227,6 +227,21 @@
     </ClCompile>
     <ClCompile Include="XSUBCacheV2.cpp">
       <Filter>Source Files\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDXAnimReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNCache.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -419,10 +434,10 @@
     <ClInclude Include="GameModernWarfare5.h">
       <Filter>Header Files\Games</Filter>
     </ClInclude>
-    <ClInclude Include="FileSystem.h">
+    <ClInclude Include="CoDFileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FileHandle.h">
+    <ClInclude Include="CoDFileHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WinFileSystem.h">
@@ -433,6 +448,21 @@
     </ClInclude>
     <ClInclude Include="XSUBCacheV2.h">
       <Filter>Header Files\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXAnimReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNCache.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

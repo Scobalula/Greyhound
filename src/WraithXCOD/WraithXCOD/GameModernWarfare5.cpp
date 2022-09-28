@@ -102,6 +102,9 @@ struct MW5SoundAliasNamingInfo
     uint64_t SecondaryPtr;
 };
 
+std::map<uint32_t, std::string> Temp;
+
+
 // Calculates the hash of a sound string
 uint32_t MW5HashSoundString(const std::string& Value)
 {
@@ -164,38 +167,43 @@ bool GameModernWarfare5::LoadAssets()
             CoDAssets::LogXAsset("Model", ModelName);
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
+
+            for (size_t b = 0; b < LoadedModel->BoneCount; b++)
+            {
+                Temp[CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4)] = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
+            }
         });
     }
 
-    //if (NeedsImages)
-    //{
-    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 19 * sizeof(ps::XAssetPool64));
-    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-    //    {
-    //        // Read
-    //        auto ImageResult = CoDAssets::GameInstance->Read<MW5GfxImage>(Asset.Header);
-    //        // Get Loaded Image
-    //        //uint64_t ImagePointer = *(uint64_t*)&ImageResult.Padding5[8];
-    //        // Validate and load if need be
-    //        auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
-    //        // Log it
-    //        CoDAssets::LogXAsset("Image", ImageName);
-    //        // Check for loaded images
-    //        //if (ImagePointer == (uint64_t)-1)
-    //        //    return;
-    //        // Make and add
-    //        auto LoadedImage = new CoDImage_t();
-    //        // Set
-    //        LoadedImage->AssetName = ImageName;
-    //        LoadedImage->AssetPointer = Asset.Header;
-    //        LoadedImage->Width = (uint16_t)ImageResult.Width;
-    //        LoadedImage->Height = (uint16_t)ImageResult.Height;
-    //        LoadedImage->Format = ImageResult.ImageFormat;
-    //        LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
-    //        // Add
-    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
-    //    });
-    //}
+    if (NeedsImages)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 19 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto ImageResult = CoDAssets::GameInstance->Read<MW5GfxImage>(Asset.Header);
+            // Get Loaded Image
+            //uint64_t ImagePointer = *(uint64_t*)&ImageResult.Padding5[8];
+            // Validate and load if need be
+            auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
+            // Log it
+            CoDAssets::LogXAsset("Image", ImageName);
+            // Check for loaded images
+            //if (ImagePointer == (uint64_t)-1)
+            //    return;
+            // Make and add
+            auto LoadedImage = new CoDImage_t();
+            // Set
+            LoadedImage->AssetName = ImageName;
+            LoadedImage->AssetPointer = Asset.Header;
+            LoadedImage->Width = (uint16_t)ImageResult.Width;
+            LoadedImage->Height = (uint16_t)ImageResult.Height;
+            LoadedImage->Format = ImageResult.ImageFormat;
+            LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
+        });
+    }
 
     //if (NeedsAnims)
     //{
@@ -216,7 +224,7 @@ bool GameModernWarfare5::LoadAssets()
     //        LoadedAnim->AssetName = AnimName;
     //        LoadedAnim->AssetPointer = Asset.Header;
     //        LoadedAnim->Framerate = AnimResult.Framerate;
-    //        LoadedAnim->FrameCount = AnimResult.NumFrames;
+    //        LoadedAnim->FrameCount = AnimResult.FrameCount;
     //        LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
     //        LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
     //        // Add
@@ -224,31 +232,31 @@ bool GameModernWarfare5::LoadAssets()
     //    });
     //}
 
-    //if (NeedsMaterials)
-    //{
-    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 11 * sizeof(ps::XAssetPool64));
-    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-    //    {
-    //        // Read
-    //        auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterial>(Asset.Header);
-    //        // Validate and load if need be
-    //        auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MatResult.NamePtr);
+    if (NeedsMaterials)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 11 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterial>(Asset.Header);
+            // Validate and load if need be
+            auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MatResult.NamePtr);
 
-    //        // Log it
-    //        CoDAssets::LogXAsset("Material", MaterialName);
+            // Log it
+            CoDAssets::LogXAsset("Material", MaterialName);
 
-    //        // Make and add
-    //        auto LoadedMaterial = new CoDMaterial_t();
-    //        // Set
-    //        LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
-    //        LoadedMaterial->AssetPointer = Asset.Header;
-    //        LoadedMaterial->ImageCount = MatResult.ImageCount;
-    //        LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
+            // Make and add
+            auto LoadedMaterial = new CoDMaterial_t();
+            // Set
+            LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
+            LoadedMaterial->AssetPointer = Asset.Header;
+            LoadedMaterial->ImageCount = MatResult.ImageCount;
+            LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
 
-    //        // Add
-    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
-    //    });
-    //}
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
+        });
+    }
 
     ////// Since MW now stores the entire SABL in Fast Files, we must essentially parse it in memory, SABS files can be loaded as usual.
     ////if (NeedsSounds)
@@ -382,19 +390,22 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
     // Verify that the program is running
     if (CoDAssets::GameInstance->IsRunning())
     {
-        // Prepare to read the xanim
-        auto Anim = std::make_unique<XAnim_t>();
-
         // Read the XAnim structure
         auto AnimData = CoDAssets::GameInstance->Read<MW5XAnim>(Animation->AssetPointer);
 
-        uint32_t CuntNugger = 0;
-        auto Cunt = CoDAssets::GamePackageCache->ExtractPackageObject(6358811376137951404, 139440, CuntNugger);
+        // No stream info, not supported atm.
+        if (AnimData.StreamInfoPtr == 0)
+        {
+            return nullptr;
+        }
+
+        // Prepare to read the xanim
+        auto Anim = std::make_unique<XAnim_t>();
 
         // Copy over default properties
         Anim->AnimationName = Animation->AssetName;
         // Frames and Rate
-        Anim->FrameCount = AnimData.NumFrames;
+        Anim->FrameCount = AnimData.FrameCount;
         Anim->FrameRate = AnimData.Framerate;
 
         // Check for viewmodel animations
@@ -412,42 +423,91 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         //    Anim->AdditiveAnimation = true;
         //}
         // Check for looping
-        Anim->LoopingAnimation = (AnimData.Flags & 1);
+        Anim->LoopingAnimation = false /*(AnimData.Flags & 1)*/;
 
         // Read the delta data
-        auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(AnimData.DeltaPartsPtr);
+        // auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(AnimData.DeltaPartsPtr);
 
-        // Copy over pointers
-        Anim->BoneIDsPtr          = AnimData.BoneIDsPtr;
-        Anim->DataBytesPtr        = AnimData.DataBytePtr;
-        Anim->DataShortsPtr       = AnimData.DataShortPtr;
-        Anim->DataIntsPtr         = AnimData.DataIntPtr;
-        Anim->RandomDataBytesPtr  = AnimData.RandomDataBytePtr;
-        Anim->RandomDataShortsPtr = AnimData.RandomDataShortPtr;
-        Anim->RandomDataIntsPtr   = AnimData.RandomDataIntPtr;
-        Anim->LongIndiciesPtr     = AnimData.LongIndiciesPtr;
-        Anim->NotificationsPtr    = AnimData.NotificationsPtr;
+        std::unique_ptr<uint8_t[]> AnimBuffer = nullptr;
+        uint32_t AnimBufferSize = 0;
+        uint64_t AnimBufferOffset = 0;
+
+        // Check for stream info, should be a flag but this will do
+        if (AnimData.StreamInfoPtr != 0)
+        {
+            // We'll need to extract it from the streamed packages
+            // What we'll get back is a complete buffer we can work with.
+            // TODO: Support big anims (multiple buffers)
+            auto StreamInfo = CoDAssets::GameInstance->Read<MW5XAnimStreamInfo>(AnimData.StreamInfoPtr);
+
+            AnimBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(StreamInfo.StreamKey, StreamInfo.Size, AnimBufferSize);
+
+            if (AnimBufferSize != StreamInfo.Size)
+            {
+                return nullptr;
+            }
+
+            // Debug, TODO: Multiple xanim buffers
+            //for (size_t i = 0; i < AnimData.OffsetCount; i++)
+            //{
+            //    auto StreamInfo2 = CoDAssets::GameInstance->Read<MW5XAnimStreamInfo>(AnimData.StreamInfoPtr + i * sizeof(MW5XAnimStreamInfo));
+            //    uint32_t AnimBufferSize2 = 0;
+            //    auto AnimBuffer2 = CoDAssets::GamePackageCache->ExtractPackageObject(StreamInfo2.StreamKey, StreamInfo2.Size, AnimBufferSize2);
+
+            //    BinaryWriter Writer;
+
+            //    Writer.Create(Strings::Format("anim_%llu.dat", i));
+
+            //    Writer.Write(AnimBuffer2.get(), StreamInfo.Size);
+            //}
+        }
+
+        // Create a generic xanim reader and assign it to the new xanim translator
+        Anim->Reader = std::make_unique<CoDXAnimReader>(AnimBuffer.release(), (size_t)AnimBufferSize, true);
+
+        // Now consume the chicken dinner.
+        Anim->Reader->DataBytes = Anim->Reader->GetBuffer();
+        Anim->Reader->DataShorts = Anim->Reader->GetBuffer() + (size_t)AnimData.DataShortOffset;
+        Anim->Reader->DataInts = Anim->Reader->GetBuffer() + (size_t)AnimData.DataIntOffset;
+        Anim->Reader->RandomDataShorts = Anim->Reader->GetBuffer() + CoDAssets::GameInstance->Read<uint32_t>(AnimData.OffsetPtr);
+        Anim->Reader->RandomDataBytes = Anim->Reader->GetBuffer() + CoDAssets::GameInstance->Read<uint32_t>(AnimData.OffsetPtr2);
+        Anim->Reader->RandomDataInts = Anim->Reader->GetBuffer();
+
+        // Consume Bones (TODO: Hashes are now stored, need to build a table and to figure out algorithm)
+        // Building from XModels on fly atm.
+        for (size_t b = 0; b < AnimData.TotalBoneCount; b++)
+        {
+            uint32_t boneid = CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4);
+            if (Temp.find(boneid) != Temp.end())
+            {
+                Anim->Reader->BoneNames.push_back(Temp[boneid]);
+            }
+            else
+            {
+                Anim->Reader->BoneNames.push_back(Strings::Format("bone_%llx", boneid));
+            }
+        }
 
         // Bone ID index size
         Anim->BoneIndexSize = 4;
 
         // Copy over counts
-        Anim->NoneRotatedBoneCount         = AnimData.NoneRotatedBoneCount;
-        Anim->TwoDRotatedBoneCount         = AnimData.TwoDRotatedBoneCount;
-        Anim->NormalRotatedBoneCount       = AnimData.NormalRotatedBoneCount;
-        Anim->TwoDStaticRotatedBoneCount   = AnimData.TwoDStaticRotatedBoneCount;
+        Anim->NoneRotatedBoneCount = AnimData.NoneRotatedBoneCount;
+        Anim->TwoDRotatedBoneCount = AnimData.TwoDRotatedBoneCount;
+        Anim->NormalRotatedBoneCount = AnimData.NormalRotatedBoneCount;
+        Anim->TwoDStaticRotatedBoneCount = AnimData.TwoDStaticRotatedBoneCount;
         Anim->NormalStaticRotatedBoneCount = AnimData.NormalStaticRotatedBoneCount;
-        Anim->NormalTranslatedBoneCount    = AnimData.NormalTranslatedBoneCount;
-        Anim->PreciseTranslatedBoneCount   = AnimData.PreciseTranslatedBoneCount;
-        Anim->StaticTranslatedBoneCount    = AnimData.StaticTranslatedBoneCount;
-        Anim->NoneTranslatedBoneCount      = AnimData.NoneTranslatedBoneCount;
-        Anim->TotalBoneCount               = AnimData.TotalBoneCount;
-        Anim->NotificationCount            = AnimData.NotificationCount;
+        Anim->NormalTranslatedBoneCount = AnimData.NormalTranslatedBoneCount;
+        Anim->PreciseTranslatedBoneCount = AnimData.PreciseTranslatedBoneCount;
+        Anim->StaticTranslatedBoneCount = AnimData.StaticTranslatedBoneCount;
+        Anim->NoneTranslatedBoneCount = AnimData.NoneTranslatedBoneCount;
+        Anim->TotalBoneCount = AnimData.TotalBoneCount;
+        //Anim->NotificationCount            = AnimData.NotificationCount;
 
         // Copy delta
-        Anim->DeltaTranslationPtr = AnimDeltaData.DeltaTranslationsPtr;
-        Anim->Delta2DRotationsPtr = AnimDeltaData.Delta2DRotationsPtr;
-        Anim->Delta3DRotationsPtr = AnimDeltaData.Delta3DRotationsPtr;
+        //Anim->DeltaTranslationPtr = AnimDeltaData.DeltaTranslationsPtr;
+        //Anim->Delta2DRotationsPtr = AnimDeltaData.Delta2DRotationsPtr;
+        //Anim->Delta3DRotationsPtr = AnimDeltaData.Delta3DRotationsPtr;
 
         // Set types, we use dividebysize for MW5
         Anim->RotationType = AnimationKeyTypes::DivideBySize;

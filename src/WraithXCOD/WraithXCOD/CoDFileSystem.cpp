@@ -1,11 +1,11 @@
 #include "stdafx.h"
-#include "FileSystem.h"
+#include "CoDFileSystem.h"
 
-ps::FileSystem::~FileSystem()
+CoDFileSystem::~CoDFileSystem()
 {
 }
 
-void ps::FileSystem::CloseFile(HANDLE handle)
+void CoDFileSystem::CloseFile(HANDLE handle)
 {
 	for (auto it = OpenHandles.begin(); it != OpenHandles.end(); )
 	{
@@ -22,7 +22,7 @@ void ps::FileSystem::CloseFile(HANDLE handle)
 	CloseHandle(handle);
 }
 
-std::unique_ptr<uint8_t[]> ps::FileSystem::Read(HANDLE handle, const size_t size)
+std::unique_ptr<uint8_t[]> CoDFileSystem::Read(HANDLE handle, const size_t size)
 {
 	auto result = std::make_unique<uint8_t[]>(size);
 
@@ -34,17 +34,17 @@ std::unique_ptr<uint8_t[]> ps::FileSystem::Read(HANDLE handle, const size_t size
 	return result;
 }
 
-size_t ps::FileSystem::Write(HANDLE handle, const uint8_t* buffer, const size_t size)
+size_t CoDFileSystem::Write(HANDLE handle, const uint8_t* buffer, const size_t size)
 {
 	return Write(handle, buffer, 0, size);
 }
 
-const size_t ps::FileSystem::GetLastError() const
+const size_t CoDFileSystem::GetLastError() const
 {
 	return LastErrorCode;
 }
 
-const bool ps::FileSystem::IsValid() const
+const bool CoDFileSystem::IsValid() const
 {
 	return LastErrorCode == 0;
 }

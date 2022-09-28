@@ -16,6 +16,8 @@
 #include "CoDPackageCache.h"
 #include "CoDXConverter.h"
 #include "CoDGDTProcessor.h"
+#include "CoDCDNCache.h"
+#include "CoDCDNDownloader.h"
 
 // Parasyte
 #include "Parasyte.h"
@@ -144,6 +146,8 @@ public:
     static std::unique_ptr<CoDPackageCache> GamePackageCache;
     // The game's package cache, if any
     static std::unique_ptr<CoDPackageCache> OnDemandCache;
+    // The game's cdn downloader, if any
+    static std::unique_ptr<CoDCDNDownloader> CDNDownloader;
     // The game's ximage read handler
     static LoadXImageHandler GameXImageHandler;
     // The game's string read handler

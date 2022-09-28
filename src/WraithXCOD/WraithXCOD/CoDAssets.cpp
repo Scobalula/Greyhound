@@ -12,6 +12,11 @@
 #include "Sound.h"
 #include "BinaryReader.h"
 
+// We need the CDN Downloaders
+#include "CoDCDNDownloader.h"
+#include "CoDCDNDownloaderV1.h"
+#include "CoDCDNDownloaderV2.h"
+
 // We need the main window for callbacks
 #include "MainWindow.h"
 
@@ -116,6 +121,8 @@ std::unique_ptr<AssetPool> CoDAssets::GameAssets = nullptr;
 std::unique_ptr<CoDPackageCache> CoDAssets::GamePackageCache = nullptr;
 // Set cache
 std::unique_ptr<CoDPackageCache> CoDAssets::OnDemandCache = nullptr;
+// Set downloader
+std::unique_ptr<CoDCDNDownloader> CoDAssets::CDNDownloader = nullptr;
 
 // Set the image read handler
 LoadXImageHandler CoDAssets::GameXImageHandler = nullptr;
@@ -673,6 +680,8 @@ LoadGameResult CoDAssets::LoadGamePS()
             XAssetLogWriter->Open(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "AssetLog.txt"));
         }
 
+        size_t sizer = 0;
+
         // Cleanup
         CleanupPackageCache();
 
@@ -749,9 +758,12 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameStringHandler = GameModernWarfare5::LoadStringEntry;
             GamePackageCache  = std::make_unique<XSUBCacheV2>();
             OnDemandCache     = std::make_unique<XSUBCacheV2>();
+            CDNDownloader     = std::make_unique<CoDCDNDownloaderV2>();
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "cod.exe")) ? "xpak_cache" : FileSystems::CombinePath("_beta_", "xpak_cache")));
             GameGDTProcessor->SetupProcessor("MW5");
+            CDNDownloader->Initialize(ps::state->GameDirectory);
+            auto data = CDNDownloader->ExtractCDNObject(0x1CCF475B9909BD, 0x80000, sizer);
             Success = GameModernWarfare5::LoadAssets();
             break;
         }

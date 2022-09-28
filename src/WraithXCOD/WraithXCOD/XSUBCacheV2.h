@@ -2,7 +2,7 @@
 // We need the package cache
 #include "CoDAssets.h"
 #include "CoDPackageCache.h"
-#include "FileSystem.h"
+#include "CoDFileSystem.h"
 #include <shared_mutex>
 
 // A class that handles reading, caching and extracting CASC Resources
@@ -10,7 +10,7 @@ class XSUBCacheV2 : public CoDPackageCache
 {
 private:
     // File System
-    std::unique_ptr<ps::FileSystem> FileSystem;
+    std::unique_ptr<CoDFileSystem> FileSystem;
     // Cache Mutex
     std::shared_mutex ReadMutex;
 public:
@@ -48,18 +48,18 @@ struct XSUBHeaderV2
     uint64_t Type;
     uint64_t Size;
     uint8_t UnknownHashes[1896];
-    int64_t FileCount;
-    int64_t DataOffset;
-    int64_t DataSize;
-    int64_t HashCount;
-    int64_t HashOffset;
-    int64_t HashSize;
-    int64_t Unknown3;
-    int64_t UnknownOffset;
-    int64_t Unknown4;
-    int64_t IndexCount;
-    int64_t IndexOffset;
-    int64_t IndexSize;
+    uint64_t FileCount;
+    uint64_t DataOffset;
+    uint64_t DataSize;
+    uint64_t HashCount;
+    uint64_t HashOffset;
+    uint64_t HashSize;
+    uint64_t Unknown3;
+    uint64_t UnknownOffset;
+    uint64_t Unknown4;
+    uint64_t IndexCount;
+    uint64_t IndexOffset;
+    uint64_t IndexSize;
 };
 #pragma pack(pop)
 

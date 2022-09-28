@@ -3,7 +3,7 @@
 #include "Strings.h"
 #include "CascLib.h"
 
-ps::CascFileSystem::CascFileSystem(const std::string& directory)
+CascFileSystem::CascFileSystem(const std::string& directory)
 {
     StorageHandle = NULL;
 
@@ -19,7 +19,7 @@ ps::CascFileSystem::CascFileSystem(const std::string& directory)
     }
 }
 
-ps::CascFileSystem::~CascFileSystem()
+CascFileSystem::~CascFileSystem()
 {
     for (auto openHandle : OpenHandles)
     {
@@ -30,7 +30,7 @@ ps::CascFileSystem::~CascFileSystem()
     CascCloseStorage(StorageHandle);
 }
 
-HANDLE ps::CascFileSystem::OpenFile(const std::string& fileName, const std::string& mode)
+HANDLE CascFileSystem::OpenFile(const std::string& fileName, const std::string& mode)
 {
     // Casc only supports reading
     if (mode != "r")
@@ -55,12 +55,12 @@ HANDLE ps::CascFileSystem::OpenFile(const std::string& fileName, const std::stri
     return result;
 }
 
-void ps::CascFileSystem::CloseHandle(HANDLE handle)
+void CascFileSystem::CloseHandle(HANDLE handle)
 {
     CascCloseFile(handle);
 }
 
-bool ps::CascFileSystem::Exists(const std::string& fileName)
+bool CascFileSystem::Exists(const std::string& fileName)
 {
     CASC_FIND_DATA findData{};
     HANDLE fileHandle = CascFindFirstFile(StorageHandle, fileName.c_str(), &findData, NULL);
@@ -69,7 +69,7 @@ bool ps::CascFileSystem::Exists(const std::string& fileName)
     return result;
 }
 
-size_t ps::CascFileSystem::Read(HANDLE handle, uint8_t* buffer, const size_t offset, const size_t size)
+size_t CascFileSystem::Read(HANDLE handle, uint8_t* buffer, const size_t offset, const size_t size)
 {
     DWORD sizeRead = 0;
 
@@ -85,13 +85,13 @@ size_t ps::CascFileSystem::Read(HANDLE handle, uint8_t* buffer, const size_t off
     return sizeRead;
 }
 
-size_t ps::CascFileSystem::Write(HANDLE handle, const uint8_t* buffer, const size_t offset, const size_t size)
+size_t CascFileSystem::Write(HANDLE handle, const uint8_t* buffer, const size_t offset, const size_t size)
 {
     LastErrorCode = 0x345302;
     return 0;
 }
 
-size_t ps::CascFileSystem::Tell(HANDLE handle)
+size_t CascFileSystem::Tell(HANDLE handle)
 {
     ULONGLONG result = 0;
 
@@ -107,7 +107,7 @@ size_t ps::CascFileSystem::Tell(HANDLE handle)
     return result;
 }
 
-size_t ps::CascFileSystem::Seek(HANDLE handle, size_t position, size_t direction)
+size_t CascFileSystem::Seek(HANDLE handle, size_t position, size_t direction)
 {
     ULONGLONG result = 0;
 
@@ -123,7 +123,7 @@ size_t ps::CascFileSystem::Seek(HANDLE handle, size_t position, size_t direction
     return result;
 }
 
-size_t ps::CascFileSystem::Size(HANDLE handle)
+size_t CascFileSystem::Size(HANDLE handle)
 {
     if (handle == NULL)
     {
@@ -146,7 +146,7 @@ size_t ps::CascFileSystem::Size(HANDLE handle)
     return result;
 }
 
-size_t ps::CascFileSystem::EnumerateFiles(const std::string& pattern, std::function<void(const std::string&, const size_t)> onFileFound)
+size_t CascFileSystem::EnumerateFiles(const std::string& pattern, std::function<void(const std::string&, const size_t)> onFileFound)
 {
     size_t entriesConsumed = 0;
     HANDLE fileHandle;

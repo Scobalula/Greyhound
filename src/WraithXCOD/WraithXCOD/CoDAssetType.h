@@ -10,6 +10,7 @@
 
 // We need the following classes
 #include "Image.h"
+#include "CoDXAnimReader.h"
 
 // A class that represents an asset
 class CoDAsset_t : public WraithAsset
@@ -471,6 +472,9 @@ struct XAnim_t
     uint32_t NotificationCount;
     // The count of blendshape weights
     uint32_t BlendShapeWeightCount;
+
+    // XAnim Reader (Streamed)
+    std::unique_ptr<CoDXAnimReader> Reader;
 };
 
 struct XImageDDS

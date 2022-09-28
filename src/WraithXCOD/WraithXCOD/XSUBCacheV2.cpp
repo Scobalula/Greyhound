@@ -6,10 +6,10 @@
 #include "DBGameFiles.h"
 
 // We need the file system classes.
-#include "FileSystem.h"
+#include "CoDFileSystem.h"
 #include "WinFileSystem.h"
 #include "CascFileSystem.h"
-#include "FileHandle.h"
+#include "CoDFileHandle.h"
 
 // We need the following classes
 #include "FileSystems.h"
@@ -42,11 +42,11 @@ void XSUBCacheV2::LoadPackageCache(const std::string& BasePath)
     // we'll use Casc, otherwise use raw directory.
     if (FileSystems::FileExists(BasePath + "\\.build.info"))
     {
-        FileSystem = std::make_unique<ps::CascFileSystem>(BasePath);
+        FileSystem = std::make_unique<CascFileSystem>(BasePath);
     }
     else
     {
-        FileSystem = std::make_unique<ps::WinFileSystem>(BasePath);
+        FileSystem = std::make_unique<WinFileSystem>(BasePath);
 
     }
 
@@ -100,7 +100,7 @@ bool XSUBCacheV2::LoadPackage(const std::string& FilePath)
 
     // Open CASC File
     // TODO: Implement read, seek, etc. right in this handle class.
-    auto Handle = ps::FileHandle(FileSystem->OpenFile(FilePath, "r"), FileSystem.get());
+    auto Handle = CoDFileHandle(FileSystem->OpenFile(FilePath, "r"), FileSystem.get());
 
     // Read the header
     auto Header = FileSystem->Read<XSUBHeaderV2>(Handle.GetHandle());
@@ -186,7 +186,7 @@ std::unique_ptr<uint8_t[]> XSUBCacheV2::ExtractPackageObject(uint64_t CacheID, i
         auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
         // Open CASC File
         // TODO: Implement read, seek, etc. right in this handle class.
-        auto Handle = ps::FileHandle(FileSystem->OpenFile(XPAKFileName, "r"), FileSystem.get());
+        auto Handle = CoDFileHandle(FileSystem->OpenFile(XPAKFileName, "r"), FileSystem.get());
 
         auto ReadUsage = 0.0;
 #if _DEBUG
@@ -214,7 +214,7 @@ std::unique_ptr<uint8_t[]> XSUBCacheV2::ExtractPackageObject(uint64_t CacheID, i
             // Hop to the beginning offset
             FileSystem->Seek(Handle.GetHandle(), BlockPosition, SEEK_SET);
             // Read
-            FileSystem->Read(Handle.GetHandle(), (uint8_t*)ResultBuffer.get(), 0, CacheInfo.CompressedSize);
+            ResultSize = (uint32_t)FileSystem->Read(Handle.GetHandle(), (uint8_t*)ResultBuffer.get(), 0, CacheInfo.CompressedSize);
             // Set size
             TotalDataSize = CacheInfo.CompressedSize;
             // Done

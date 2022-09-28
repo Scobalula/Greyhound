@@ -17,6 +17,8 @@ public:
 
     // Translates an in-game XAnim to a WraithAnim
     static std::unique_ptr<WraithAnim> TranslateXAnim(const std::unique_ptr<XAnim_t>& Animation);
+    // Translates an in-game XAnim to a WraithAnim
+    static std::unique_ptr<WraithAnim> TranslateXAnimReader(const std::unique_ptr<XAnim_t>& Animation);
 
 private:
     // -- Translation utilities (XAnims)

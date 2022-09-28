@@ -13,6 +13,12 @@
 
 std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique_ptr<XAnim_t>& Animation)
 {
+    // Check for a reader.
+    if (Animation->Reader != nullptr)
+    {
+        return TranslateXAnimReader(Animation);
+    }
+
     // Prepare to generate a WraithAnim
     auto Anim = std::make_unique<WraithAnim>();
 
@@ -759,6 +765,541 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
     // Return it
     return Anim;
 }
+
+std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnimReader(const std::unique_ptr<XAnim_t>& Animation)
+{
+    // Prepare to generate a WraithAnim
+    auto Anim = std::make_unique<WraithAnim>();
+
+    // Apply name
+    Anim->AssetName = Animation->AnimationName;
+    // Apply framerate
+    Anim->FrameRate = Animation->FrameRate;
+    // Apply looping
+    Anim->Looping = Animation->LoopingAnimation;
+
+    //
+    // The following is a workaround for the fact that the ViewModel local-space transformation matricies are 0'd out, We can't use them in software like Maya without these
+    // So they are calculated on model-export from the global-space matricies. However, this means that we must modify our animation data to be absolutely positioned, and
+    // Modify the hierarchy after the base gun joint to reflect the relative animation data.
+    //
+
+    // Determine animation type
+    Anim->AnimType = WraithAnimationType::Relative;
+    // Check for viewmodel animations
+    if (Animation->ViewModelAnimation)
+    {
+        // Apply relative tags (Differ per-game)
+        switch (CoDAssets::GameID)
+        {
+        case SupportedGames::Ghosts:
+        case SupportedGames::BlackOps:
+        case SupportedGames::BlackOps2:
+        case SupportedGames::WorldAtWar:
+        case SupportedGames::ModernWarfare:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::WorldWar2:
+            Anim->AddBoneModifier("j_gun", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("j_gun1", WraithAnimationType::Relative);
+            break;
+        case SupportedGames::BlackOps3:
+        case SupportedGames::BlackOps4:
+            Anim->AddBoneModifier("tag_weapon", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("tag_weapon_le", WraithAnimationType::Relative);
+            break;
+        case SupportedGames::InfiniteWarfare:
+            Anim->AddBoneModifier("tag_weapon", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("tag_weapon1", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("j_gun", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("j_gun1", WraithAnimationType::Relative);
+            break;
+        }
+
+        // Set type to absolute
+        Anim->AnimType = WraithAnimationType::Absolute;
+    }
+    // Check for delta animations
+    if (Animation->DeltaTranslationPtr != 0 || Animation->Delta2DRotationsPtr != 0 || Animation->Delta3DRotationsPtr != 0)
+    {
+        // We have a delta animation
+        Anim->AnimType = WraithAnimationType::Delta;
+        // Set the delta tag name
+        Anim->DeltaTagName = "tag_origin";
+    }
+    // Check for additive animations
+    if (Animation->AdditiveAnimation)
+    {
+        // Set type to additive (Overrides absolute)
+        Anim->AnimType = WraithAnimationType::Additive;
+    }
+
+    // Calculate the size of frames and inline bone indicies
+    uint32_t FrameSize = (Animation->FrameCount > 255) ? 2 : 1;
+    uint32_t BoneTypeSize = (Animation->TotalBoneCount > 255) ? 2 : 1;
+
+    size_t currentBoneIndex = 0;
+    size_t currentSize = Animation->NoneRotatedBoneCount;
+    bool byteFrames = Animation->FrameCount < 0x100;
+
+    // TODO: Could prob use MemoryReader to make this safer
+
+    auto indices = (uint16_t*)Animation->Reader->Indices;
+    auto dataByte = (uint8_t*)Animation->Reader->DataBytes;
+    auto dataShort = (int16_t*)Animation->Reader->DataShorts;
+    auto dataInt = (int32_t*)Animation->Reader->DataInts;
+    auto randomDataByte = (uint8_t*)Animation->Reader->RandomDataBytes;
+    auto randomDataShort = (int16_t*)Animation->Reader->RandomDataShorts;
+    auto randomDataInt = (int32_t*)Animation->Reader->RandomDataInts;
+
+    // Stage 0: Zero-Rotated bones
+    // Zero-rotated bones must be reset to identity, they are the first set of bones
+    // Note: NoneTranslated bones aren't reset, they remain scene position
+    while (currentBoneIndex < currentSize)
+    {
+        // Add the keyframe
+        Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex++], 0, 0, 0, 0, 1.0f);
+    }
+
+    currentSize += Animation->TwoDRotatedBoneCount;
+
+    // 2D Bones
+    while (currentBoneIndex < currentSize)
+    {
+        auto tableSize = *dataShort++;
+
+        if (tableSize >= 0x40 && !byteFrames)
+            dataShort += (tableSize - 1 >> 8) + 2;
+
+        for (int i = 0; i < tableSize + 1; i++)
+        {
+            uint32_t frame = 0;
+
+            if (byteFrames)
+            {
+                frame = *dataByte++;
+            }
+            else
+            {
+                frame = tableSize >= 0x40 ? *indices++ : *dataShort++;
+            }
+
+            // Build the rotation key
+            if (Animation->RotationType == AnimationKeyTypes::DivideBySize)
+            {
+                float RZ = (float)*randomDataShort++ * 0.000030518509f;
+                float RW = (float)*randomDataShort++ * 0.000030518509f;
+                Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], frame, 0, 0, RZ, RW);
+            }
+            else if (Animation->RotationType == AnimationKeyTypes::HalfFloat)
+            {
+                float RZ = HalfFloats::ToFloat(*randomDataShort++);
+                float RW = HalfFloats::ToFloat(*randomDataShort++);
+                Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], frame, 0, 0, RZ, RW);
+            }
+            else if (Animation->RotationType == AnimationKeyTypes::QuatPackingA)
+            {
+                // Calculate
+                auto Rotation = VectorPacking::QuatPacking2DA(*(uint32_t*)randomDataShort); randomDataShort += 2;
+                // Add it
+                Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], frame, Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
+            }
+        }
+
+        currentBoneIndex++;
+    }
+
+    currentSize += Animation->NormalRotatedBoneCount;
+
+    // 3D Rotations
+    while (currentBoneIndex < currentSize)
+    {
+        auto tableSize = *dataShort++;
+
+        if (tableSize >= 0x40 && !byteFrames)
+            dataShort += (tableSize - 1 >> 8) + 2;
+
+        for (int i = 0; i < tableSize + 1; i++)
+        {
+            uint32_t frame = 0;
+
+            if (byteFrames)
+            {
+                frame = *dataByte++;
+            }
+            else
+            {
+                frame = tableSize >= 0x40 ? *indices++ : *dataShort++;
+            }
+
+            // Build the rotation key
+            if (Animation->RotationType == AnimationKeyTypes::DivideBySize)
+            {
+                float RX = (float)*randomDataShort++ * 0.000030518509f;
+                float RY = (float)*randomDataShort++ * 0.000030518509f;
+                float RZ = (float)*randomDataShort++ * 0.000030518509f;
+                float RW = (float)*randomDataShort++ * 0.000030518509f;
+                Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], frame, RX, RY, RZ, RW);
+            }
+            else if (Animation->RotationType == AnimationKeyTypes::HalfFloat)
+            {
+                float RX = HalfFloats::ToFloat(*randomDataShort++);
+                float RY = HalfFloats::ToFloat(*randomDataShort++);
+                float RZ = HalfFloats::ToFloat(*randomDataShort++);
+                float RW = HalfFloats::ToFloat(*randomDataShort++);
+                Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], frame, RX, RY, RZ, RW);
+            }
+            else if (Animation->RotationType == AnimationKeyTypes::QuatPackingA)
+            {
+                // Calculate
+                auto Rotation = VectorPacking::QuatPackingA(*(uint64_t*)randomDataShort); randomDataShort += 4;
+                // Add it
+                Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], frame, Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
+            }
+        }
+
+        currentBoneIndex++;
+    }
+
+    currentSize += Animation->TwoDStaticRotatedBoneCount;
+
+    // Stage 3: 2D Static Rotations
+    // 2D Static Rotations appear directly after the "3D Rotations"
+    while (currentBoneIndex < currentSize)
+    {
+        // Build the rotation key
+        if (Animation->RotationType == AnimationKeyTypes::DivideBySize)
+        {
+            float RZ = (float)*dataShort++ * 0.000030518509f;
+            float RW = (float)*dataShort++ * 0.000030518509f;
+            Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], 0, 0, 0, RZ, RW);
+        }
+        else if (Animation->RotationType == AnimationKeyTypes::HalfFloat)
+        {
+            float RZ = HalfFloats::ToFloat(*dataShort++);
+            float RW = HalfFloats::ToFloat(*dataShort++);
+            Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], 0, 0, 0, RZ, RW);
+        }
+        else if (Animation->RotationType == AnimationKeyTypes::QuatPackingA)
+        {
+            // Calculate
+            auto Rotation = VectorPacking::QuatPacking2DA(*(uint32_t*)dataShort); dataShort += 2;
+            // Add it
+            Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], 0, Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
+        }
+
+        currentBoneIndex++;
+    }
+
+    currentSize += Animation->NormalStaticRotatedBoneCount;
+
+    // Stage 4: 3D Static Rotations
+    // 3D Static Rotations appear directly after the "2D Static Rotations"
+    while (currentBoneIndex < currentSize)
+    {
+        // Build the rotation key
+        if (Animation->RotationType == AnimationKeyTypes::DivideBySize)
+        {
+            float RX = (float)*dataShort++ * 0.000030518509f;
+            float RY = (float)*dataShort++ * 0.000030518509f;
+            float RZ = (float)*dataShort++ * 0.000030518509f;
+            float RW = (float)*dataShort++ * 0.000030518509f;
+            Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], 0, RX, RY, RZ, RW);
+        }
+        else if (Animation->RotationType == AnimationKeyTypes::HalfFloat)
+        {
+            float RX = HalfFloats::ToFloat(*dataShort++);
+            float RY = HalfFloats::ToFloat(*dataShort++);
+            float RZ = HalfFloats::ToFloat(*dataShort++);
+            float RW = HalfFloats::ToFloat(*dataShort++);
+            Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], 0, RX, RY, RZ, RW);
+        }
+        else if (Animation->RotationType == AnimationKeyTypes::QuatPackingA)
+        {
+            // Calculate
+            auto Rotation = VectorPacking::QuatPackingA(*(uint64_t*)dataShort); dataShort += 4;
+            // Add it
+            Anim->AddRotationKey(Animation->Reader->BoneNames[currentBoneIndex], 0, Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
+        }
+
+        currentBoneIndex++;
+    }
+
+    //// TODO: Rotations are good but translations are still broken
+    //// bone indices among other things are slightly bigger, so may 
+    //// be pulling from wrong buffer, to be investigated.
+    //return Anim;
+
+    currentBoneIndex = 0;
+    currentSize = Animation->NormalTranslatedBoneCount;
+
+    while (currentBoneIndex++ < currentSize)
+    {
+        auto boneIndex = *dataShort++; // TODO: Allow for different sizes. Atm specific to MW2.
+        auto tableSize = *dataShort++;
+
+        printf("Normal: %s\n", Animation->Reader->BoneNames[boneIndex].c_str());
+
+        if (tableSize >= 0x40 && !byteFrames)
+            dataShort += (tableSize - 1 >> 8) + 2;
+
+        float minsVecX = *(float*)dataInt++;
+        float minsVecY = *(float*)dataInt++;
+        float minsVecZ = *(float*)dataInt++;
+        float frameVecX = *(float*)dataInt++;
+        float frameVecY = *(float*)dataInt++;
+        float frameVecZ = *(float*)dataInt++;
+
+        for (int i = 0; i < tableSize + 1; i++)
+        {
+            int frame = 0;
+
+            if (byteFrames)
+            {
+                frame = *dataByte++;
+            }
+            else
+            {
+                frame = tableSize >= 0x40 ? *indices++ : *dataShort++;
+            }
+
+            // Build the translation key
+            if (Animation->TranslationType == AnimationKeyTypes::MinSizeTable)
+            {
+                // Calculate translation
+                float TranslationX = (frameVecX * (float)*randomDataByte++) + minsVecX;
+                float TranslationY = (frameVecY * (float)*randomDataByte++) + minsVecY;
+                float TranslationZ = (frameVecZ * (float)*randomDataByte++) + minsVecZ;
+                // Add
+                Anim->AddTranslationKey(Animation->Reader->BoneNames[boneIndex], frame, TranslationX, TranslationY, TranslationZ);
+            }
+        }
+    }
+
+    currentBoneIndex = 0;
+    currentSize = Animation->PreciseTranslatedBoneCount;
+
+    while (currentBoneIndex++ < currentSize)
+    {
+        auto boneIndex = *dataShort++; // TODO: Allow for different sizes. Atm specific to MW2.
+        auto tableSize = *dataShort++;
+
+        printf("Precise: %s\n", Animation->Reader->BoneNames[boneIndex].c_str());
+
+
+        if (tableSize >= 0x40 && !byteFrames)
+            dataShort += (tableSize - 1 >> 8) + 2;
+
+        float minsVecX = *(float*)dataInt++;
+        float minsVecY = *(float*)dataInt++;
+        float minsVecZ = *(float*)dataInt++;
+        float frameVecX = *(float*)dataInt++;
+        float frameVecY = *(float*)dataInt++;
+        float frameVecZ = *(float*)dataInt++;
+
+        for (int i = 0; i < tableSize + 1; i++)
+        {
+            int frame = 0;
+
+            if (byteFrames)
+            {
+                frame = *dataByte++;
+            }
+            else
+            {
+                frame = tableSize >= 0x40 ? *indices++ : *dataShort++;
+            }
+
+            // Build the translation key
+            if (Animation->TranslationType == AnimationKeyTypes::MinSizeTable)
+            {
+                // Calculate translation
+                float TranslationX = (frameVecX * (float)(uint16_t)*randomDataShort++) + minsVecX;
+                float TranslationY = (frameVecY * (float)(uint16_t)*randomDataShort++) + minsVecY;
+                float TranslationZ = (frameVecZ * (float)(uint16_t)*randomDataShort++) + minsVecZ;
+                // Add
+                Anim->AddTranslationKey(Animation->Reader->BoneNames[boneIndex], frame, TranslationX, TranslationY, TranslationZ);
+            }
+        }
+    }
+
+    // Stage 7: Static Translations
+    // Static Translations appear directly after the "Precise Translations"
+    currentBoneIndex = 0;
+    currentSize = Animation->StaticTranslatedBoneCount;
+
+    while (currentBoneIndex++ < currentSize)
+    {
+        // Read translation data
+        auto vec = *(Vector3*)dataInt; dataInt += 3;
+        auto boneIndex = *dataShort++; // TODO: Allow for different sizes. Atm specific to MW2.
+
+        printf("Static: %s\n", Animation->Reader->BoneNames[boneIndex].c_str());
+
+        // Build the translation key
+        Anim->AddTranslationKey(Animation->Reader->BoneNames[boneIndex], 0, vec.X, vec.Y, vec.Z);
+    }
+
+    // Stage 8: Delta translation data, handled on a per-game basis
+    // Delta translations appear in their own pointer, but have some game specific structures
+    if (Animation->DeltaTranslationPtr != 0)
+    {
+        // Handle per-game specific data
+        switch (CoDAssets::GameID)
+        {
+        case SupportedGames::WorldAtWar:
+        case SupportedGames::BlackOps:
+        case SupportedGames::BlackOps2:
+        case SupportedGames::ModernWarfare:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::QuantumSolace:
+            // Build translations for 32bit games
+            DeltaTranslations32(Anim, FrameSize, Animation);
+            break;
+        case SupportedGames::Ghosts:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::InfiniteWarfare:
+        case SupportedGames::BlackOps3:
+        case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
+        case SupportedGames::WorldWar2:
+        case SupportedGames::ModernWarfare4:
+        case SupportedGames::Vanguard:
+            // Build translations for 64bit games
+            DeltaTranslations64(Anim, FrameSize, Animation);
+            break;
+        }
+    }
+
+    // Stage 9: Delta 2D rotation data, handled on a per-game basis
+    // Delta 2D rotations appear in their own pointer, but have some game specific structures
+    if (Animation->Delta2DRotationsPtr != 0)
+    {
+        // Handle per-game specific data
+        switch (CoDAssets::GameID)
+        {
+        case SupportedGames::WorldAtWar:
+        case SupportedGames::BlackOps:
+        case SupportedGames::BlackOps2:
+        case SupportedGames::ModernWarfare:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::QuantumSolace:
+            // Build 2d rotations for 32bit games
+            Delta2DRotations32(Anim, FrameSize, Animation);
+            break;
+        case SupportedGames::Ghosts:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::InfiniteWarfare:
+        case SupportedGames::BlackOps3:
+        case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
+        case SupportedGames::WorldWar2:
+        case SupportedGames::ModernWarfare4:
+        case SupportedGames::Vanguard:
+            // Build 2d rotations for 64bit games
+            Delta2DRotations64(Anim, FrameSize, Animation);
+            break;
+        }
+    }
+
+    // Stage 10: Delta 3D rotation data, handled on a per-game basis
+    // Delta 3D rotations appear in their own pointer, but have some game specific structures
+    if (Animation->Delta3DRotationsPtr != 0)
+    {
+        // Handle per-game specific data
+        switch (CoDAssets::GameID)
+        {
+        case SupportedGames::BlackOps2:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::QuantumSolace:
+            // Build 3d rotations for 32bit games
+            Delta3DRotations32(Anim, FrameSize, Animation);
+            break;
+        case SupportedGames::Ghosts:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::InfiniteWarfare:
+        case SupportedGames::BlackOps3:
+        case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
+        case SupportedGames::WorldWar2:
+        case SupportedGames::ModernWarfare4:
+        case SupportedGames::Vanguard:
+            // Build 3d rotations for 64bit games
+            Delta3DRotations64(Anim, FrameSize, Animation);
+            break;
+        }
+    }
+
+    // Stage 11: Notifications
+    // Notifications appear in their own pointer, but have some game specific structures
+    switch (CoDAssets::GameID)
+    {
+    case SupportedGames::WorldAtWar:
+    case SupportedGames::BlackOps:
+    case SupportedGames::BlackOps2:
+    case SupportedGames::ModernWarfare:
+    case SupportedGames::ModernWarfare2:
+    case SupportedGames::ModernWarfare3:
+    case SupportedGames::ModernWarfare4:
+    case SupportedGames::Ghosts:
+    case SupportedGames::AdvancedWarfare:
+    case SupportedGames::ModernWarfareRemastered:
+    case SupportedGames::ModernWarfare2Remastered:
+    case SupportedGames::InfiniteWarfare:
+    case SupportedGames::WorldWar2:
+    case SupportedGames::QuantumSolace:
+        // Build standard notetracks
+        NotetracksStandard(Anim, Animation);
+        break;
+    case SupportedGames::BlackOps3:
+        // Black Ops 3 has a new format
+        NotetracksBO3(Anim, Animation);
+        break;
+    case SupportedGames::BlackOps4:
+        // Black Ops 4 has a new format
+        NotetracksBO4(Anim, Animation);
+        break;
+    case SupportedGames::BlackOpsCW:
+        // Black Ops CW has a new format
+        NotetracksCW(Anim, Animation);
+        break;
+    case SupportedGames::Vanguard:
+        // Build standard notetracks
+        NotetracksVG(Anim, Animation);
+        break;
+    }
+
+    // Stage 12: Blendshapes, this is only supported by some newer games
+    switch (CoDAssets::GameID)
+    {
+    case SupportedGames::BlackOps4:
+    case SupportedGames::BlackOpsCW:
+        // Black Ops 4 has a new format
+        BlendShapesBO4(Anim, Animation);
+        break;
+    case SupportedGames::Vanguard:
+        //case SupportedGames::ModernWarfare:
+            // Modern Warfare has a new format
+        BlendShapesMW(Anim, Animation);
+        break;
+    }
+
+    // Return it
+    return Anim;
+}
+
 
 void CoDXAnimTranslator::SkipInlineAnimationIndicies(const std::unique_ptr<XAnim_t>& Animation)
 {
