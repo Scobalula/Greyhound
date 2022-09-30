@@ -380,6 +380,10 @@ bool GameInfiniteWarfare::LoadAssetsPS()
             auto ModelResult = CoDAssets::GameInstance->Read<IWXModel>(Asset.Header);
             // Validate and load if need be
             auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+
+            // Log it
+            CoDAssets::LogXAsset("Model", ModelName);
+
             // Make and add
             auto LoadedModel = new CoDModel_t();
             // Set
@@ -426,6 +430,10 @@ bool GameInfiniteWarfare::LoadAssetsPS()
                 LargestWidth = ImageResult.LoadedWidth;
                 LargestHeight = ImageResult.LoadedHeight;
             }
+
+            // Log it
+            CoDAssets::LogXAsset("Image", ImageName);
+
             // Make and add
             auto LoadedImage = new CoDImage_t();
             // Set
@@ -452,6 +460,10 @@ bool GameInfiniteWarfare::LoadAssetsPS()
             auto AnimResult = CoDAssets::GameInstance->Read<IWXAnim>(Asset.Header);
             // Validate and load if need be
             auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
+
             // Make and add
             auto LoadedAnim = new CoDAnim_t();
             // Set
