@@ -458,6 +458,9 @@ bool GameModernWarfareRM::LoadAssets()
                     // Validate and load if need be
                     auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
 
+                    // Log it
+                    CoDAssets::LogXAsset("Sound", SoundName);
+
                     // Make and add
                     auto LoadedSound = new CoDSound_t();
                     // Set
@@ -482,6 +485,8 @@ bool GameModernWarfareRM::LoadAssets()
                     // Check does it exist
                     if (StreamedSoundInfo.Exists)
                     {
+                        // Log it
+                        CoDAssets::LogXAsset("Sound", SoundName);
                         // Make and add
                         auto LoadedSound = new CoDSound_t();
                         // Set (we'll use the alias names since streamed audio is nameless)
@@ -513,6 +518,8 @@ bool GameModernWarfareRM::LoadAssets()
                         auto LoadedSoundInfo = CoDAssets::GameInstance->Read<AWLoadedSound>(PrimedAudioInfo.LoadedSoundPtr);
                         // Validate and load if need be
                         auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
+                        // Log it
+                        CoDAssets::LogXAsset("Sound", SoundName);
                         // Make and add
                         auto LoadedSound = new CoDSound_t();
                         // Set
@@ -617,6 +624,9 @@ bool GameModernWarfareRM::LoadAssetsPS()
                 }
             }
 
+            // Log it
+            CoDAssets::LogXAsset("Image", ImageName);
+
             // Make and add
             auto LoadedImage = new CoDImage_t();
             // Set
@@ -643,6 +653,8 @@ bool GameModernWarfareRM::LoadAssetsPS()
             auto MaterialResult = CoDAssets::GameInstance->Read<MWRXMaterial>(Asset.Header);
             // Validate and load if need be
             auto MaterialName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialResult.NamePtr));
+            // Log it
+            CoDAssets::LogXAsset("Material", MaterialName);
             // Make and add
             auto Material = new CoDMaterial_t();
             // Set
@@ -665,6 +677,10 @@ bool GameModernWarfareRM::LoadAssetsPS()
             auto ModelResult = CoDAssets::GameInstance->Read<MWRXModel>(Asset.Header);
             // Validate and load if need be
             auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+
+            // Log it
+            CoDAssets::LogXAsset("Model", ModelName);
+
             // Make and add
             auto LoadedModel = new CoDModel_t();
             // Set
@@ -711,6 +727,9 @@ bool GameModernWarfareRM::LoadAssetsPS()
                     // Validate and load if need be
                     auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
 
+                    // Log it
+                    CoDAssets::LogXAsset("Sound", SoundName);
+
                     // Make and add
                     auto LoadedSound = new CoDSound_t();
                     // Set
@@ -735,6 +754,8 @@ bool GameModernWarfareRM::LoadAssetsPS()
                     // Check does it exist
                     if (StreamedSoundInfo.Exists)
                     {
+                        // Log it
+                        CoDAssets::LogXAsset("Sound", SoundName);
                         // Make and add
                         auto LoadedSound = new CoDSound_t();
                         // Set (we'll use the alias names since streamed audio is nameless)
@@ -766,6 +787,8 @@ bool GameModernWarfareRM::LoadAssetsPS()
                         auto LoadedSoundInfo = CoDAssets::GameInstance->Read<AWLoadedSound>(PrimedAudioInfo.LoadedSoundPtr);
                         // Validate and load if need be
                         auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
+                        // Log it
+                        CoDAssets::LogXAsset("Sound", SoundName);
                         // Make and add
                         auto LoadedSound = new CoDSound_t();
                         // Set

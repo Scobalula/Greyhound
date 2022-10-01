@@ -190,6 +190,9 @@ bool GameGhosts::LoadAssets()
             // Validate and load if need be
             auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
+
             // Make and add
             auto LoadedAnim = new CoDAnim_t();
             // Set
@@ -267,6 +270,9 @@ bool GameGhosts::LoadAssets()
 
                 // Validate and load if need be
                 auto ModelName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr));
+
+                // Log it
+                CoDAssets::LogXAsset("Model", ModelName);
 
                 // Make and add
                 auto LoadedModel = new CoDModel_t();
@@ -352,6 +358,9 @@ bool GameGhosts::LoadAssets()
                     }
                 }
 
+                // Log it
+                CoDAssets::LogXAsset("Image", ImageName);
+
                 // Make and add
                 auto LoadedImage = new CoDImage_t();
                 // Set
@@ -421,6 +430,9 @@ bool GameGhosts::LoadAssets()
 
                     // Validate and load if need be
                     auto LoadedSoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundInfo.NamePtr);
+
+                    // Log it
+                    CoDAssets::LogXAsset("Sound", SoundName);
 
                     // Make and add
                     auto LoadedSound = new CoDSound_t();

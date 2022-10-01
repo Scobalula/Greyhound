@@ -211,6 +211,9 @@ bool GameWorldWar2::LoadAssets()
             // Validate and load if need be
             auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
 
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
+
             // Make and add
             auto LoadedAnim = new CoDAnim_t();
             // Set
@@ -260,6 +263,9 @@ bool GameWorldWar2::LoadAssets()
             {
                 // Validate and load if need be
                 auto ModelResult = CoDAssets::GameInstance->Read<WWIIXModel>(Asset.XModelPtr);
+
+                // Log it
+                CoDAssets::LogXAsset("Model", ModelName);
 
                 // Make and add
                 auto LoadedModel = new CoDModel_t();
@@ -328,6 +334,9 @@ bool GameWorldWar2::LoadAssets()
                     }
                 }
 
+                // Log it
+                CoDAssets::LogXAsset("Image", ImageName);
+
                 // Make and add
                 auto LoadedImage = new CoDImage_t();
                 // Set
@@ -381,6 +390,9 @@ bool GameWorldWar2::LoadAssets()
 
                     // Add the loaded entry
                     auto SoundName = CoDAssets::GameInstance->ReadNullTerminatedString(LoadedSoundHeader.SoundFileName);
+
+                    // Log it
+                    CoDAssets::LogXAsset("Sound", SoundName);
 
                     // Make and add
                     auto LoadedSound = new CoDSound_t();
@@ -488,6 +500,9 @@ bool GameWorldWar2::LoadAssets()
         {
             // Validate and load if need be
             auto MaterialName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr));
+
+            // Log it
+            CoDAssets::LogXAsset("Material", MaterialName);
 
             // Make and add
             auto Material = new CoDMaterial_t();
