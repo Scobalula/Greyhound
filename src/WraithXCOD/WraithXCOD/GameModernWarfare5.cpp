@@ -18,6 +18,9 @@
 #include "HalfFloats.h"
 #include "BinaryReader.h"
 
+// We need the QTangent
+#include "CoDQTangent.h"
+
 // -- Begin XModelStream structures
 
 struct MW5GfxRigidVerts
@@ -167,13 +170,6 @@ bool GameModernWarfare5::LoadAssets()
             CoDAssets::LogXAsset("Model", ModelName);
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedModel);
-
-            for (size_t b = 0; b < LoadedModel->BoneCount; b++)
-            {
-                auto x = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
-                auto y = CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4);
-                Temp[CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4)] = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
-            }
         });
     }
 
@@ -184,15 +180,13 @@ bool GameModernWarfare5::LoadAssets()
         {
             // Read
             auto ImageResult = CoDAssets::GameInstance->Read<MW5GfxImage>(Asset.Header);
-            // Get Loaded Image
-            //uint64_t ImagePointer = *(uint64_t*)&ImageResult.Padding5[8];
             // Validate and load if need be
             auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
             // Log it
             CoDAssets::LogXAsset("Image", ImageName);
             // Check for loaded images
-            //if (ImagePointer == (uint64_t)-1)
-            //    return;
+            if (ImageResult.MipMaps == 0)
+                return;
             // Make and add
             auto LoadedImage = new CoDImage_t();
             // Set
@@ -207,32 +201,33 @@ bool GameModernWarfare5::LoadAssets()
         });
     }
 
-    if (NeedsAnims)
-    {
-        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-        {
-            // Read
-            auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
-            // Validate and load if need be
-            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+    // Anims still going vroom need more work xoxoxoxoxoxoxoxox
+    //if (NeedsAnims)
+    //{
+    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
+    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+    //    {
+    //        // Read
+    //        auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
+    //        // Validate and load if need be
+    //        auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
-            // Log it
-            CoDAssets::LogXAsset("Anim", AnimName);
+    //        // Log it
+    //        CoDAssets::LogXAsset("Anim", AnimName);
 
-            // Make and add
-            auto LoadedAnim = new CoDAnim_t();
-            // Set
-            LoadedAnim->AssetName = AnimName;
-            LoadedAnim->AssetPointer = Asset.Header;
-            LoadedAnim->Framerate = AnimResult.Framerate;
-            LoadedAnim->FrameCount = AnimResult.FrameCount;
-            LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
-            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
-        });
-    }
+    //        // Make and add
+    //        auto LoadedAnim = new CoDAnim_t();
+    //        // Set
+    //        LoadedAnim->AssetName = AnimName;
+    //        LoadedAnim->AssetPointer = Asset.Header;
+    //        LoadedAnim->Framerate = AnimResult.Framerate;
+    //        LoadedAnim->FrameCount = AnimResult.FrameCount;
+    //        LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+    //        LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+    //        // Add
+    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+    //    });
+    //}
 
     if (NeedsMaterials)
     {
@@ -259,129 +254,6 @@ bool GameModernWarfare5::LoadAssets()
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
         });
     }
-
-    ////// Since MW now stores the entire SABL in Fast Files, we must essentially parse it in memory, SABS files can be loaded as usual.
-    ////if (NeedsSounds)
-    ////{
-    ////    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 21 * sizeof(ps::XAssetPool64));
-    ////    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-    ////    {
-    ////        // Read
-    ////        auto SoundResult = CoDAssets::GameInstance->Read<MW5SoundBank>(Asset.Header);
-    ////        // Read Info
-    ////        auto SoundBankInfo = CoDAssets::GameInstance->Read<MW5SoundBankInfo>(SoundResult.SoundBankPtr);
-
-    ////        if (SoundBankInfo.BankFilePointer > 0)
-    ////        {
-    ////            // Names by Hash
-    ////            std::map<uint32_t, std::string> SABFileNames;
-
-    ////            // Parse the loaded header, and offset from the pointer to it
-    ////            auto Header = CoDAssets::GameInstance->Read<SABFileHeader>(SoundBankInfo.BankFilePointer);
-
-    ////            // Verify magic first, same for all SAB files
-    ////            // The magic is ('2UX#')
-    ////            if (Header.Magic != 0x23585532)
-    ////            {
-    ////                return;
-    ////            }
-
-    ////            // Get Settings
-    ////            auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
-
-    ////            // Name offset
-    ////            auto NamesOffset = CoDAssets::GameInstance->Read<uint64_t>(SoundBankInfo.BankFilePointer + 0x250);
-
-    ////            // Prepare to loop and read entries
-    ////            for (size_t i = 0; i < Header.EntriesCount; i++)
-    ////            {
-    ////                auto Name = CoDAssets::GameInstance->ReadNullTerminatedString(SoundBankInfo.BankFilePointer + NamesOffset + i * 128);
-    ////                SABFileNames[MW5HashSoundString(Name)] = Name;
-    ////            }
-
-    ////            // Prepare to loop and read entries
-    ////            for (uint32_t i = 0; i < Header.EntriesCount; i++)
-    ////            {
-    ////                // Read each entry
-    ////                auto Entry = CoDAssets::GameInstance->Read<SABv4Entry>(SoundBankInfo.BankFilePointer + Header.EntryTableOffset + i * sizeof(SABv4Entry));
-
-    ////                // Prepare to parse the information to our generic structure
-    ////                std::string EntryName = "";
-    ////                // Check our options
-    ////                if (SABFileNames.size() > 0)
-    ////                {
-    ////                    // We have it in file
-    ////                    EntryName = SABFileNames[Entry.Key];
-    ////                }
-    ////                else
-    ////                {
-    ////                    // We don't have one
-    ////                    EntryName = Strings::Format("_%llx", Entry.Key);
-    ////                }
-
-    ////                // Log it
-    ////                CoDAssets::LogXAsset("Sound", EntryName);
-
-    ////                // Setup a new entry
-    ////                auto LoadedSound = new CoDSound_t();
-    ////                // Set the name, but remove all extensions first
-    ////                LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
-    ////                LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
-
-    ////                // Set various properties
-    ////                LoadedSound->FrameRate = Entry.FrameRate;
-    ////                LoadedSound->FrameCount = Entry.FrameCount;
-    ////                LoadedSound->ChannelsCount = Entry.ChannelCount;
-    ////                // The offset should be after the seek table, since it is not required
-    ////                LoadedSound->AssetPointer = SoundBankInfo.BankFilePointer + (Entry.Offset + Entry.SeekTableLength);
-    ////                LoadedSound->AssetSize = Entry.Size;
-    ////                LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
-    ////                LoadedSound->IsFileEntry = false;
-    ////                LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
-    ////                // All Modern Warfare (v10) entries are FLAC's with no header
-    ////                LoadedSound->DataType = SoundDataTypes::Opus_Interleaved;
-
-    ////                // Check do we want to skip this
-    ////                if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
-    ////                {
-    ////                    delete LoadedSound;
-    ////                    continue;
-    ////                }
-
-    ////                // Add
-    ////                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
-    ////            }
-    ////        }
-    ////    });
-    ////}
-
-    ////if (NeedsRawFiles)
-    ////{
-    ////    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 22 * sizeof(ps::XAssetPool64));
-    ////    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-    ////    {
-    ////        // Read
-    ////        auto SoundResult = CoDAssets::GameInstance->Read<MW5SoundBank>(Asset.Header);
-    ////        // Validate and load if need be
-    ////        auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr) + ".sabs";
-
-    ////        // Note actually streamer info pool
-    ////        auto Info = CoDAssets::GameInstance->Read<MW5SoundBankInfo>(SoundResult.SoundBankPtr);
-
-    ////        // Make and add
-    ////        auto LoadedRawfile = new CoDRawFile_t();
-    ////        // Set
-    ////        LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
-    ////        LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
-    ////        LoadedRawfile->AssetPointer = Asset.Header;
-    ////        LoadedRawfile->AssetSize = Info.BankFileSize;
-    ////        LoadedRawfile->RawDataPointer = Info.BankFilePointer;
-    ////        LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
-
-    ////        // Add
-    ////        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
-    ////    });
-    ////}
 
     // Success, error only on specific load
     return true;
@@ -468,12 +340,12 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->Reader = std::make_unique<CoDXAnimReader>(AnimBuffer.release(), (size_t)AnimBufferSize, true);
 
         // Now consume the chicken dinner.
-        Anim->Reader->DataBytes = Anim->Reader->GetBuffer();
-        Anim->Reader->DataShorts = Anim->Reader->GetBuffer() + (size_t)AnimData.DataShortOffset;
-        Anim->Reader->DataInts = Anim->Reader->GetBuffer() + (size_t)AnimData.DataIntOffset;
+        Anim->Reader->DataBytes        = Anim->Reader->GetBuffer();
+        Anim->Reader->DataShorts       = Anim->Reader->GetBuffer() + (size_t)AnimData.DataShortOffset;
+        Anim->Reader->DataInts         = Anim->Reader->GetBuffer() + (size_t)AnimData.DataIntOffset;
         Anim->Reader->RandomDataShorts = Anim->Reader->GetBuffer() + CoDAssets::GameInstance->Read<uint32_t>(AnimData.OffsetPtr);
-        Anim->Reader->RandomDataBytes = Anim->Reader->GetBuffer() + CoDAssets::GameInstance->Read<uint32_t>(AnimData.OffsetPtr2);
-        Anim->Reader->RandomDataInts = Anim->Reader->GetBuffer();
+        Anim->Reader->RandomDataBytes  = Anim->Reader->GetBuffer() + CoDAssets::GameInstance->Read<uint32_t>(AnimData.OffsetPtr2);
+        Anim->Reader->RandomDataInts   = Anim->Reader->GetBuffer();
 
         // Consume Bones (TODO: Hashes are now stored, need to build a table and to figure out algorithm)
         // Building from XModels on fly atm.
@@ -494,16 +366,16 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->BoneIndexSize = 4;
 
         // Copy over counts
-        Anim->NoneRotatedBoneCount = AnimData.NoneRotatedBoneCount;
-        Anim->TwoDRotatedBoneCount = AnimData.TwoDRotatedBoneCount;
-        Anim->NormalRotatedBoneCount = AnimData.NormalRotatedBoneCount;
-        Anim->TwoDStaticRotatedBoneCount = AnimData.TwoDStaticRotatedBoneCount;
+        Anim->NoneRotatedBoneCount         = AnimData.NoneRotatedBoneCount;
+        Anim->TwoDRotatedBoneCount         = AnimData.TwoDRotatedBoneCount;
+        Anim->NormalRotatedBoneCount       = AnimData.NormalRotatedBoneCount;
+        Anim->TwoDStaticRotatedBoneCount   = AnimData.TwoDStaticRotatedBoneCount;
         Anim->NormalStaticRotatedBoneCount = AnimData.NormalStaticRotatedBoneCount;
-        Anim->NormalTranslatedBoneCount = AnimData.NormalTranslatedBoneCount;
-        Anim->PreciseTranslatedBoneCount = AnimData.PreciseTranslatedBoneCount;
-        Anim->StaticTranslatedBoneCount = AnimData.StaticTranslatedBoneCount;
-        Anim->NoneTranslatedBoneCount = AnimData.NoneTranslatedBoneCount;
-        Anim->TotalBoneCount = AnimData.TotalBoneCount;
+        Anim->NormalTranslatedBoneCount    = AnimData.NormalTranslatedBoneCount;
+        Anim->PreciseTranslatedBoneCount   = AnimData.PreciseTranslatedBoneCount;
+        Anim->StaticTranslatedBoneCount    = AnimData.StaticTranslatedBoneCount;
+        Anim->NoneTranslatedBoneCount      = AnimData.NoneTranslatedBoneCount;
+        Anim->TotalBoneCount               = AnimData.TotalBoneCount;
         //Anim->NotificationCount            = AnimData.NotificationCount;
 
         // Copy delta
@@ -841,9 +713,11 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
     // We must read the image data
     auto ImageInfo = CoDAssets::GameInstance->Read<MW5GfxImage>(Image.ImagePtr);
 
+    if (ImageInfo.MipMaps == 0)
+        return nullptr;
     // Read Array of Mip Maps
     MW5GfxMipArray<32> Mips{};
-    size_t MipCount = (size_t)std::min((size_t)ImageInfo.MipCount, Mips.GetMipCount());
+    size_t MipCount = std::min((size_t)ImageInfo.MipCount, (size_t)32);
 
     if (CoDAssets::GameInstance->Read((uint8_t*)&Mips.MipMaps, ImageInfo.MipMaps, MipCount * sizeof(MW5GfxMip)) != (MipCount * sizeof(MW5GfxMip)))
         return nullptr;
@@ -868,6 +742,14 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
     std::unique_ptr<uint8_t[]> ImageData = nullptr;
     size_t ImageSize = 0;
 
+    // First check the local game CDN cache.
+    if (Fallback != HighestIndex && CoDAssets::OnDemandCache != nullptr)
+    {
+        uint32_t PackageSize = 0;
+        ImageData = CoDAssets::OnDemandCache->ExtractPackageObject(Mips.MipMaps[HighestIndex].HashID, Mips.GetImageSize(HighestIndex), PackageSize);
+        ImageSize = PackageSize;
+    }
+
     // If we still have mips above our fallback, then we have to attempt
     // to load the on-demand version from the CDN.
     if (Fallback != HighestIndex && CoDAssets::CDNDownloader != nullptr)
@@ -879,7 +761,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
     if (ImageData == nullptr)
     {
         uint32_t PackageSize = 0;
-        ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(Mips.MipMaps[Fallback].HashID, Mips.GetImageSize(HighestIndex), PackageSize);
+        ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(Mips.MipMaps[Fallback].HashID, Mips.GetImageSize(Fallback), PackageSize);
         ImageSize = PackageSize;
         HighestIndex = Fallback;
     }
@@ -901,47 +783,6 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
 
     // failed to load the image
     return nullptr;
-}
-
-// Transforms a Normal by the Rotation
-Vector3 MW5TransformNormal(Quaternion quat, Vector3 up)
-{
-    // Generate the normal by rotating up around the normal value
-    const Vector3 a(
-        quat.Y * up.Z - quat.Z * up.Y + up.X * quat.W,
-        quat.Z * up.X - quat.X * up.Z + up.Y * quat.W,
-        quat.X * up.Y - quat.Y * up.X + up.Z * quat.W);
-    const Vector3 b(
-        quat.Y * a.Z - quat.Z * a.Y,
-        quat.Z * a.X - quat.X * a.Z,
-        quat.X * a.Y - quat.Y * a.X);
-    return Vector3(
-        up.X + b.X + b.X,
-        up.Y + b.Y + b.Y,
-        up.Z + b.Z + b.Z);
-}
-
-// Unpacks a 4-D Quaternion Normal
-Vector3 MW5UnpackNormalQuat(uint32_t packedQuat)
-{
-    auto Up = Vector3(0, 0, 1.0f);
-    auto LargestComponent = packedQuat >> 30;
-
-    // Unpack the values and compute the largest component
-    auto x = ((((packedQuat >> 00) & 0x3FF) / 511.5f) - 1.0f) / 1.4142135f;
-    auto y = ((((packedQuat >> 10) & 0x3FF) / 511.5f) - 1.0f) / 1.4142135f;
-    auto z = ((((packedQuat >> 20) & 0x1FF) / 255.5f) - 1.0f) / 1.4142135f;
-    auto w = sqrtf(1 - x * x - y * y - z * z);
-
-    // Determine largest
-    switch (LargestComponent)
-    {
-    case 0: return MW5TransformNormal(Quaternion(w, x, y, z), Up);
-    case 1: return MW5TransformNormal(Quaternion(x, w, y, z), Up);
-    case 2: return MW5TransformNormal(Quaternion(x, y, w, z), Up);
-    case 3: return MW5TransformNormal(Quaternion(x, y, z, w), Up);
-    default: return Vector3(1.0f, 0.0f, 0.0f);
-    }
 }
 
 void GameModernWarfare5::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
@@ -1072,10 +913,10 @@ void GameModernWarfare5::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
                     (((((VertexPosition >> 42) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.ZOffset);
 
                 // Read Tangent/Normal
-                auto QTangent = VertexNormReader.Read<uint32_t>();
+                auto QTangent = VertexNormReader.Read<CoDQTangent>();
 
                 // Add normal
-                Vertex.Normal = MW5UnpackNormalQuat(QTangent);
+                Vertex.Normal = QTangent.Unpack(nullptr, nullptr);
 
                 // Apply Color (some models don't store colors, so we need to check ptr below)
                 Vertex.Color[0] = 255;
@@ -1154,4 +995,8 @@ void GameModernWarfare5::PerformInitialSetup()
     // Copy if not exists
     if (!FileSystems::FileExists(OurPath))
         FileSystems::CopyFile(FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_7_win64.dll"), OurPath);
+}
+
+void GameModernWarfare5::PerformShutDown()
+{
 }

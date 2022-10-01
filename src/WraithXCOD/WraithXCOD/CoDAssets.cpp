@@ -616,15 +616,6 @@ LoadGameResult CoDAssets::LoadGame()
         case SupportedGames::ModernWarfare: Success = GameModernWarfare::LoadAssets(); break;
         case SupportedGames::ModernWarfare2: Success = GameModernWarfare2::LoadAssets(); break;
         case SupportedGames::ModernWarfare3: Success = GameModernWarfare3::LoadAssets(); break;
-        case SupportedGames::Vanguard:
-            CleanupPackageCache();
-            // Load from casc and on demand
-            GamePackageCache = std::make_unique<VGXSUBCache>();
-            GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
-            OnDemandCache = std::make_unique<VGXPAKCache>();
-            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()), "xpak_cache"));
-            // Load as normally
-            Success = GameVanguard::LoadAssets(); break;
         case SupportedGames::Ghosts: Success = GameGhosts::LoadAssets(); break;
         case SupportedGames::AdvancedWarfare: Success = GameAdvancedWarfare::LoadAssets(); break;
         case SupportedGames::ModernWarfareRemastered: Success = GameModernWarfareRM::LoadAssets(); break;
@@ -680,7 +671,8 @@ LoadGameResult CoDAssets::LoadGamePS()
             XAssetLogWriter->Open(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "AssetLog.txt"));
         }
 
-        size_t sizer = 0;
+        // Check for CDN support.
+        bool CDNSupport = SettingsManager::GetSetting("cdn_downloader", "false") == "true";
 
         // Cleanup
         CleanupPackageCache();
@@ -758,13 +750,18 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameStringHandler = GameModernWarfare5::LoadStringEntry;
             GamePackageCache  = std::make_unique<XSUBCacheV2>();
             OnDemandCache     = std::make_unique<XSUBCacheV2>();
-            CDNDownloader     = std::make_unique<CoDCDNDownloaderV2>();
+            CDNDownloader     = CDNSupport ? std::make_unique<CoDCDNDownloaderV2>() : nullptr;
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "cod.exe")) ? "xpak_cache" : FileSystems::CombinePath("_beta_", "xpak_cache")));
             GameGDTProcessor->SetupProcessor("MW5");
-            CDNDownloader->Initialize(ps::state->GameDirectory);
             Success = GameModernWarfare5::LoadAssets();
             break;
+        }
+
+        // Check for CDN
+        if (CDNDownloader != nullptr)
+        {
+            CDNDownloader->Initialize(ps::state->GameDirectory);
         }
 
         // Done with logger
@@ -2602,10 +2599,19 @@ void CoDAssets::ExportSelectedAssets(void* Caller, const std::unique_ptr<std::ve
                 {
                     Result = CoDAssets::ExportAsset(Asset);
                 }
+#if _DEBUG
+                catch (std::exception& ex)
+                {
+                    printf("%s\n", ex.what());
+                    // Unknown issue
+                }
+#else
                 catch (...)
                 {
                     // Unknown issue
                 }
+#endif
+
 
                 // Set the status
                 Asset->AssetStatus = (Result == ExportGameResult::Success) ? WraithAssetStatus::Exported : WraithAssetStatus::Error;

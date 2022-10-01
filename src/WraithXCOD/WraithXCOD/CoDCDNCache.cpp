@@ -45,6 +45,8 @@ bool CoDCDNCache::Load(const std::string& name)
 		auto entry = reader.Read<CoDCDNCacheEntry>();
 		Entries[entry.Hash] = entry;
 	}
+
+	return true;
 }
 
 bool CoDCDNCache::Save()
@@ -65,6 +67,8 @@ bool CoDCDNCache::Save()
 	{
 		writer.Write(entry.second);
 	}
+
+	return true;
 }
 
 bool CoDCDNCache::Add(const uint64_t hash, const uint8_t* buffer, const size_t bufferSize)
@@ -96,7 +100,7 @@ bool CoDCDNCache::Add(const uint64_t hash, const uint8_t* buffer, const size_t b
 	return true;
 }
 
-std::unique_ptr<uint8_t[]> CoDCDNCache::Extract(const uint64_t hash, uint32_t expectedSize, size_t& bufferSize)
+std::unique_ptr<uint8_t[]> CoDCDNCache::Extract(const uint64_t hash, size_t expectedSize, size_t& bufferSize)
 {
 	if (!Loaded)
 		return false;

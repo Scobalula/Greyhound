@@ -119,7 +119,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
         FILE_ATTRIBUTE_NORMAL,
         NULL
     );
-    MINIDUMP_EXCEPTION_INFORMATION mei;
+    MINIDUMP_EXCEPTION_INFORMATION mei{};
     mei.ThreadId = GetCurrentThreadId();
     mei.ClientPointers = TRUE;
     mei.ExceptionPointers = ExceptionInfo;
@@ -139,7 +139,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 #ifdef _DEBUG
 int main(int argc, char** argv)
 #else
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 #endif
 {
     // Assign filter before anything
@@ -203,7 +203,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             { "exportgdt_bo3", "true" },
             { "exportgdt_waw", "false" },
             { "cleargdt_exit", "true" },
-            { "overwrite_gdt", "true" }
+            { "overwrite_gdt", "true" },
+            { "cdn_downloader", "false" }
         });
 
 #ifndef _DEBUG

@@ -8,30 +8,27 @@
 #include "FileSystems.h"
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
+#include "TextWriter.h"
+#include "TextReader.h"
 #include "Hashing.h"
 
+// We need json
+#include "json.hpp"
+
 // Setup
-std::unique_ptr<std::unordered_map<std::string, std::string>> SettingsManager::SettingsCache = nullptr;
+std::unordered_map<std::string, std::string> SettingsManager::SettingsCache;
 // Default name
 std::string SettingsManager::SettingsFileName = "";
 
 void SettingsManager::LoadSettings(const std::string& SettingsName, const std::map<std::string, std::string>& Defaults)
 {
-    // Prepare to load settings
-    if (SettingsCache == nullptr)
-    {
-        // Setup
-        SettingsCache.reset(new std::unordered_map<std::string, std::string>);
-    }
-    else
-    {
-        // Clear
-        SettingsCache->clear();
-    }
+    // Reset
+    SettingsCache.clear();
+
     // Grab the current directory
     auto CurrentPath = FileSystems::GetApplicationPath();
     // Our settings file
-    auto ConfigPath = FileSystems::CombinePath(CurrentPath, SettingsName + ".wcfg");
+    auto ConfigPath = FileSystems::CombinePath(CurrentPath, SettingsName + ".json");
 
     // Set the path
     SettingsFileName = ConfigPath;
@@ -39,35 +36,62 @@ void SettingsManager::LoadSettings(const std::string& SettingsName, const std::m
     // Make sure it exists
     if (FileSystems::FileExists(ConfigPath))
     {
-        // Load existing configuration
-        auto Reader = std::make_unique<BinaryReader>();
-        // Load file
-        Reader->Open(ConfigPath);
-        // Read magic and verify
-        if (Reader->Read<uint32_t>() == 0x47464357)
+        TextReader Reader;
+
+        if (Reader.Open(ConfigPath))
         {
-            // Read count
-            auto Count = Reader->Read<uint32_t>();
-            // Loop
-            for (uint32_t i = 0; i < Count; i++)
+            std::string JsonPayload = Reader.ReadToEnd();
+
+#if _DEBUG
+            SettingsCache = nlohmann::json::parse(JsonPayload, nullptr, true, true); 
+#else
+            try
             {
-                // Read the key, then value
-                auto Key = Reader->ReadNullTerminatedString();
-                auto Value = Reader->ReadNullTerminatedString();
-                // Add
-                SettingsCache->insert(std::make_pair(Key, Value));
+                SettingsCache = nlohmann::json::parse(JsonPayload, nullptr, true, true);
+            }
+            catch (...) {}
+#endif
+        }
+    }
+    // Fallback to old style binary settings, but remove it and save new json.
+    else
+    {
+        ConfigPath = FileSystems::CombinePath(CurrentPath, SettingsName + ".wcfg");
+
+        if (FileSystems::FileExists(ConfigPath))
+        {
+            // Load existing configuration
+            BinaryReader Reader;
+            // Load file
+            Reader.Open(ConfigPath);
+            // Read magic and verify
+            if (Reader.Read<uint32_t>() == 0x47464357)
+            {
+                // Read count
+                auto Count = Reader.Read<uint32_t>();
+                // Loop
+                for (uint32_t i = 0; i < Count; i++)
+                {
+                    // Read the key, then value
+                    auto Key = Reader.ReadNullTerminatedString();
+                    auto Value = Reader.ReadNullTerminatedString();
+                    // Add
+                    SettingsCache.insert(std::make_pair(Key, Value));
+                }
             }
         }
+
+        FileSystems::DeleteFile(ConfigPath);
     }
 
     // Setup default configuration, then resave
     for (auto& Keys : Defaults)
     {
         // Check and set
-        if (SettingsCache->find(Keys.first) == SettingsCache->end())
+        if (SettingsCache.find(Keys.first) == SettingsCache.end())
         {
             // Add
-            SettingsCache->insert(std::make_pair(Keys.first, Keys.second));
+            SettingsCache.insert(std::make_pair(Keys.first, Keys.second));
         }
     }
 
@@ -78,37 +102,27 @@ void SettingsManager::LoadSettings(const std::string& SettingsName, const std::m
 void SettingsManager::SaveSettings()
 {
     // Make a writer
-    auto Writer = std::make_unique<BinaryWriter>();
+    TextWriter Writer;
     // Load the file
-    Writer->Create(SettingsFileName);
-
-    // Get key size
-    auto KeySize = (uint32_t)SettingsCache->size();
-    // Magic value
-    char Magic[4] = { 'W', 'C', 'F', 'G' };
-    // Write magic
-    Writer->Write(Magic);
-    // Write count
-    Writer->Write<uint32_t>(KeySize);
-    // Loop and write keys
-    for (auto& Keys : *SettingsCache)
+    if (!Writer.Create(SettingsFileName))
     {
-        // Write them
-        Writer->WriteNullTerminatedString(Keys.first);
-        Writer->WriteNullTerminatedString(Keys.second);
+        return;
     }
+
+    // Dump Json
+    Writer.Write(nlohmann::json(SettingsCache).dump(1));
 }
 
 std::string SettingsManager::GetSetting(const std::string& Key, const std::string& Default)
 {
     // Grab a key if it exists
-    if (SettingsCache->find(Key) != SettingsCache->end())
+    if (SettingsCache.find(Key) != SettingsCache.end())
     {
         // Return it
-        return ModifyValue(Key, SettingsCache->at(Key));
+        return ModifyValue(Key, SettingsCache.at(Key));
     }
     // Add it
-    SettingsCache->insert(std::make_pair(Key, UnModifyValue(Key, Default)));
+    SettingsCache.insert(std::make_pair(Key, UnModifyValue(Key, Default)));
     // Return
     return Default;
 }
@@ -119,15 +133,15 @@ void SettingsManager::SetSetting(const std::string& Key, const std::string& Valu
     auto NewValue = UnModifyValue(Key, Value);
 
     // Check for it
-    if (SettingsCache->find(Key) != SettingsCache->end())
+    if (SettingsCache.find(Key) != SettingsCache.end())
     {
         // Set
-        SettingsCache->at(Key) = NewValue;
+        SettingsCache.at(Key) = NewValue;
     }
     else
     {
         // Add
-        SettingsCache->insert(std::make_pair(Key, NewValue));
+        SettingsCache.insert(std::make_pair(Key, NewValue));
     }
 
     // Save

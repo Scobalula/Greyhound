@@ -32,9 +32,9 @@ bool TextReader::Open(const std::string& FileName, bool Shared)
 
     // Open the file for reading
     if (Shared)
-        FileHandle = Systems::OpenFileShared(FileName, "r");
+        FileHandle = Systems::OpenFileShared(FileName, "rb");
     else
-        fopen_s(&FileHandle, FileName.c_str(), "r");
+        fopen_s(&FileHandle, FileName.c_str(), "rb");
 
     // Check
     if (FileHandle)

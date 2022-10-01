@@ -49,7 +49,8 @@ public:
 
     // Perform setup required before ripping
     static void PerformInitialSetup();
-
+    // Perform setup required after game is closed.
+    static void PerformShutDown();
 private:
 
     // Prepares Vertex Weights

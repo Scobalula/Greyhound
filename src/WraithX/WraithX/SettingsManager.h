@@ -11,7 +11,7 @@ class SettingsManager
 {
 private:
     // The settings cache
-    static std::unique_ptr<std::unordered_map<std::string, std::string>> SettingsCache;
+    static std::unordered_map<std::string, std::string> SettingsCache;
     // The settings file name
     static std::string SettingsFileName;
 

@@ -34,6 +34,6 @@ public:
 	// Adds an object to the CDN cache.
 	bool Add(const uint64_t hash, const uint8_t* buffer, const size_t bufferSize);
 	// Extracts an object from the CDN cache.
-	std::unique_ptr<uint8_t[]> Extract(const uint64_t hash, uint32_t expectedSize, size_t& bufferSize);
+	std::unique_ptr<uint8_t[]> Extract(const uint64_t hash, size_t expectedSize, size_t& bufferSize);
 };
 

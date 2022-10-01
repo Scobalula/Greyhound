@@ -19,9 +19,10 @@ bool CoDCDNDownloader::HasFailed(const uint64_t cacheID)
     if (find != FailedAttempts.end())
     {
         auto currentClock = std::chrono::system_clock::now();
+        auto timePassed = (currentClock - find->second);
 
         // If it's been 60 seconds since we last 
-        if (find->second - currentClock <= std::chrono::duration<int64_t, std::centi>(3))
+        if (timePassed <= std::chrono::duration<int64_t, std::milli>(60000))
         {
             return true;
         }

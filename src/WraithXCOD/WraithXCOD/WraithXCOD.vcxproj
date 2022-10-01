@@ -109,6 +109,7 @@
     <ClCompile Include="CoDGDTProcessor.cpp" />
     <ClCompile Include="CoDIWITranslator.cpp" />
     <ClCompile Include="CoDPackageCache.cpp" />
+    <ClCompile Include="CoDQTangent.cpp" />
     <ClCompile Include="CoDRawfileTranslator.cpp" />
     <ClCompile Include="CoDRawImageTranslator.cpp" />
     <ClCompile Include="CoDXAnimReader.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="CoDGDTProcessor.h" />
     <ClInclude Include="CoDIWITranslator.h" />
     <ClInclude Include="CoDPackageCache.h" />
+    <ClInclude Include="CoDQTangent.h" />
     <ClInclude Include="CoDRawfileTranslator.h" />
     <ClInclude Include="CoDRawImageTranslator.h" />
     <ClInclude Include="CoDXAnimReader.h" />

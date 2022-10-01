@@ -734,22 +734,22 @@ std::unique_ptr<XImageDDS> GameBlackOps3::LoadXImage(const XImage_t& Image)
         ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
     }
 
-    //// Prepare if we have it
-    //if (ImageData != nullptr)
-    //{
-    //    // Prepare to create a MemoryDDS file
-    //    auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
+    // Prepare if we have it
+    if (ImageData != nullptr)
+    {
+        // Prepare to create a MemoryDDS file
+        auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
 
-    //    // Check for, and apply patch if required, if we got a raw result
-    //    if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
-    //    {
-    //        // Set normal map patch
-    //        Result->ImagePatchType = ImagePatch::Normal_Expand;
-    //    }
+        // Check for, and apply patch if required, if we got a raw result
+        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
+        {
+            // Set normal map patch
+            Result->ImagePatchType = ImagePatch::Normal_Expand;
+        }
 
-    //    // Return it
-    //    return Result;
-    //}
+        // Return it
+        return Result;
+    }
 
     // Failed to load the image
     return nullptr;

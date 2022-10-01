@@ -24,6 +24,7 @@ struct XImageMipInfo
     uint32_t Height;
     std::string Format;
     uint64_t Key;
+    int64_t Size;
 
     XImageMipInfo()
     {
@@ -31,14 +32,16 @@ struct XImageMipInfo
         Height = 0;
         Format = "";
         Key = 0;
+        Size = 0;
     }
 
-    XImageMipInfo(uint32_t SizeWidth, uint32_t SizeHeight, std::string FormatStr, uint64_t KeyVal)
+    XImageMipInfo(uint32_t SizeWidth, uint32_t SizeHeight, std::string FormatStr, uint64_t KeyVal, uint64_t SizeVal)
     {
         Width = SizeWidth;
         Height = SizeHeight;
         Format = FormatStr;
         Key = KeyVal;
+        Size = SizeVal;
     }
 };
 
@@ -113,8 +116,9 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
         Reader.SetPosition(Header.IndexOffset);
 
         // Store temporary information
-        int32_t Width = 0;
-        int32_t Height = 0;
+        int64_t Width = 0;
+        int64_t Height = 0;
+        int64_t Size = 0;
         std::string Format = "";
         std::string Name = "";
         std::string Type = "";
@@ -127,6 +131,8 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
         {
             // Reset temporary info
             Width = 0;
+            Height = 0;
+            Size = -1;
             Height = 0;
             Format = "";
             Name = "";
@@ -162,12 +168,17 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
                     if (_strnicmp(KeyValue.c_str(), "width:", 6) == 0)
                     {
                         // Notice: Width is actually height
-                        Strings::ToInteger(KeyValue.substr(7), Height);
+                        Strings::ToLong(KeyValue.substr(7), Height);
                     }
                     else if (_strnicmp(KeyValue.c_str(), "height:", 7) == 0)
                     {
                         // Notice: Height is actually width
-                        Strings::ToInteger(KeyValue.substr(8), Width);
+                        Strings::ToLong(KeyValue.substr(8), Width);
+                    }
+                    else if (_strnicmp(KeyValue.c_str(), "size0:", 6) == 0)
+                    {
+                        // Notice: Height is actually width
+                        Strings::ToLong(KeyValue.substr(7), Size);
                     }
                     else if (_strnicmp(KeyValue.c_str(), "name:", 5) == 0)
                     {
@@ -209,7 +220,7 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
                     if (ImageMipMaps[Name].Width < (uint32_t)Width)
                     {
                         // Set data to the next largest
-                        ImageMipMaps[Name] = XImageMipInfo(Width, Height, Format, Hash);
+                        ImageMipMaps[Name] = XImageMipInfo(Width, Height, Format, Hash, Size);
                     }
                 }
 
@@ -226,6 +237,7 @@ bool XPAKSupport::ParseXPAK(const std::string& FilePath)
             // Set
             LoadedImage->AssetName = KeyValue.first;
             LoadedImage->AssetPointer = KeyValue.second.Key;
+            LoadedImage->AssetSize = KeyValue.second.Size;
             LoadedImage->Width = (uint16_t)KeyValue.second.Width;
             LoadedImage->Height = (uint16_t)KeyValue.second.Height;
             LoadedImage->Format = GetFormatFromString(KeyValue.second.Format);
@@ -263,20 +275,20 @@ std::unique_ptr<XImageDDS> XPAKSupport::ReadImageFile(const CoDImage_t* Image)
     // Calculate proper image format (Convert signed to unsigned)
     switch (Image->Format)
     {
-        // Fix invalid BC1_SRGB images, swap to BC1_UNORM
+    // Fix invalid BC1_SRGB images, swap to BC1_UNORM
     case 72: ImageFormat = 71; break;
-        // Fix invalid BC2_SRGB images, swap to BC2_UNORM
+    // Fix invalid BC2_SRGB images, swap to BC2_UNORM
     case 75: ImageFormat = 74; break;
-        // Fix invalid BC3_SRGB images, swap to BC3_UNORM
+    // Fix invalid BC3_SRGB images, swap to BC3_UNORM
     case 78: ImageFormat = 77; break;
-        // Fix invalid BC7_SRGB images, swap to BC7_UNORM
+    // Fix invalid BC7_SRGB images, swap to BC7_UNORM
     case 99: ImageFormat = 98; break;
     }
 
     // Resulting buffer
     uint32_t ResultSize = 0;
     // We have a streamed image, prepare to extract (AssetPointer = Image Key)
-    auto ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(Image->AssetPointer, ResultSize);
+    auto ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(Image->AssetPointer, Image->AssetSize, ResultSize);
 
     // Prepare if we have it
     if (ImageData != nullptr)
@@ -288,7 +300,7 @@ std::unique_ptr<XImageDDS> XPAKSupport::ReadImageFile(const CoDImage_t* Image)
         if (Result != nullptr && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
         {
             // We can check the name here for _n and _nml
-            if (Strings::EndsWith(Image->AssetName, "_n") || Strings::EndsWith(Image->AssetName, "_nml") | Strings::EndsWith(Image->AssetName, "_n2") || Strings::EndsWith(Image->AssetName, "_n3"))
+            if (Strings::EndsWith(Image->AssetName, "_n") || Strings::EndsWith(Image->AssetName, "_nml") || Strings::EndsWith(Image->AssetName, "_n2") || Strings::EndsWith(Image->AssetName, "_n3"))
             {
                 // This is a normal map
                 Result->ImagePatchType = ImagePatch::Normal_Expand;

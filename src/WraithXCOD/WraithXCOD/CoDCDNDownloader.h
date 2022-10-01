@@ -2,6 +2,7 @@
 #include "CoDCDNCache.h"
 #include "CoDFileSystem.h"
 #include "WebClient.h"
+#include <shared_mutex>
 
 class CoDCDNDownloader
 {
@@ -14,6 +15,10 @@ protected:
     std::map<uint64_t, std::chrono::system_clock::time_point> FailedAttempts;
     // The web client used for downloading.
     WebClient Client;
+    // Whether or not the CDN is available.
+    bool CDNAvailable = false;
+    // The mutex to use when reading multi-thread.
+    std::shared_mutex Mutex;
 public:
     // Deinitializes the CDN downloader.
     virtual ~CoDCDNDownloader();
