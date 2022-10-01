@@ -170,6 +170,8 @@ bool GameModernWarfare5::LoadAssets()
 
             for (size_t b = 0; b < LoadedModel->BoneCount; b++)
             {
+                auto x = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
+                auto y = CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4);
                 Temp[CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4)] = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
             }
         });
@@ -205,32 +207,32 @@ bool GameModernWarfare5::LoadAssets()
         });
     }
 
-    //if (NeedsAnims)
-    //{
-    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
-    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-    //    {
-    //        // Read
-    //        auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
-    //        // Validate and load if need be
-    //        auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+    if (NeedsAnims)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
+            // Validate and load if need be
+            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
-    //        // Log it
-    //        CoDAssets::LogXAsset("Anim", AnimName);
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
 
-    //        // Make and add
-    //        auto LoadedAnim = new CoDAnim_t();
-    //        // Set
-    //        LoadedAnim->AssetName = AnimName;
-    //        LoadedAnim->AssetPointer = Asset.Header;
-    //        LoadedAnim->Framerate = AnimResult.Framerate;
-    //        LoadedAnim->FrameCount = AnimResult.FrameCount;
-    //        LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
-    //        LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
-    //        // Add
-    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
-    //    });
-    //}
+            // Make and add
+            auto LoadedAnim = new CoDAnim_t();
+            // Set
+            LoadedAnim->AssetName = AnimName;
+            LoadedAnim->AssetPointer = Asset.Header;
+            LoadedAnim->Framerate = AnimResult.Framerate;
+            LoadedAnim->FrameCount = AnimResult.FrameCount;
+            LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+        });
+    }
 
     if (NeedsMaterials)
     {
@@ -836,48 +838,26 @@ void GameModernWarfare5::PrepareVertexWeights(MemoryReader& ComplexReader, std::
 
 std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
 {
-    // Prepare to load an image, we need to rip loaded and streamed ones
-    uint32_t ResultSize = 0;
-
     // We must read the image data
     auto ImageInfo = CoDAssets::GameInstance->Read<MW5GfxImage>(Image.ImagePtr);
 
     // Read Array of Mip Maps
-    MW5GfxMip MipMaps[8]{};
-    size_t MipCount = (size_t)std::min((int32_t)ImageInfo.UnkByte6, 8);
+    MW5GfxMipArray<32> Mips{};
+    size_t MipCount = (size_t)std::min((size_t)ImageInfo.MipCount, Mips.GetMipCount());
 
-    if (CoDAssets::GameInstance->Read((uint8_t*)MipMaps, ImageInfo.MipMaps, MipCount * sizeof(MW5GfxMip)) != (MipCount * sizeof(MW5GfxMip)))
+    if (CoDAssets::GameInstance->Read((uint8_t*)&Mips.MipMaps, ImageInfo.MipMaps, MipCount * sizeof(MW5GfxMip)) != (MipCount * sizeof(MW5GfxMip)))
         return nullptr;
 
-    // Calculate the largest image mip
-    uint32_t LargestMip = 0;
-    uint32_t LargestWidth = 0;
-    uint32_t LargestHeight = 0;
-    uint64_t LargestHash = 0;
-    uint64_t LargestSize = 0;
-    bool OnDemand = false;
+    // An initial loop to find the fallback to use in case of CDN not being
+    // a viable option.
+    size_t Fallback = 0;
+    size_t HighestIndex = MipCount - 1;
 
-    // Loop and calculate
     for (size_t i = 0; i < MipCount; i++)
     {
-        // Compare widths
-        if (CoDAssets::GamePackageCache->Exists(MipMaps[i].HashID))
+        if (CoDAssets::GamePackageCache->Exists(Mips.MipMaps[i].HashID))
         {
-            LargestMip    = i;
-            LargestWidth  = ImageInfo.Width >> (MipCount - i - 1);
-            LargestHeight = ImageInfo.Height >> (MipCount - i - 1);
-            LargestHash   = MipMaps[i].HashID;
-            LargestSize   = i == 0 ? (size_t)MipMaps[i].Size >> 4 : ((size_t)MipMaps[i].Size >> 4) - ((size_t)MipMaps[i - 1].Size >> 4);
-            OnDemand      = false;
-        }
-        else if (CoDAssets::OnDemandCache->Exists(MipMaps[i].HashID))
-        {
-            LargestMip    = i;
-            LargestWidth  = ImageInfo.Width >> (MipCount - i - 1);
-            LargestHeight = ImageInfo.Height >> (MipCount - i - 1);
-            LargestHash   = MipMaps[i].HashID;
-            LargestSize   = i == 0 ? (size_t)MipMaps[i].Size >> 4 : ((size_t)MipMaps[i].Size >> 4) - ((size_t)MipMaps[i - 1].Size >> 4);
-            OnDemand      = true;
+            Fallback = i;
         }
     }
 
@@ -886,35 +866,34 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
 
     // Buffer
     std::unique_ptr<uint8_t[]> ImageData = nullptr;
+    size_t ImageSize = 0;
 
-    // Check if we're missing a hash / size
-    if (LargestWidth != 0 || LargestHash != 0)
+    // If we still have mips above our fallback, then we have to attempt
+    // to load the on-demand version from the CDN.
+    if (Fallback != HighestIndex && CoDAssets::CDNDownloader != nullptr)
     {
-        // Check if we're on-demand
-        if (OnDemand)
-        {
-            // We have a streamed image, prepare to extract
-            ImageData = CoDAssets::OnDemandCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
-        }
-        else
-        {
-            // We have a streamed image, prepare to extract
-            ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
-        }
+        ImageData = CoDAssets::CDNDownloader->ExtractCDNObject(Mips.MipMaps[HighestIndex].HashID, Mips.GetImageSize(HighestIndex), ImageSize);
+    }
+
+    // If that failed, fallback to the normal image cache.
+    if (ImageData == nullptr)
+    {
+        uint32_t PackageSize = 0;
+        ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(Mips.MipMaps[Fallback].HashID, Mips.GetImageSize(HighestIndex), PackageSize);
+        ImageSize = PackageSize;
+        HighestIndex = Fallback;
     }
 
     // Prepare if we have it
     if (ImageData != nullptr)
     {
         // Prepare to create a MemoryDDS file
-        auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
-
-        // Check for, and apply patch if required, if we got a raw result
-        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
-        {
-            // Set normal map patch
-            Result->ImagePatchType = ImagePatch::Normal_Expand;
-        }
+        auto Result = CoDRawImageTranslator::TranslateBC(
+            ImageData,
+            ImageSize,
+            ImageInfo.Width >> (MipCount - HighestIndex - 1),
+            ImageInfo.Height >> (MipCount - HighestIndex - 1),
+            ImageInfo.ImageFormat);
 
         // Return it
         return Result;

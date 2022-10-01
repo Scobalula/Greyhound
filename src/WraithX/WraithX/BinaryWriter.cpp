@@ -123,6 +123,21 @@ uint64_t BinaryWriter::GetPosition()
     return 0;
 }
 
+uint64_t BinaryWriter::GetLength()
+{
+    // Return the position
+    if (FileHandle != nullptr)
+    {
+        // Result
+        _fseeki64(FileHandle, 0, SEEK_END);
+        uint64_t Result = GetPosition();
+        _fseeki64(FileHandle, 0, SEEK_SET);
+        return Result;
+    }
+    // Failed
+    return 0;
+}
+
 void BinaryWriter::SetPosition(uint64_t Offset)
 {
     // Set the position

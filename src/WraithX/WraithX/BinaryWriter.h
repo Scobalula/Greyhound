@@ -34,6 +34,8 @@ public:
 
     // Gets the current position of the file
     uint64_t GetPosition();
+    // Gets the length of the file by its end position.
+    uint64_t GetLength();
 
     // Sets the position of the file
     void SetPosition(uint64_t Offset);

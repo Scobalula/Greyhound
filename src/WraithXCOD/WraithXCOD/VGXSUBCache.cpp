@@ -247,3 +247,92 @@ std::unique_ptr<uint8_t[]> VGXSUBCache::ExtractPackageObject(uint64_t CacheID, i
     // Failed to find data
     return nullptr;
 }
+
+std::unique_ptr<uint8_t[]> VGXSUBCache::DecompressPackageObject(uint64_t cacheID, uint8_t* buffer, size_t bufferSize, size_t decompressedSize, size_t& resultSize)
+{
+    resultSize = 0;
+
+    // We don't accept unknown sizes in xsub, caller must know how much memory is needed.
+    if (decompressedSize == 0)
+    {
+        return nullptr;
+    }
+
+    // Our final big blob of data to return, this will be the entire decompressed buffer.
+    auto result = std::make_unique<uint8_t[]>(decompressedSize);
+    auto reader = MemoryReader((int8_t*)buffer, bufferSize, true);
+
+    size_t blockPosition = 0;
+    VGXSUBBlock Blocks[256];
+
+    while (reader.GetPosition() < reader.GetLength())
+    {
+        blockPosition = reader.GetPosition();
+
+        // Verify block magic.
+        if (reader.Read<uint16_t>() != 0xF01D)
+        {
+            resultSize = 0;
+            return nullptr;
+        }
+        // Verify our hash matches.
+        if (reader.Read<uint64_t>() != cacheID)
+        {
+            resultSize = 0;
+            return nullptr;
+        }
+
+        // Skip unknown values, seem to be offsets/sizes/indices?
+        reader.Advance(12);
+
+        auto BlockCount = (size_t)reader.Read<uint8_t>();
+
+        // If we have 0 blocks, we're possibly EOF, either way it shouldn't happen
+        // and we shouldn't continue after it has occured.
+        if (BlockCount == 0)
+        {
+            break;
+        }
+
+        std::memset(Blocks, 0, sizeof(Blocks));
+        reader.Read(BlockCount * sizeof(VGXSUBBlock), (int8_t*)&Blocks);
+
+        // Loop for block count
+        for (uint32_t i = 0; i < BlockCount; i++)
+        {
+            reader.SetPosition(blockPosition + Blocks[i].BlockOffset);
+            
+            auto dataBlock = reader.GetCurrentStream(Blocks[i].CompressedSize);
+
+            // If we hit EOF on this, we can't verify this stream is valid or something is wrong.
+            if (dataBlock == nullptr)
+            {
+                resultSize = 0;
+                return nullptr;
+            }
+
+            switch (Blocks[i].Compression)
+            {
+            case 0x3:
+                Compression::DecompressLZ4Block((const int8_t*)dataBlock, (int8_t*)result.get() + Blocks[i].DecompressedOffset, Blocks[i].CompressedSize, Blocks[i].DecompressedSize);
+                resultSize += Blocks[i].DecompressedSize;
+                break;
+            case 0x6:
+                Siren::Decompress((const uint8_t*)dataBlock, Blocks[i].CompressedSize, result.get() + Blocks[i].DecompressedOffset, Blocks[i].DecompressedSize);
+                resultSize += Blocks[i].DecompressedSize;
+                break;
+            case 0x0:
+                std::memcpy(result.get() + Blocks[i].DecompressedOffset, dataBlock, Blocks[i].CompressedSize);
+                resultSize += Blocks[i].DecompressedSize;
+                break;
+            default:
+                reader.Advance(Blocks[i].CompressedSize);
+                break;
+            }
+        }
+
+        reader.SetPosition((reader.GetPosition() + 0x7F) & 0xFFFFFFFFFFFFF80);
+    }
+
+    return result;
+}

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <memory>
 #include <chrono>
+#include <map>
 
 // Wraith application and api (Must be included before additional includes)
 #include "WraithApp.h"

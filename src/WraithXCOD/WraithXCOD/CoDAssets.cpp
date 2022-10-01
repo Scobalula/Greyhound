@@ -763,7 +763,6 @@ LoadGameResult CoDAssets::LoadGamePS()
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "cod.exe")) ? "xpak_cache" : FileSystems::CombinePath("_beta_", "xpak_cache")));
             GameGDTProcessor->SetupProcessor("MW5");
             CDNDownloader->Initialize(ps::state->GameDirectory);
-            auto data = CDNDownloader->ExtractCDNObject(0x1CCF475B9909BD, 0x80000, sizer);
             Success = GameModernWarfare5::LoadAssets();
             break;
         }

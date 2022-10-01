@@ -47,40 +47,40 @@ void XSUBCacheV2::LoadPackageCache(const std::string& BasePath)
     else
     {
         FileSystem = std::make_unique<WinFileSystem>(BasePath);
-
     }
 
     // Verify we've successfully opened it.
     if (!FileSystem->IsValid())
     {
         FileSystem = nullptr;
-        return;
     }
-
-    // First pass, catch xsub.
-    FileSystem->EnumerateFiles("*.xsub", [this](const std::string& name, const size_t size)
+    else
     {
-        try
+        // First pass, catch xsub.
+        FileSystem->EnumerateFiles("*.xsub", [this](const std::string& name, const size_t size)
         {
-            this->LoadPackage(name);
-        }
-        catch (...)
-        {
+            try
+            {
+                this->LoadPackage(name);
+            }
+            catch (...)
+            {
 
-        }
-    });
-    // Secon pass, catch xpak.
-    FileSystem->EnumerateFiles("*.xpak", [this](const std::string& name, const size_t size)
-    {
-        try
+            }
+        });
+        // Secon pass, catch xpak.
+        FileSystem->EnumerateFiles("*.xpak", [this](const std::string& name, const size_t size)
         {
-            this->LoadPackage(name);
-        }
-        catch (...)
-        {
+            try
+            {
+                this->LoadPackage(name);
+            }
+            catch (...)
+            {
 
-        }
-    });
+            }
+        });
+    }
 
     // We've finished loading, set status
     this->SetLoadedState();
