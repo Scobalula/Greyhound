@@ -166,6 +166,12 @@ bool GameModernWarfare5::LoadAssets()
                 LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
             LoadedModel->LodCount = ModelResult.NumLods;
             LoadedModel->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            for (size_t b = 0; b < LoadedModel->BoneCount; b++)
+            {
+                auto x = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
+                auto y = CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4);
+                Temp[CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4)] = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
+            }
             // Log it
             CoDAssets::LogXAsset("Model", ModelName);
             // Add
@@ -202,32 +208,32 @@ bool GameModernWarfare5::LoadAssets()
     }
 
     // Anims still going vroom need more work xoxoxoxoxoxoxoxox
-    //if (NeedsAnims)
-    //{
-    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
-    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-    //    {
-    //        // Read
-    //        auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
-    //        // Validate and load if need be
-    //        auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+    if (NeedsAnims)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
+            // Validate and load if need be
+            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
-    //        // Log it
-    //        CoDAssets::LogXAsset("Anim", AnimName);
+            // Log it
+            CoDAssets::LogXAsset("Anim", AnimName);
 
-    //        // Make and add
-    //        auto LoadedAnim = new CoDAnim_t();
-    //        // Set
-    //        LoadedAnim->AssetName = AnimName;
-    //        LoadedAnim->AssetPointer = Asset.Header;
-    //        LoadedAnim->Framerate = AnimResult.Framerate;
-    //        LoadedAnim->FrameCount = AnimResult.FrameCount;
-    //        LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
-    //        LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
-    //        // Add
-    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
-    //    });
-    //}
+            // Make and add
+            auto LoadedAnim = new CoDAnim_t();
+            // Set
+            LoadedAnim->AssetName = AnimName;
+            LoadedAnim->AssetPointer = Asset.Header;
+            LoadedAnim->Framerate = AnimResult.Framerate;
+            LoadedAnim->FrameCount = AnimResult.FrameCount;
+            LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+        });
+    }
 
     if (NeedsMaterials)
     {
@@ -253,6 +259,13 @@ bool GameModernWarfare5::LoadAssets()
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
         });
+    }
+
+    std::ofstream streamerLad("test.csv");
+
+    for (auto& thing : Temp)
+    {
+        streamerLad << std::hex << thing.first << "," << thing.second << "\n";
     }
 
     // Success, error only on specific load
@@ -304,8 +317,14 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
 
         std::unique_ptr<uint8_t[]> AnimBuffer = nullptr;
         uint32_t AnimBufferSize = 0;
+        uint32_t AnimIndicesSize = 0;
         uint64_t AnimBufferOffset = 0;
-
+        
+        // Don't support multi-buffer anims atm
+        if (AnimData.OffsetCount > 1)
+        {
+            return nullptr;
+        }
         // Check for stream info, should be a flag but this will do
         if (AnimData.StreamInfoPtr != 0)
         {
@@ -320,25 +339,23 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
             {
                 return nullptr;
             }
-
-            // Debug, TODO: Multiple xanim buffers
-            //for (size_t i = 0; i < AnimData.OffsetCount; i++)
-            //{
-            //    auto StreamInfo2 = CoDAssets::GameInstance->Read<MW5XAnimStreamInfo>(AnimData.StreamInfoPtr + i * sizeof(MW5XAnimStreamInfo));
-            //    uint32_t AnimBufferSize2 = 0;
-            //    auto AnimBuffer2 = CoDAssets::GamePackageCache->ExtractPackageObject(StreamInfo2.StreamKey, StreamInfo2.Size, AnimBufferSize2);
-
-            //    BinaryWriter Writer;
-
-            //    Writer.Create(Strings::Format("anim_%llu.dat", i));
-
-            //    Writer.Write(AnimBuffer2.get(), StreamInfo.Size);
-            //}
+        }
+        else
+        {
+            return nullptr;
         }
 
-        // Create a generic xanim reader and assign it to the new xanim translator
-        Anim->Reader = std::make_unique<CoDXAnimReader>(AnimBuffer.release(), (size_t)AnimBufferSize, true);
+        // Calculate Indices Size
+        if (AnimData.IndexCount >= 0x100)
+            AnimIndicesSize = AnimData.IndexCount * 2;
+        else
+            AnimIndicesSize = AnimData.IndexCount;
 
+        // Create a generic xanim reader and assign it to the new xanim translator
+        Anim->Reader = std::make_unique<CoDXAnimReader>(nullptr, (size_t)AnimBufferSize + AnimIndicesSize, true);
+        
+        // Copy extracted buffer into ours.
+        std::memcpy(Anim->Reader->GetBuffer(), AnimBuffer.get(), AnimBufferSize);
         // Now consume the chicken dinner.
         Anim->Reader->DataBytes        = Anim->Reader->GetBuffer();
         Anim->Reader->DataShorts       = Anim->Reader->GetBuffer() + (size_t)AnimData.DataShortOffset;
@@ -346,6 +363,10 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->Reader->RandomDataShorts = Anim->Reader->GetBuffer() + CoDAssets::GameInstance->Read<uint32_t>(AnimData.OffsetPtr);
         Anim->Reader->RandomDataBytes  = Anim->Reader->GetBuffer() + CoDAssets::GameInstance->Read<uint32_t>(AnimData.OffsetPtr2);
         Anim->Reader->RandomDataInts   = Anim->Reader->GetBuffer();
+        Anim->Reader->Indices          = Anim->Reader->GetBuffer() + AnimBufferSize;
+
+        // Consume Indicesz
+        CoDAssets::GameInstance->Read(Anim->Reader->Indices, AnimData.IndicesPtr, AnimIndicesSize);
 
         // Consume Bones (TODO: Hashes are now stored, need to build a table and to figure out algorithm)
         // Building from XModels on fly atm.
@@ -725,7 +746,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
     // An initial loop to find the fallback to use in case of CDN not being
     // a viable option.
     size_t Fallback = 0;
-    size_t HighestIndex = MipCount - 1;
+    size_t HighestIndex = (size_t)ImageInfo.MipCount - 1;
 
     for (size_t i = 0; i < MipCount; i++)
     {

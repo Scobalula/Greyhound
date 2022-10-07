@@ -20,6 +20,8 @@ public:
 
 	// The array of bone names.
 	std::vector<std::string> BoneNames;
+	// The array of notetracks by frame index.
+	std::vector<std::pair<std::string, size_t>> Notetracks;
 	// The data byte array.
 	uint8_t* DataBytes;
 	// The data byte array.

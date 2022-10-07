@@ -168,7 +168,7 @@ struct MW5XAnim
     uint64_t Hash;
     uint64_t NamePtr;
     uint64_t BoneIDsPtr;
-    uint64_t Null;
+    uint64_t IndicesPtr;
     uint64_t NotificationsPtr;
     uint8_t Padding[24];
     uint32_t RandomDataShortCount;

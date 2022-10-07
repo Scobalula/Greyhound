@@ -12,6 +12,7 @@ struct CoDCDNDownloaderV2Entry
     uint64_t Flags;
 };
 
+// A class to handle V2 CDNs (Modern Warfare 2 2022)
 class CoDCDNDownloaderV2 : public CoDCDNDownloader
 {
 private:

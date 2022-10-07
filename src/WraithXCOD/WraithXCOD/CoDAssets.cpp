@@ -697,12 +697,13 @@ LoadGameResult CoDAssets::LoadGamePS()
         // Vanguard
         case 0x44524155474E4156:
             GameVanguard::PerformInitialSetup();
-            GameID = SupportedGames::Vanguard;
-            GameFlags = SupportedGameFlags::None;
+            GameID            = SupportedGames::Vanguard;
+            GameFlags         = SupportedGameFlags::None;
             GameXImageHandler = GameVanguard::LoadXImage;
             GameStringHandler = GameVanguard::LoadStringEntry;
-            GamePackageCache = std::make_unique<VGXSUBCache>();
-            OnDemandCache = std::make_unique<VGXPAKCache>();
+            GamePackageCache  = std::make_unique<VGXSUBCache>();
+            OnDemandCache     = std::make_unique<VGXPAKCache>();
+            CDNDownloader     = CDNSupport ? std::make_unique<CoDCDNDownloaderV1>() : nullptr;
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
             GameGDTProcessor->SetupProcessor("VG");
