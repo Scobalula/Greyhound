@@ -32,20 +32,6 @@ namespace ps
     // Parasytes XAsset Structure.
     struct XAsset64
     {
-        // The xasset type depending on the game it is from.
-        uint32_t Type;
-        // The xasset size.
-        uint32_t HeaderSize;
-        // The xasset ID.
-        uint64_t ID;
-        // The xasset name.
-        uint64_t Name;
-        // Whether or not this asset is a tempt slot.
-        uint32_t Temp;
-        // Header Memory.
-        uint64_t HeaderMemory;
-        // The fast file that owns this asset.
-        uint64_t Owner;
         // The previous xasset in the list.
         uint64_t Previous;
         // The next xasset in the list.
@@ -56,12 +42,24 @@ namespace ps
         uint64_t LastChild;
         // The asset header.
         uint64_t Header;
-        // The size of the extended data.
-        uint64_t ExtendedDataSize;
+        // The fast file that owns this asset.
+        uint64_t Owner;
+        // Header Memory.
+        uint64_t HeaderMemory;
         // The extended data, if any.
         uint64_t ExtendedData;
         // The pointer that points to the extended data.
         uint64_t ExtendedDataPtrOffset;
+        // The size of the extended data.
+        uint64_t ExtendedDataSize;
+        // The xasset type depending on the game it is from.
+        uint64_t Type;
+        // The xasset size.
+        uint64_t HeaderSize;
+        // The xasset ID.
+        uint64_t ID;
+        // Whether or not this asset is a tempt slot.
+        uint64_t Temp;
     };
 
     // Parasytes XAsset Pool Structure.
