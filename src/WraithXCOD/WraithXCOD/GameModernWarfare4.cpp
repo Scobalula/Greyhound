@@ -359,6 +359,9 @@ bool GameModernWarfare4::LoadAssets()
             // Note actually streamer info pool
             auto Info = CoDAssets::GameInstance->Read<MW4SoundBankInfo>(SoundResult.SoundBankPtr);
 
+            // Log it
+            CoDAssets::LogXAsset("RawFile", RawfileName);
+
             // Make and add
             auto LoadedRawfile = new CoDRawFile_t();
             // Set

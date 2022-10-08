@@ -394,6 +394,9 @@ bool GameVanguard::LoadAssets()
             // Note actually streamer info pool
             auto Info = CoDAssets::GameInstance->Read<VGSoundBankInfo>(SoundResult.SoundBankPtr);
 
+            // Log it
+            CoDAssets::LogXAsset("RawFile", RawfileName);
+
             // Make and add
             auto LoadedRawfile = new CoDRawFile_t();
             // Set
