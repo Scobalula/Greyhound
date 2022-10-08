@@ -13,6 +13,7 @@
 #include "WinFileSystem.h"
 
 // We need the XSUB Classes
+#include "VGXSUBCache.h"
 #include "XSUBCache.h"
 #include "XSUBCacheV2.h"
 
@@ -24,6 +25,10 @@ constexpr auto CoDV2CDNURL = "http://cod-assets.cdn.blizzard.com/pc/iw9_2";
 
 bool CoDCDNDownloaderV2::Initialize(const std::string& gameDirectory)
 {
+	// Verify the CDN is available.
+	if (Client.DownloadData(CoDV2CDNURL) == nullptr)
+		return false;
+
 	// Check for Casc
 	if (FileSystems::FileExists(gameDirectory + "\\.build.info"))
 	{
@@ -47,6 +52,9 @@ bool CoDCDNDownloaderV2::Initialize(const std::string& gameDirectory)
 	{
 		this->LoadCDNXPAK(fileName);
 	});
+
+	// Load cache
+	Cache.Load("CoDCDNV2");
 
 	return true;
 }
@@ -87,11 +95,56 @@ std::unique_ptr<uint8_t[]> CoDCDNDownloaderV2::ExtractCDNObject(uint64_t cacheID
 	if (potentialEntry == Entries.end())
 		return nullptr;
 
+	// Aquire lock
+	std::lock_guard<std::shared_mutex> Gaurd(Mutex);
+
 	auto entry = potentialEntry->second;
+
+	// Attempt to extract it first from the CDN cache, to avoid constantly requesting from
+	// the remote CDN.
+	size_t bufferSize = 0;
+	auto cdnBuffer = Cache.Extract(cacheID, entry.Size, bufferSize);
+
+	if (cdnBuffer != nullptr)
+	{
+		auto decompressed = VGXSUBCache::DecompressPackageObject(
+			entry.Hash,
+			cdnBuffer.get(),
+			bufferSize,
+			sizeOfBuffer,
+			resultSize);
+
+		if (decompressed != nullptr)
+		{
+			return decompressed;
+		}
+
+	}
+
+	// Fallback to CDN.
+	// If we can't extract it (i.e. previous attempt failed) then we should wait before attempting again.
+	if (HasFailed(cacheID))
+	{
+		return nullptr;
+	}
+
 	auto url = Strings::Format("%s/22/%02x/%016llx_%08llx_%s", CoDV2CDNURL, (uint8_t)entry.Hash, entry.Hash, entry.Size, entry.Flags ? "1" : "0");
 	auto result = Client.DownloadData(url);
 
-	printf("Sacrifice Ploof\n");
+	if (result == nullptr || result->BufferSize != entry.Size)
+	{
+		// Append a failed attempt, we won't try to export this again until a load game attempt or time has passed.
+		AddFailed(cacheID);
+		return nullptr;
+	}
 
-	return nullptr;
+	// Add to the cache
+	Cache.Add(cacheID, result->DataBuffer, result->BufferSize);
+
+	return VGXSUBCache::DecompressPackageObject(
+		entry.Hash,
+		result->DataBuffer,
+		result->BufferSize,
+		sizeOfBuffer,
+		resultSize);
 }

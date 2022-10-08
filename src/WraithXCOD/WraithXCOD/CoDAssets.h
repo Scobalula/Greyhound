@@ -221,8 +221,10 @@ public:
     // Gets a model asset for previewing
     static std::unique_ptr<WraithModel> GetModelForPreview(const CoDModel_t* Model);
 
-    // Gets a model hash. If one is not found, a default value is used.
+    // Gets an asset hash. If one is not found, a default value is used.
     static std::string GetHashedName(const std::string& type, const uint64_t hash);
+    // Gets a string hash. If one is not found, a default value is used.
+    static std::string GetHashedString(const std::string& type, const uint64_t hash);
 private:
     // -- Game utility functions, internal
 

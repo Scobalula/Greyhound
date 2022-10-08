@@ -36,6 +36,8 @@ public:
 
     // Gets the current stream
     int8_t* GetCurrentStream() const;
+    // Gets the current stream and advances the position. If the length is smaller, nullptr is returned.
+    int8_t* GetCurrentStream(const size_t size);
 
     // Sets the position of the stream
     void SetPosition(uint64_t Offset);

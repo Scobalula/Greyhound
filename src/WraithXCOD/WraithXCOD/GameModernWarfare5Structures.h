@@ -117,7 +117,7 @@ struct MW5GfxImage
     uint8_t UnkByte3;
     uint8_t UnkByte4;
     uint8_t UnkByte5;
-    uint8_t UnkByte6;
+    uint8_t MipCount;
     uint8_t UnkByte7;
     uint64_t MipMaps;
     uint64_t PrimedMipPtr;
@@ -128,12 +128,29 @@ struct MW5GfxImage
 struct MW5GfxMip
 {
     uint64_t HashID;
-    uint8_t Padding[8];
-    uint16_t Width;
-    uint16_t Height;
-    uint32_t Size;
+    uint64_t Padding;
+    uint64_t PackedInfo;
 };
 #pragma pack(pop)
+
+template <size_t Size>
+struct MW5GfxMipArray
+{
+    MW5GfxMip MipMaps[Size];
+
+    size_t GetImageSize(size_t i)
+    {
+        if (i == 0)
+            return ((MipMaps[i].PackedInfo >> 30) & 0x1FFFFFFF);
+        else
+            return ((MipMaps[i].PackedInfo >> 30) & 0x1FFFFFFF) - ((MipMaps[i - 1].PackedInfo >> 30) & 0x1FFFFFFF);
+    }
+
+    size_t GetMipCount()
+    {
+        return Size;
+    }
+};
 
 
 #pragma pack(push, 1)
@@ -146,12 +163,21 @@ struct MW5XAnimStreamInfo
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct MW5XAnimNotetrack
+{
+    uint32_t Name;
+    float Time;
+    uint8_t Padding[24];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct MW5XAnim
 {
     uint64_t Hash;
     uint64_t NamePtr;
     uint64_t BoneIDsPtr;
-    uint64_t Null;
+    uint64_t IndicesPtr;
     uint64_t NotificationsPtr;
     uint8_t Padding[24];
     uint32_t RandomDataShortCount;

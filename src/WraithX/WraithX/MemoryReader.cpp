@@ -79,6 +79,19 @@ int8_t* MemoryReader::GetCurrentStream() const
     return DataPointer;
 }
 
+int8_t* MemoryReader::GetCurrentStream(const size_t size)
+{
+
+    if ((size + CurrentPosition) <= DataLength)
+    {
+        auto result = DataPointer + CurrentPosition;
+        CurrentPosition += size;
+        return result;
+    }
+
+    return nullptr;
+}
+
 void MemoryReader::SetPosition(uint64_t Offset)
 {
     // Only set it if we are within bounds

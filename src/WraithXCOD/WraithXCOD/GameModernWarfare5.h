@@ -42,14 +42,15 @@ public:
     // Reads an XImageDDS from a image reference from Modern Warfare 5
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
     // Loads a streamed XModel lod, streaming from cache if need be
-    static void LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel);
+    static void LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel);
 
     // String Handlers for Modern Warfare 5
     static std::string LoadStringEntry(uint64_t Index);
 
     // Perform setup required before ripping
     static void PerformInitialSetup();
-
+    // Perform setup required after game is closed.
+    static void PerformShutDown();
 private:
 
     // Prepares Vertex Weights

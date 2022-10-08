@@ -1143,6 +1143,12 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnimReader(const std::
         Anim->AddTranslationKey(Animation->Reader->BoneNames[boneIndex], 0, vec.X, vec.Y, vec.Z);
     }
 
+    // Copy notetracks
+    for (auto& notetrack : Animation->Reader->Notetracks)
+    {
+        Anim->AddNoteTrack(notetrack.first, (uint32_t)notetrack.second);
+    }
+
     // Stage 8: Delta translation data, handled on a per-game basis
     // Delta translations appear in their own pointer, but have some game specific structures
     if (Animation->DeltaTranslationPtr != 0)

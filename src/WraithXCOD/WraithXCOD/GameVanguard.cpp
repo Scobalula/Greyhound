@@ -103,7 +103,7 @@ struct VGGfxImage
     uint8_t UnkByte6;
     uint8_t UnkByte7;
     uint64_t Unk04;
-    uint64_t MipMaps;
+    uint64_t MipMapsPtr;
     uint64_t PrimedMipPtr;
     uint64_t LoadedImagePtr;
 };
@@ -118,6 +118,25 @@ struct VGGfxMip
     uint16_t Height;
 };
 #pragma pack(pop)
+
+template <size_t Size>
+struct VGGfxMipArray
+{
+    VGGfxMip MipMaps[Size];
+
+    size_t GetImageSize(size_t i)
+    {
+        if (i == 0)
+            return (size_t)(MipMaps[i].Size >> 4);
+        else
+            return (size_t)((MipMaps[i].Size >> 4) - (MipMaps[i - 1].Size >> 4));
+    }
+
+    size_t GetMipCount()
+    {
+        return Size;
+    }
+};
 
 bool GameVanguard::LoadOffsets()
 {
@@ -214,7 +233,7 @@ bool GameVanguard::LoadAssets()
             CoDAssets::LogXAsset("Image", ImageName);
 
             // Check if it's streamed
-            if(ImageResult.MipMaps > 0)
+            if(ImageResult.MipMapsPtr > 0)
             {
 
                 // Make and add
@@ -891,50 +910,30 @@ void GameVanguard::PrepareVertexWeights(std::vector<WeightsData>& Weights, const
 
 std::unique_ptr<XImageDDS> GameVanguard::LoadXImage(const XImage_t& Image)
 {
-    // Prepare to load an image, we need to rip loaded and streamed ones
-    uint32_t ResultSize = 0;
-
     // We must read the image data
     auto ImageInfo = CoDAssets::GameInstance->Read<VGGfxImage>(Image.ImagePtr);
 
-    // Read Array of Mip Maps
-    VGGfxMip MipMaps[8];
-    int32_t MipCount = std::min((int32_t)ImageInfo.UnkByte6, 8);
-
-    if (CoDAssets::GameInstance->Read((uint8_t*)MipMaps, ImageInfo.MipMaps, MipCount * sizeof(VGGfxMip)) != (MipCount * sizeof(VGGfxMip)))
+    if (ImageInfo.MipMapsPtr == 0)
         return nullptr;
 
-    // Calculate the largest image mip
-    uint32_t LargestMip    = 0;
-    uint32_t LargestWidth  = 0;
-    uint32_t LargestHeight = 0;
-    uint64_t LargestHash   = 0;
-    uint64_t LargestSize   = 0;
-    bool OnDemand          = false;
+    // Read Array of Mip Maps
+    VGGfxMipArray<32> Mips{};
+    size_t MipCount = std::min((size_t)ImageInfo.UnkByte6, (size_t)32);
 
-    // Loop and calculate
+    if (CoDAssets::GameInstance->Read((uint8_t*)Mips.MipMaps, ImageInfo.MipMapsPtr, MipCount * sizeof(VGGfxMip)) != (MipCount * sizeof(VGGfxMip)))
+        return nullptr;
+
+    // An initial loop to find the fallback to use in case of CDN not being
+    // a viable option.
+    size_t Fallback = 0;
+    size_t HighestIndex = (size_t)ImageInfo.UnkByte6 - 1;
+
     for (size_t i = 0; i < MipCount; i++)
     {
-        // Compare widths
-        if (MipMaps[i].Width > LargestWidth && CoDAssets::GamePackageCache->Exists(MipMaps[i].HashID))
+        if (CoDAssets::GamePackageCache->Exists(Mips.MipMaps[i].HashID))
         {
-            LargestMip    = i;
-            LargestWidth  = MipMaps[i].Width;
-            LargestHeight = MipMaps[i].Height;
-            LargestHash   = MipMaps[i].HashID;
-            LargestSize   = i == 0 ? MipMaps[i].Size >> 4 : (MipMaps[i].Size >> 4) - (MipMaps[i - 1].Size >> 4);
-            OnDemand = false;
+            Fallback = i;
         }
-        else if (MipMaps[i].Width > LargestWidth && CoDAssets::OnDemandCache->Exists(MipMaps[i].HashID))
-        {
-            LargestMip    = i;
-            LargestWidth  = MipMaps[i].Width;
-            LargestHeight = MipMaps[i].Height;
-            LargestHash   = MipMaps[i].HashID;
-            LargestSize   = i == 0 ? MipMaps[i].Size >> 4 : (MipMaps[i].Size >> 4) - (MipMaps[i - 1].Size >> 4);
-            OnDemand      = true;
-        }
-
     }
 
     // Calculate proper image format
@@ -988,41 +987,48 @@ std::unique_ptr<XImageDDS> GameVanguard::LoadXImage(const XImage_t& Image)
     case 45: ImageInfo.ImageFormat = 96; break;
     case 46: ImageInfo.ImageFormat = 98; break;
     case 47: ImageInfo.ImageFormat = 98; break;
-        // Fall back to BC1
+    // Fall back to BC1
     default: ImageInfo.ImageFormat = 71; break;
     }
 
     // Buffer
     std::unique_ptr<uint8_t[]> ImageData = nullptr;
+    size_t ImageSize = 0;
 
-    // Check if we're missing a hash / size
-    if (LargestWidth != 0 || LargestHash != 0)
+    // First check the local game CDN cache.
+    if (Fallback != HighestIndex && CoDAssets::OnDemandCache != nullptr)
     {
-        // Check if we're on-demand
-        if (OnDemand)
-        {
-            // We have a streamed image, prepare to extract
-            ImageData = CoDAssets::OnDemandCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
-        }
-        else
-        {
-            // We have a streamed image, prepare to extract
-            ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
-        }
+        uint32_t PackageSize = 0;
+        ImageData = CoDAssets::OnDemandCache->ExtractPackageObject(Mips.MipMaps[HighestIndex].HashID, Mips.GetImageSize(HighestIndex), PackageSize);
+        ImageSize = PackageSize;
+    }
+
+    // If we still have mips above our fallback, then we have to attempt
+    // to load the on-demand version from the CDN.
+    if (Fallback != HighestIndex && CoDAssets::CDNDownloader != nullptr)
+    {
+        ImageData = CoDAssets::CDNDownloader->ExtractCDNObject(Mips.MipMaps[HighestIndex].HashID, Mips.GetImageSize(HighestIndex), ImageSize);
+    }
+
+    // If that failed, fallback to the normal image cache.
+    if (ImageData == nullptr)
+    {
+        uint32_t PackageSize = 0;
+        ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(Mips.MipMaps[Fallback].HashID, Mips.GetImageSize(Fallback), PackageSize);
+        ImageSize = PackageSize;
+        HighestIndex = Fallback;
     }
 
     // Prepare if we have it
     if (ImageData != nullptr)
     {
         // Prepare to create a MemoryDDS file
-        auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
-
-        // Check for, and apply patch if required, if we got a raw result
-        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
-        {
-            // Set normal map patch
-            Result->ImagePatchType = ImagePatch::Normal_Expand;
-        }
+        auto Result = CoDRawImageTranslator::TranslateBC(
+            ImageData,
+            ImageSize,
+            Mips.MipMaps[HighestIndex].Width,
+            Mips.MipMaps[HighestIndex].Height,
+            ImageInfo.ImageFormat);
 
         // Return it
         return Result;
