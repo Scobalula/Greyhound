@@ -163,6 +163,15 @@ struct MW5XAnimStreamInfo
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct MW5XAnimNotetrack
+{
+    uint32_t Name;
+    float Time;
+    uint8_t Padding[24];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct MW5XAnim
 {
     uint64_t Hash;

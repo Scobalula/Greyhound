@@ -105,9 +105,6 @@ struct MW5SoundAliasNamingInfo
     uint64_t SecondaryPtr;
 };
 
-std::map<uint32_t, std::string> Temp;
-
-
 // Calculates the hash of a sound string
 uint32_t MW5HashSoundString(const std::string& Value)
 {
@@ -166,12 +163,6 @@ bool GameModernWarfare5::LoadAssets()
                 LoadedModel->BoneCount = ModelResult.NumBones + ModelResult.UnkBoneCount;
             LoadedModel->LodCount = ModelResult.NumLods;
             LoadedModel->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
-            for (size_t b = 0; b < LoadedModel->BoneCount; b++)
-            {
-                auto x = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
-                auto y = CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4);
-                Temp[CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8 + 4)] = CoDAssets::GameStringHandler(CoDAssets::GameInstance->Read<uint32_t>(ModelResult.BoneIDsPtr + b * 8));
-            }
             // Log it
             CoDAssets::LogXAsset("Model", ModelName);
             // Add
@@ -259,13 +250,6 @@ bool GameModernWarfare5::LoadAssets()
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
         });
-    }
-
-    std::ofstream streamerLad("test.csv");
-
-    for (auto& thing : Temp)
-    {
-        streamerLad << std::hex << thing.first << "," << thing.second << "\n";
     }
 
     // Success, error only on specific load
@@ -364,23 +348,21 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->Reader->RandomDataBytes  = Anim->Reader->GetBuffer() + CoDAssets::GameInstance->Read<uint32_t>(AnimData.OffsetPtr2);
         Anim->Reader->RandomDataInts   = Anim->Reader->GetBuffer();
         Anim->Reader->Indices          = Anim->Reader->GetBuffer() + AnimBufferSize;
-
-        // Consume Indicesz
+        // Consume Indices from in-memory buffer
         CoDAssets::GameInstance->Read(Anim->Reader->Indices, AnimData.IndicesPtr, AnimIndicesSize);
 
-        // Consume Bones (TODO: Hashes are now stored, need to build a table and to figure out algorithm)
-        // Building from XModels on fly atm.
+        // Consume bones
         for (size_t b = 0; b < AnimData.TotalBoneCount; b++)
         {
+            Anim->Reader->BoneNames.push_back(CoDAssets::GetHashedString("bone", CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4)));
             uint32_t boneid = CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4);
-            if (Temp.find(boneid) != Temp.end())
-            {
-                Anim->Reader->BoneNames.push_back(Temp[boneid]);
-            }
-            else
-            {
-                Anim->Reader->BoneNames.push_back(Strings::Format("bone_%llx", boneid));
-            }
+        }
+
+        // Consume notetracks
+        for (size_t n = 0; n < AnimData.NotetrackCount; n++)
+        {
+            auto noteTrack = CoDAssets::GameInstance->Read<MW5XAnimNotetrack>(AnimData.NotificationsPtr + n * sizeof(MW5XAnimNotetrack));
+            Anim->Reader->Notetracks.push_back({ CoDAssets::GameStringHandler(noteTrack.Name), (size_t)(noteTrack.Time * (float)Anim->FrameCount) });
         }
 
         // Bone ID index size
@@ -397,7 +379,7 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->StaticTranslatedBoneCount    = AnimData.StaticTranslatedBoneCount;
         Anim->NoneTranslatedBoneCount      = AnimData.NoneTranslatedBoneCount;
         Anim->TotalBoneCount               = AnimData.TotalBoneCount;
-        //Anim->NotificationCount            = AnimData.NotificationCount;
+        Anim->NotificationCount            = AnimData.NotetrackCount;
 
         // Copy delta
         //Anim->DeltaTranslationPtr = AnimDeltaData.DeltaTranslationsPtr;
@@ -806,7 +788,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
     return nullptr;
 }
 
-void GameModernWarfare5::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
+void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Scale to use
     auto ScaleConstant = (1.0f / 0x1FFFFF) * 2.0f;
@@ -1011,6 +993,7 @@ void GameModernWarfare5::PerformInitialSetup()
 
     // Load Caches
     CoDAssets::StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_string.wni"));
+    CoDAssets::StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_bones.wni"));
     CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xsounds_unverified.wni"));
 
     // Copy if not exists

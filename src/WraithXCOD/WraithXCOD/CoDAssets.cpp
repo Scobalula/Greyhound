@@ -1121,6 +1121,18 @@ std::string CoDAssets::GetHashedName(const std::string& type, const uint64_t has
     return Strings::Format("%s_%llx", type.c_str(), hash);
 }
 
+std::string CoDAssets::GetHashedString(const std::string& type, const uint64_t hash)
+{
+    auto found = StringCache.NameDatabase.find(hash);
+
+    if (found != StringCache.NameDatabase.end())
+    {
+        return found->second;
+    }
+
+    return Strings::Format("%s_%llx", type.c_str(), hash);
+}
+
 bool CoDAssets::LocateGameInfo()
 {
     // Whether or not we found what we need

@@ -93,16 +93,28 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         // Check size
         switch (Model->BoneIndexSize)
         {
-        case 2: BoneID = CoDAssets::GameInstance->Read<uint16_t>(BoneIDs); break;
-        case 4: BoneID = CoDAssets::GameInstance->Read<uint32_t>(BoneIDs); break;
-        case 8: BoneID = CoDAssets::GameInstance->Read<uint32_t>(BoneIDs); break;
+        case 2: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint16_t>(BoneIDs); break;
+        case 4: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(BoneIDs); break;
+        case 8: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(BoneIDs + 4); break;
         }
 
         // Add the new bone
         auto& NewBone = ModelResult->AddBone();
 
         // Set the new bones name (Determine if we need something else)
-        auto BoneName = CoDAssets::GameStringHandler(BoneID);
+        std::string BoneName;
+
+        switch (Model->BoneIndexSize)
+        {
+        case 2:
+        case 4:
+            BoneName = CoDAssets::GameStringHandler(BoneID);
+            break;
+        case 8:
+            BoneName = CoDAssets::GetHashedString("bone", BoneID);
+            break;
+        }
+
         // Check for an invalid tag name
         if (BoneName == "")
         {
@@ -294,7 +306,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         case SupportedGames::BlackOpsCW:            GameBlackOpsCW::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::WorldWar2:             GameWorldWar2::LoadXModel(Model, LodReference, ModelResult); break;
         case SupportedGames::ModernWarfare4:        GameModernWarfare4::LoadXModel(LodReference, ModelResult); break;
-        case SupportedGames::ModernWarfare5:        GameModernWarfare5::LoadXModel(LodReference, ModelResult); break;
+        case SupportedGames::ModernWarfare5:        GameModernWarfare5::LoadXModel(Model, LodReference, ModelResult); break;
         case SupportedGames::Vanguard:              GameVanguard::LoadXModel(Model, LodReference, ModelResult); break;
         }
     }
