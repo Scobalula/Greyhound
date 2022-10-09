@@ -46,8 +46,33 @@ uint64_t HashSoundStringV17(const std::string& Value)
     return Result;
 }
 
+SupportedGames CalculateSABTitle(const SABFileHeader& header)
+{
+    // Read per-game entries
+    switch (header.Version)
+    {
+    case 0x4:
+        return SupportedGames::InfiniteWarfare;
+    case 0xA:
+        return SupportedGames::ModernWarfare4;
+    case 0xE:
+        return SupportedGames::BlackOps2;
+    case 0xF:
+        return SupportedGames::BlackOps3;
+    case 0x11:
+        return SupportedGames::Vanguard;
+    case 0x15:
+        return header.SizeOfAudioEntry == 56 ? SupportedGames::ModernWarfare5 : SupportedGames::BlackOps4;
+    }
+
+    return SupportedGames::None;
+}
+
 bool SABSupport::ParseSAB(const std::string& FilePath)
 {
+    // TODO: Make each sab version its own class, there's enough
+    // variations to warrant it, this code is becoming disgusting..
+
     // Prepare to parse and load entries from this file
     auto Reader = BinaryReader();
     // Open the file
@@ -71,7 +96,7 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
     // Currently, the name table is at the same offset, 0x250, right before the zone name.
     // If there is no offset, there are no files names, however, there can be no names at an
     // Offset though
-    Reader.SetPosition(0x250);
+    Reader.SetPosition((Header.Version == 0x15 && Header.SizeOfAudioEntry == 0x38) ? 0x24C : 0x250);
     // Read the offset
     auto NameTableOffset = Reader.Read<uint64_t>();
 
@@ -103,26 +128,44 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
 
         if (Header.Version == 0x15)
         {
-            SABNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_sab.wni"));
-
-            // Loop and read
-            for (uint32_t i = 0; i < Header.EntriesCount; i++)
+            if (Header.SizeOfAudioEntry == 0x38)
             {
-                // Read and mask it
-                auto Hash = Reader.Read<uint64_t>() & 0xFFFFFFFFFFFFFFF;
-                // Check for an override in the name DB
-                if (SABNames.NameDatabase.find(Hash) != SABNames.NameDatabase.end())
+                // Loop and read
+                for (uint32_t i = 0; i < Header.EntriesCount; i++)
                 {
-                    SABFileNames.emplace_back(SABNames.NameDatabase[Hash]);
+                    // Read
+                    auto Name = Reader.ReadNullTerminatedString();
+                    // Calculate jump
+                    auto PositionAdvance = 256 - (Name.size() + 1);
+                    // Emplace it back
+                    SABFileNames.emplace_back(Name);
+                    // Advance size of name entry * 2 - string size
+                    Reader.Advance(PositionAdvance);
                 }
-                else
+            }
+            else
+            {
+                SABNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_sab.wni"));
+
+                // Loop and read
+                for (uint32_t i = 0; i < Header.EntriesCount; i++)
                 {
-                    SABFileNames.emplace_back(Strings::Format("xsound_%llx", Hash));
+                    // Read and mask it
+                    auto Hash = Reader.Read<uint64_t>() & 0xFFFFFFFFFFFFFFF;
+                    // Check for an override in the name DB
+                    if (SABNames.NameDatabase.find(Hash) != SABNames.NameDatabase.end())
+                    {
+                        SABFileNames.emplace_back(SABNames.NameDatabase[Hash]);
+                    }
+                    else
+                    {
+                        SABFileNames.emplace_back(Strings::Format("xsound_%llx", Hash));
+                    }
+                    // Calculate jump
+                    auto PositionAdvance = (Header.SizeOfNameEntry * 2) - 8;
+                    // Advance size of name entry * 2 - string size
+                    Reader.Advance(PositionAdvance);
                 }
-                // Calculate jump
-                auto PositionAdvance = (Header.SizeOfNameEntry * 2) - 8;
-                // Advance size of name entry * 2 - string size
-                Reader.Advance(PositionAdvance);
             }
         }
         else
@@ -147,39 +190,46 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
     // Size in the header, so it can be semi-generic
     Reader.SetPosition(Header.EntryTableOffset);
 
+    // Calculate our game
+
     // Read per-game entries
-    switch (Header.Version)
+    switch (CalculateSABTitle(Header))
     {
-    case 0x4:
+    case SupportedGames::InfiniteWarfare:
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::InfiniteWarfare;
         // Load
         HandleSABv4(Reader, Header, SABFileNames, SABNames); break;
-    case 0xA:
+    case SupportedGames::ModernWarfare4:
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::ModernWarfare4;
         // Load
         HandleSABv10(Reader, Header, SABFileNames, SABNames); break;
-    case 0xE: 
+    case SupportedGames::BlackOps2:
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::BlackOps2;
         // Load
         HandleSABv14(Reader, Header, SABFileNames, SABNames); break;
-    case 0xF: 
+    case SupportedGames::BlackOps3:
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::BlackOps3;
         // Load
         HandleSABv15(Reader, Header, SABFileNames, SABNames); break;
-    case 0x11:
+    case SupportedGames::Vanguard:
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::Vanguard;
         // Load
         HandleSABv17(Reader, Header, SABFileNames, SABNames); break;
-    case 0x15: 
+    case SupportedGames::BlackOps4:
         // Set the game, then load
         CoDAssets::GameID = SupportedGames::BlackOps4;
         // Load
         HandleSABv21(Reader, Header, SABFileNames, SABNames, FileSystems::GetFileName(FilePath)); break;
+    case SupportedGames::ModernWarfare5:
+        // Set the game, then load
+        CoDAssets::GameID = SupportedGames::ModernWarfare5;
+        // Load
+        HandleSABv21v2(Reader, Header, SABFileNames, SABNames, FileSystems::GetFileName(FilePath)); break;
     }
 
     // Clean up names
@@ -187,7 +237,7 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
     SABFileNames.shrink_to_fit();
 
     // Success unless otherwise
-    return true;
+    return CoDAssets::GameID != SupportedGames::None;
 }
 
 std::unique_ptr<XSound> SABSupport::LoadSound(const CoDSound_t* SoundAsset)
@@ -784,6 +834,76 @@ void SABSupport::HandleSABv21(BinaryReader& Reader, const SABFileHeader& Header,
 
         // All Black Ops 4 (v21) entries are FLAC's with a header
         LoadedSound->DataType = SoundDataTypes::FLAC_WithHeader;
+
+        // Check do we want to skip this
+        if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
+        {
+            delete LoadedSound;
+            continue;
+        }
+
+        // Add
+        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+    }
+}
+
+void SABSupport::HandleSABv21v2(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex, const std::string FileName)
+{
+    // Get Settings
+    auto SkipBlankAudio = SettingsManager::GetSetting("skipblankaudio", "false") == "true";
+
+    // Names (sound names are not in order)
+    std::unordered_map<uint64_t, std::string> SoundNames;
+
+    // Loop and build hash table
+    for (auto& Name : NameList)
+        SoundNames[HashSoundStringV17(Name)] = Name;
+
+    // Skip to new table offsets
+    Reader.SetPosition(36);
+    Reader.SetPosition(Reader.Read<uint64_t>());
+
+    // Prepare to loop and read entries
+    for (uint32_t i = 0; i < Header.EntriesCount; i++)
+    {
+        // Read each entry
+        auto Entry = Reader.Read<SABv17Entry>();
+
+        // Prepare to parse the information to our generic structure
+        std::string EntryName = "";
+
+        // Override if we find it
+        if (SoundNames.find(Entry.Key) != SoundNames.end())
+        {
+            // We have it in a database
+            EntryName = SoundNames.at(Entry.Key);
+        }
+        else
+        {
+            // We don't have one
+            EntryName = Strings::Format("_%llx", Entry.Key);
+        }
+
+        std::cout << EntryName << std::endl;
+
+        // Setup a new entry
+        auto LoadedSound = new CoDSound_t();
+        // Set the name, but remove all extensions first
+        LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(EntryName);
+        LoadedSound->FullPath = FileSystems::GetDirectoryName(EntryName);
+
+        // Set various properties
+        LoadedSound->FrameRate = Entry.FrameRate;
+        LoadedSound->FrameCount = Entry.FrameCount;
+        LoadedSound->ChannelsCount = Entry.ChannelCount;
+        // The offset should be after the seek table, since it is not required
+        LoadedSound->AssetPointer = Entry.PrimedSize + Entry.Offset + Entry.SeekTableLength;
+        LoadedSound->AssetSize = Entry.Size;
+        LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+        LoadedSound->IsFileEntry = true;
+        LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+        // All Vanguard (v4) entries get converted to Wav
+        LoadedSound->DataType = SoundDataTypes::WAV_NeedsHeader;
 
         // Check do we want to skip this
         if (SkipBlankAudio && LoadedSound->AssetSize <= 0)
