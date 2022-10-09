@@ -765,6 +765,8 @@ void GameModernWarfare4::PrepareVertexWeights(std::vector<WeightsData>& Weights,
 
 std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
 {
+    // Buffer
+    std::unique_ptr<uint8_t[]> ImageData = nullptr;
     // Prepare to load an image, we need to rip loaded and streamed ones
     uint32_t ResultSize = 0;
 
@@ -774,37 +776,73 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     uint64_t ImagePointer = *(uint64_t*)&ImageInfo.Padding5[8];
     uint32_t LoadedImageSize = *(uint32_t*)&ImageInfo.Padding2[7];
 
-    // Calculate the largest image mip
-    uint32_t LargestMip    = 0;
-    uint32_t LargestWidth  = 0;
-    uint32_t LargestHeight = 0;
-    uint32_t LargestSize   = 0;
-    uint64_t LargestHash   = 0;
-    bool OnDemand          = false;
+    // The final width and heights, we'll grab these from either
+    // the loaded image or streamed info.
+    uint32_t Width = 0;
+    uint32_t Height = 0;
 
-    // Loop and calculate
-    for (uint32_t i = 0; i < 4; i++)
+    // Check if we have a loaded image, if we do, we'll use that instead
+    if (ImagePointer != 0)
     {
-        // Compare widths
-        if (ImageInfo.MipLevels[i].Width > LargestWidth && CoDAssets::GamePackageCache->Exists(ImageInfo.MipLevels[i].HashID))
-        {
-            LargestMip    = i;
-            LargestWidth  = ImageInfo.MipLevels[i].Width;
-            LargestHeight = ImageInfo.MipLevels[i].Height;
-            LargestSize   = i == 0 ? ImageInfo.MipLevels[i].Size >> 4 : (ImageInfo.MipLevels[i].Size >> 4) - (ImageInfo.MipLevels[i - 1].Size >> 4);
-            LargestHash   = ImageInfo.MipLevels[i].HashID;
-            OnDemand = false;
-        }
-        else if (ImageInfo.MipLevels[i].Width > LargestWidth && CoDAssets::OnDemandCache->Exists(ImageInfo.MipLevels[i].HashID))
-        {
-            LargestMip    = i;
-            LargestWidth  = ImageInfo.MipLevels[i].Width;
-            LargestHeight = ImageInfo.MipLevels[i].Height;
-            LargestSize   = i == 0 ? ImageInfo.MipLevels[i].Size >> 4 : (ImageInfo.MipLevels[i].Size >> 4) - (ImageInfo.MipLevels[i - 1].Size >> 4);
-            LargestHash   = ImageInfo.MipLevels[i].HashID;
-            OnDemand      = true;
-        }
+        ImageData = std::make_unique<uint8_t[]>(LoadedImageSize);
+
+        if (CoDAssets::GameInstance->Read(ImageData.get(), ImagePointer, LoadedImageSize) != LoadedImageSize)
+            return nullptr;
+
+        Width = ImageInfo.LoadedMipWidth;
+        Height = ImageInfo.LoadedMipHeight;
     }
+    else
+    {
+        // An initial loop to find the fallback to use in case of CDN not being
+        // a viable option.
+        size_t Fallback = 0;
+        size_t HighestIndex = (size_t)4;
+
+        for (size_t i = 0; i < 4; i++)
+        {
+            if (ImageInfo.Mips.Levels[i].HashID != 0)
+            {
+                if (CoDAssets::GamePackageCache->Exists(ImageInfo.Mips.Levels[i].HashID))
+                {
+                    Fallback = i;
+                }
+
+                HighestIndex = i;
+            }
+        }
+
+        // If our highest index is not our fallback, we potentially have
+        // a streamed cdn image, otherwise we'll just grab from what's in files.
+        if (HighestIndex != Fallback)
+        {
+            // First see if it's in the users local cache on their PC
+            ImageData = CoDAssets::OnDemandCache->ExtractPackageObject(ImageInfo.Mips.Levels[HighestIndex].HashID, ImageInfo.Mips.GetImageSize(HighestIndex), ResultSize);
+
+            // No dice, time for the CDN
+            if (ImageData == nullptr && CoDAssets::CDNDownloader != nullptr)
+            {
+                size_t CDNSize = 0;
+                ImageData = CoDAssets::CDNDownloader->ExtractCDNObject(ImageInfo.Mips.Levels[HighestIndex].HashID, ImageInfo.Mips.GetImageSize(HighestIndex), CDNSize);
+                ResultSize = (uint32_t)CDNSize;
+            }
+        }
+
+        // Now that we've gotten here, we can make the assumption for whatever reason, we cannot access a CDN version of this image.
+        if (ImageData == nullptr)
+        {
+            ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(ImageInfo.Mips.Levels[Fallback].HashID, ImageInfo.Mips.GetImageSize(Fallback), ResultSize);
+            HighestIndex = Fallback;
+        }
+
+        Width = ImageInfo.Mips.Levels[HighestIndex].Width;
+        Height = ImageInfo.Mips.Levels[HighestIndex].Width;
+    }
+
+    // Final check, no point in going further if we didn't
+    // get back an image buffer
+    if (ImageData == nullptr)
+        return nullptr;
 
     // Calculate proper image format
     switch (ImageInfo.ImageFormat)
@@ -861,64 +899,10 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
     default: ImageInfo.ImageFormat = 71; break;
     }
 
-    // Buffer
-    std::unique_ptr<uint8_t[]> ImageData = nullptr;
-
-    // Check if we're missing a hash / size
-    if (LargestWidth != 0 || LargestHash != 0)
-    {
-        // Check if we're on-demand
-        if (OnDemand)
-        {
-            // We have a streamed image, prepare to extract
-            ImageData = CoDAssets::OnDemandCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
-        }
-        else
-        {
-            // We have a streamed image, prepare to extract
-            ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(LargestHash, LargestSize, ResultSize);
-        }
-    }
-
-    // Prepare if we have it
-    if (ImageData != nullptr)
-    {
-        // Prepare to create a MemoryDDS file
-        auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, LargestWidth, LargestHeight, ImageInfo.ImageFormat);
-
-        // Check for, and apply patch if required, if we got a raw result
-        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
-        {
-            // Set normal map patch
-            Result->ImagePatchType = ImagePatch::Normal_Expand;
-        }
-
-        // Return it
-        return Result;
-    }
-    else if (ImagePointer != 0)
-    {
-        auto ImageBuffer = std::make_unique<uint8_t[]>(LoadedImageSize);
-        
-        if (CoDAssets::GameInstance->Read(ImageBuffer.get(), ImagePointer, LoadedImageSize) != LoadedImageSize)
-            return nullptr;
-
-        // Prepare to create a MemoryDDS file
-        auto Result = CoDRawImageTranslator::TranslateBC(ImageBuffer, LoadedImageSize, ImageInfo.LoadedMipWidth, ImageInfo.LoadedMipHeight, ImageInfo.ImageFormat);
-
-        // Check for, and apply patch if required, if we got a raw result
-        if (Result != nullptr && Image.ImageUsage == ImageUsageType::NormalMap && (SettingsManager::GetSetting("patchnormals", "true") == "true"))
-        {
-            // Set normal map patch
-            Result->ImagePatchType = ImagePatch::Normal_Expand;
-        }
-
-        // Return it
-        return Result;
-    }
-
-    // Failed to load the image
-    return nullptr;
+    // Prepare to create a MemoryDDS file
+    auto Result = CoDRawImageTranslator::TranslateBC(ImageData, ResultSize, Width, Height, ImageInfo.ImageFormat);
+    // Return it
+    return Result;
 }
 
 // Transforms a Normal by the Rotation

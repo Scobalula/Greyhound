@@ -104,59 +104,6 @@ bool XPAKCache::LoadPackage(const std::string& FilePath)
             CacheObjects.insert(std::make_pair(Entry.Key, NewObject));
         }
 
-        // For MW we must parse the entries as they do not store sizes, the game simply subtracts against the size here
-        if (CoDAssets::GameID == SupportedGames::ModernWarfare4)
-        {
-            // Jump to index offset
-            Reader.SetPosition(Header.IndexOffset);
-
-            // Loop and setup entries
-            for (uint64_t i = 0; i < Header.IndexCount; i++)
-            {
-                // Read hash and properties size
-                auto Hash = Reader.Read<uint64_t>();
-                auto Properties = Reader.Read<uint64_t>();
-                auto Entry = CacheObjects.find(Hash);
-
-                if (Entry == CacheObjects.end())
-                {
-                    // Skip properties
-                    Reader.Advance(Properties);
-                }
-                else
-                {
-                    // Result
-                    uint64_t ReadSize = 0;
-                    // Read buffer and parse
-                    auto PropertiesBuffer = Reader.Read(Properties, ReadSize);
-
-                    // Check if valid
-                    if (PropertiesBuffer != nullptr)
-                    {
-                        // Results
-                        auto ResultBuffer = Strings::SplitString(std::string((char*)PropertiesBuffer, (char*)PropertiesBuffer + ReadSize), '\n');
-
-                        // Loop and take the ones we need
-                        for (auto& KeyValue : ResultBuffer)
-                        {
-                            auto KeyValuePair = Strings::SplitString(KeyValue, ':');
-
-                            if (KeyValuePair.size() == 2)
-                            {
-                                if (KeyValuePair[0] == "size0")
-                                {
-                                    Entry->second.UncompressedSize = std::strtoull(KeyValuePair[1].c_str(), 0, 0);
-                                }
-                            }
-                        }
-
-
-                        // Clean up
-                        delete[] PropertiesBuffer;
-                    }
-                }
-            }
-        }
         // Append the file path
         PackageFilePaths.push_back(FilePath);
 
@@ -348,4 +295,77 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
 
     // Failed to find data
     return nullptr;
+}
+
+std::unique_ptr<uint8_t[]> XPAKCache::DecompressPackageObject(uint64_t cacheID, uint8_t* buffer, size_t bufferSize, size_t decompressedSize, size_t& resultSize)
+{
+    resultSize = 0;
+
+    // We don't accept unknown sizes in xsub, caller must know how much memory is needed.
+    if (decompressedSize == 0)
+        return nullptr;
+
+    // Our final big blob of data to return, this will be the entire decompressed buffer.
+    auto result = std::make_unique<uint8_t[]>(decompressedSize);
+    auto reader = MemoryReader((int8_t*)buffer, bufferSize, true);
+    auto remaining = decompressedSize;
+
+    while (reader.GetPosition() < reader.GetLength())
+    {
+        // Read the block header
+        auto blockHeader = reader.Read<BO3XPakDataHeader>();
+
+        // Loop for block count
+        for (uint32_t i = 0; i < blockHeader.Count; i++)
+        {
+            // Unpack the command information
+            size_t blockSize = (blockHeader.Commands[i] & 0xFFFFFF);
+            size_t flag = (blockHeader.Commands[i] >> 24);
+            size_t decompressedSize = 0;
+            size_t decompressedResult = 0;
+
+            // Get the current stream, avoids constant allocations as we know we have a memory pointer.
+            auto dataBlock = reader.GetCurrentStream(blockSize);
+
+            // If we hit EOF on this, we can't verify this stream is valid or something is wrong.
+            if (dataBlock == nullptr)
+            {
+                resultSize = 0;
+                return nullptr;
+            }
+
+            switch (flag)
+            {
+            case 0x3:
+                decompressedSize = remaining;
+                decompressedResult = Compression::DecompressLZ4Block((const int8_t*)dataBlock, (int8_t*)result.get() + resultSize, blockSize, decompressedSize);
+                resultSize += decompressedSize;
+                remaining -= decompressedResult;
+                break;
+            case 0x6:
+                decompressedSize = std::min<size_t>(remaining, 262112);
+                decompressedResult = Siren::Decompress((const uint8_t*)dataBlock, blockSize, result.get() + resultSize, decompressedSize);
+                resultSize += decompressedSize;
+                remaining -= decompressedSize;
+                break;
+            case 0x0:
+                std::memcpy(result.get() + resultSize, dataBlock, blockSize);
+                decompressedResult = blockSize;
+                resultSize += blockSize;
+                remaining -= blockSize;
+                break;
+            default:
+                decompressedResult = blockSize;
+                break;
+            }
+
+            // Pad for MW
+            if (CoDAssets::GameID == SupportedGames::ModernWarfare4)
+                reader.Advance(((blockSize + 3) & 0xFFFFFFFC) - blockSize);
+        }
+
+        reader.SetPosition((reader.GetPosition() + 0x7F) & 0xFFFFFFFFFFFFF80);
+    }
+
+    return result;
 }

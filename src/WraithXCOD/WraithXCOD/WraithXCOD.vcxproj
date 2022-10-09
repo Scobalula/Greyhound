@@ -103,6 +103,7 @@
     <ClCompile Include="CoDAssetType.cpp" />
     <ClCompile Include="CoDCDNCache.cpp" />
     <ClCompile Include="CoDCDNDownloader.cpp" />
+    <ClCompile Include="CoDCDNDownloaderV0.cpp" />
     <ClCompile Include="CoDCDNDownloaderV1.cpp" />
     <ClCompile Include="CoDCDNDownloaderV2.cpp" />
     <ClCompile Include="CoDEffectTranslator.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="CoDAssetType.h" />
     <ClInclude Include="CoDCDNCache.h" />
     <ClInclude Include="CoDCDNDownloader.h" />
+    <ClInclude Include="CoDCDNDownloaderV0.h" />
     <ClInclude Include="CoDCDNDownloaderV1.h" />
     <ClInclude Include="CoDCDNDownloaderV2.h" />
     <ClInclude Include="CoDEffectTranslator.h" />

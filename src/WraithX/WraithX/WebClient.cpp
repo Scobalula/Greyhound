@@ -69,8 +69,6 @@ const UriObject PreParseUrl(std::string Url)
     if (PathPosition != std::string::npos)
         Result.Path = Strings::ToUnicodeString(Url.substr(Url.find_first_of("/")));
 
-    Result.PortType = 5002;
-
     // Return it
     return Result;
 }
