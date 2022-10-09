@@ -791,6 +791,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
 
         Width = ImageInfo.LoadedMipWidth;
         Height = ImageInfo.LoadedMipHeight;
+        ResultSize = LoadedImageSize;
     }
     else
     {
@@ -836,7 +837,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
         }
 
         Width = ImageInfo.Mips.Levels[HighestIndex].Width;
-        Height = ImageInfo.Mips.Levels[HighestIndex].Width;
+        Height = ImageInfo.Mips.Levels[HighestIndex].Height;
     }
 
     // Final check, no point in going further if we didn't
