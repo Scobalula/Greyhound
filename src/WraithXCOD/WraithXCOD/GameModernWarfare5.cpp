@@ -69,42 +69,6 @@ struct MW5XAssetPoolData
     uint32_t AssetSize;
 };
 
-struct MW5SoundBankInfo
-{
-    uint64_t BankNamePointer;
-    uint64_t StreamKey;
-    uint8_t Padding[0x14];
-    uint64_t BankFilePointer;
-    uint64_t UnkPointer;
-    uint32_t BankFileSize;
-    uint32_t Unk;
-};
-
-struct MW5SoundAlias
-{
-    uint64_t NamePtr;
-    uint32_t NameHash;
-    uint32_t Padding;
-    uint64_t EntriesPtr;
-    uint64_t EntriesCount;
-};
-
-struct MW5SoundAliasEntry
-{
-    uint64_t FilePtr;
-    uint32_t FileHash;
-    uint32_t Unk;
-    uint64_t NamingInfoPtr;
-    uint64_t UnkPtr2;
-};
-
-// In the Season 5 patch the Name/Secondary pointers are no longer stored directly in the sound alias entry and are instead their own structure pointed to from the entry.
-struct MW5SoundAliasNamingInfo
-{
-    uint64_t NamePtr;
-    uint64_t SecondaryPtr;
-};
-
 // Calculates the hash of a sound string
 uint32_t MW5HashSoundString(const std::string& Value)
 {
@@ -198,7 +162,6 @@ bool GameModernWarfare5::LoadAssets()
         });
     }
 
-    // Anims still going vroom need more work xoxoxoxoxoxoxoxox
     if (NeedsAnims)
     {
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
@@ -249,6 +212,33 @@ bool GameModernWarfare5::LoadAssets()
 
             // Add
             CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
+        });
+    }
+
+    if (NeedsRawFiles)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 37 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto SoundResult = CoDAssets::GameInstance->Read<MW5SoundBank>(Asset.Header);
+            // Validate and load if need be
+            auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr) + ".sabs";
+
+            // Log it
+            CoDAssets::LogXAsset("RawFile", RawfileName);
+
+            // Make and add
+            auto LoadedRawfile = new CoDRawFile_t();
+            // Set
+            LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
+            LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
+            LoadedRawfile->AssetPointer = Asset.Header;
+            LoadedRawfile->AssetSize = SoundResult.SoundBankSize;
+            LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
+
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
         });
     }
 
@@ -541,72 +531,40 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::ReadXImage(const CoDImage_t* Imag
 
 void GameModernWarfare5::TranslateRawfile(const CoDRawFile_t * Rawfile, const std::string & ExportPath)
 {
-    //// Build the export path
-    //std::string ExportFolder = ExportPath;
+    // Build the export path
+    std::string ExportFolder = ExportPath;
 
-    //// Check to preserve the paths
-    //if (SettingsManager::GetSetting("keeprawpath", "true") == "true")
-    //{
-    //    // Apply the base path
-    //    ExportFolder = FileSystems::CombinePath(ExportFolder, Rawfile->RawFilePath);
-    //}
+    // Check to preserve the paths
+    if (SettingsManager::GetSetting("keeprawpath", "true") == "true")
+    {
+        // Apply the base path
+        ExportFolder = FileSystems::CombinePath(ExportFolder, Rawfile->RawFilePath);
+    }
 
-    //// Make the directory
-    //FileSystems::CreateDirectory(ExportFolder);
+    // Make the directory
+    FileSystems::CreateDirectory(ExportFolder);
 
-    //// Read Bank
-    //auto Bank = CoDAssets::GameInstance->Read<MW5SoundBank>(Rawfile->AssetPointer);
+    // Read Bank
+    auto Bank = CoDAssets::GameInstance->Read<MW5SoundBank>(Rawfile->AssetPointer);
 
-    //// Text writer for aliases
-    //TextWriter AliasWriter;
+    // Always stream, data in memory gets bamboozled like Thomas Cat's death
+    // Size read
+    uint32_t ResultSize = 0;
+    // Buffer
+    std::unique_ptr<uint8_t[]> Data = CoDAssets::GamePackageCache->ExtractPackageObject(Bank.StreamKey, Bank.SoundBankSize, ResultSize);
 
-    //// Create the file
-    //if (AliasWriter.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName + ".csv")))
-    //{
-    //    // Write head
-    //    AliasWriter.WriteLine("Name,Secondary,File");
-    //    AliasWriter.WriteLine("# Note: Secondary is triggered by this alias, so a chain of secondaries are played at the same time");
-    //    AliasWriter.WriteLine("# Note: There are other settings that cannot be pulled, so these sounds may not sound the same as in-game without editing");
-
-    //    for (uint64_t j = 0; j < Bank.AliasCount; j++)
-    //    {
-    //        auto Alias = CoDAssets::GameInstance->Read<MW5SoundAlias>(Bank.AliasesPtr + j * sizeof(MW5SoundAlias));
-
-    //        for (uint64_t k = 0; k < Alias.EntriesCount; k++)
-    //        {
-    //            auto Entry = CoDAssets::GameInstance->Read<MW5SoundAliasEntry>(Alias.EntriesPtr + k * sizeof(MW5SoundAliasEntry));
-
-    //            auto NamingInfo = CoDAssets::GameInstance->Read<MW5SoundAliasNamingInfo>(Entry.NamingInfoPtr);
-    //            auto Name      = CoDAssets::GameInstance->ReadNullTerminatedString(NamingInfo.NamePtr);
-    //            auto Secondary = CoDAssets::GameInstance->ReadNullTerminatedString(NamingInfo.SecondaryPtr);
-    //            auto FileName  = CoDAssets::GameInstance->ReadNullTerminatedString(Entry.FilePtr);
-
-    //            AliasWriter.WriteLineFmt("%s,%s,%s", Name.c_str(), Secondary.c_str(), FileName.c_str());
-    //        }
-    //    }
-    //}
-
-    //// Note actually streamer info pool
-    //auto Info = CoDAssets::GameInstance->Read<MW5SoundBankInfo>(Bank.SoundBankPtr);
-
-    //// Always stream, data in memory gets bamboozled like Thomas Cat's death
-    //// Size read
-    //uint32_t ResultSize = 0;
-    //// Buffer
-    //std::unique_ptr<uint8_t[]> Data = CoDAssets::GamePackageCache->ExtractPackageObject(Info.StreamKey, ResultSize);
-
-    //// Prepare if we have it
-    //if (Data != nullptr)
-    //{
-    //    // New writer instance
-    //    auto Writer = BinaryWriter();
-    //    // Create the file
-    //    if (Writer.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName)))
-    //    {
-    //        // Write the raw data
-    //        Writer.Write(Data.get(), (uint32_t)Info.BankFileSize);
-    //    }
-    //}
+    // Prepare if we have it
+    if (Data != nullptr)
+    {
+        // New writer instance
+        auto Writer = BinaryWriter();
+        // Create the file
+        if (Writer.Create(FileSystems::CombinePath(ExportFolder, Rawfile->AssetName)))
+        {
+            // Write the raw data
+            Writer.Write(Data.get(), (uint32_t)Bank.SoundBankSize);
+        }
+    }
 }
 
 const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)

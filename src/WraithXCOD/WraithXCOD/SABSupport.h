@@ -53,4 +53,6 @@ private:
     static void HandleSABv17(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex);
     // Handle reading entries for a v21 SAB file (0x15)
     static void HandleSABv21(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex, const std::string FileName);
+    // Handle reading entries for a v21 SAB file (0x15) (Modern Warfare 5)
+    static void HandleSABv21v2(BinaryReader& Reader, const SABFileHeader& Header, const std::vector<std::string>& NameList, const WraithNameIndex& NameIndex, const std::string FileName);
 };

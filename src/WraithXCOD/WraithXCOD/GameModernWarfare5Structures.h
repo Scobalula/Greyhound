@@ -259,15 +259,14 @@ struct MW5XMaterialImage
 #pragma pack(push, 1)
 struct MW5SoundBank
 {
+    uint64_t Hash;
     uint64_t NamePtr;
-    uint64_t BankNamePtr;
-    uint64_t LanguagePtr;
-    uint64_t TypePtr;
-    uint64_t AliasCount;
-    uint64_t AliasesPtr;
-    uint8_t Padding[448];
-    uint64_t SoundBankPtr;
-    uint64_t Unk1;
+    uint8_t Padding0[336];
+    uint64_t StreamKey;
+    uint8_t Padding1[12];
+    uint32_t SoundBankSize;
+    uint8_t Padding2[24];
+
 };
 #pragma pack(pop)
 
