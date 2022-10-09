@@ -122,56 +122,6 @@ bool CASCCache::LoadPackage(const std::string& FilePath)
             CacheObjects.insert(std::make_pair(Entry.Key, NewObject));
         }
 
-        // For MW we must parse the entries
-        if (CoDAssets::GameID == SupportedGames::ModernWarfare4)
-        {
-            // Jump to index offset
-            Reader.SetPosition(Header.IndexOffset);
-
-            // Loop and setup entries
-            for (uint64_t i = 0; i < Header.IndexCount; i++)
-            {
-                // Read hash and properties size
-                auto Hash = Reader.Read<uint64_t>();
-                auto Properties = Reader.Read<uint64_t>();
-                auto Entry = CacheObjects.find(Hash);
-
-                if (Entry == CacheObjects.end())
-                {
-                    // Skip properties
-                    Reader.Advance(Properties);
-                }
-                else
-                {
-                    // Result
-                    uint64_t ReadSize = 0;
-                    // Read buffer and parse
-                    auto PropertiesBuffer = Reader.Read(Properties, ReadSize);
-
-                    // Check if valid
-                    if (PropertiesBuffer != nullptr)
-                    {
-                        // Results
-                        auto ResultBuffer = Strings::SplitString(std::string((char*)PropertiesBuffer.get(), (char*)PropertiesBuffer.get() + ReadSize), '\n');
-
-                        // Loop and take the ones we need
-                        for (auto& KeyValue : ResultBuffer)
-                        {
-                            auto KeyValuePair = Strings::SplitString(KeyValue, ':');
-
-                            if (KeyValuePair.size() == 2)
-                            {
-                                if (KeyValuePair[0] == "size0")
-                                {
-                                    Entry->second.UncompressedSize = std::strtoull(KeyValuePair[1].c_str(), 0, 0);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         // Append the file path
         PackageFilePaths.push_back(FilePath);
 

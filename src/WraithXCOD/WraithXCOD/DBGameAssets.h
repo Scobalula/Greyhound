@@ -3305,6 +3305,27 @@ struct MW4GfxMip
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+template <size_t Size>
+struct MW4GfxMipArray
+{
+    MW4GfxMip Levels[Size];
+
+    size_t GetImageSize(size_t i)
+    {
+        if (i == 0)
+            return (size_t)(Levels[i].Size >> 4);
+        else
+            return (size_t)((Levels[i].Size >> 4) - (Levels[i - 1].Size >> 4));
+    }
+
+    size_t GetMipCount()
+    {
+        return Size;
+    }
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct MW4GfxImage
 {
     uint64_t NamePtr;
@@ -3324,7 +3345,7 @@ struct MW4GfxImage
 
     uint8_t Padding4[5];
 
-    MW4GfxMip MipLevels[4];
+    MW4GfxMipArray<4> Mips;
 
     uint8_t Padding5[16];
 };

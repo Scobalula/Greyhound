@@ -114,7 +114,7 @@ std::unique_ptr<uint8_t[]> CoDCDNCache::Extract(const uint64_t hash, size_t expe
 
 	// If we have a size mismatch then something happened either
 	// when downloading from CDN or the size of this entry has changed
-	if (entry.Size != expectedSize)
+	if (expectedSize != 0 && entry.Size != expectedSize)
 		return nullptr;
 
 	BinaryReader reader;

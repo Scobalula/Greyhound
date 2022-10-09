@@ -246,6 +246,9 @@
     <ClCompile Include="CoDQTangent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV0.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoDAssets.h">
@@ -468,6 +471,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CoDQTangent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV0.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

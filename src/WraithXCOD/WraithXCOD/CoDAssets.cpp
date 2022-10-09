@@ -14,6 +14,7 @@
 
 // We need the CDN Downloaders
 #include "CoDCDNDownloader.h"
+#include "CoDCDNDownloaderV0.h"
 #include "CoDCDNDownloaderV1.h"
 #include "CoDCDNDownloaderV2.h"
 
@@ -689,6 +690,7 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameStringHandler = GameModernWarfare4::LoadStringEntry;
             GamePackageCache  = std::make_unique<CASCCache>();
             OnDemandCache     = std::make_unique<XPAKCache>();
+            CDNDownloader     = CDNSupport ? std::make_unique<CoDCDNDownloaderV0>() : nullptr;
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
             GameGDTProcessor->SetupProcessor("MWR");
