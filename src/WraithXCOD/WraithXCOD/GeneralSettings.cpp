@@ -14,12 +14,10 @@ BEGIN_MESSAGE_MAP(GeneralSettings, WraithWindow)
     ON_COMMAND(IDC_SHOWXMODEL, OnXModels)
     ON_COMMAND(IDC_SHOWXANIM, OnXAnims)
     ON_COMMAND(IDC_SHOWXIMAGE, OnXImages)
-    ON_COMMAND(IDC_SHOWEFFECTS, OnXEffects)
     ON_COMMAND(IDC_SHOWXRAW, OnXRawFiles)
     ON_COMMAND(IDC_SHOWXSOUNDS, OnXSounds)
     ON_COMMAND(IDC_SHOWXMTL, OnXMTL)
-    ON_COMMAND(IDC_SORTBYDATA, OnSortByData)
-    ON_COMMAND(IDC_CREATEXASSETLOG, OnCreateXAssetLog)
+    ON_CBN_SELENDOK(IDC_ASSET_SORT_METHOD, OnAssetSortMethod)
 END_MESSAGE_MAP()
 
 void GeneralSettings::OnBeforeLoad()
@@ -51,12 +49,23 @@ void GeneralSettings::OnBeforeLoad()
     ((CButton*)GetDlgItem(IDC_SHOWXMODEL))->SetCheck(SettingsManager::GetSetting("showxmodel", "true") == "true");
     ((CButton*)GetDlgItem(IDC_SHOWXANIM))->SetCheck(SettingsManager::GetSetting("showxanim", "true") == "true");
     ((CButton*)GetDlgItem(IDC_SHOWXIMAGE))->SetCheck(SettingsManager::GetSetting("showximage", "false") == "true");
-    ((CButton*)GetDlgItem(IDC_SHOWEFFECTS))->SetCheck(SettingsManager::GetSetting("showefx", "false") == "true");
     ((CButton*)GetDlgItem(IDC_SHOWXRAW))->SetCheck(SettingsManager::GetSetting("showxrawfiles", "false") == "true");
     ((CButton*)GetDlgItem(IDC_SHOWXSOUNDS))->SetCheck(SettingsManager::GetSetting("showxsounds", "false") == "true");
     ((CButton*)GetDlgItem(IDC_SHOWXMTL))->SetCheck(SettingsManager::GetSetting("showxmtl", "false") == "true");
-    ((CButton*)GetDlgItem(IDC_SORTBYDATA))->SetCheck(SettingsManager::GetSetting("sortbydetails", "false") == "true");
-    ((CButton*)GetDlgItem(IDC_CREATEXASSETLOG))->SetCheck(SettingsManager::GetSetting("createxassetlog", "false") == "true");
+
+    // Add sort methods
+    auto ComboControl = (CComboBox*)GetDlgItem(IDC_ASSET_SORT_METHOD);
+    // Add
+    ComboControl->InsertString(0, L"Name");
+    ComboControl->InsertString(1, L"Details");
+    ComboControl->InsertString(2, L"None");
+
+    // Sort settings
+    auto ImageFormat = SettingsManager::GetSetting("assetsortmethod", "Name");
+    // Apply
+    if (ImageFormat == "Name") { ComboControl->SetCurSel(0); }
+    if (ImageFormat == "Details") { ComboControl->SetCurSel(1); }
+    if (ImageFormat == "None") { ComboControl->SetCurSel(2); }
 }
 
 void GeneralSettings::OnXModels()
@@ -83,14 +92,6 @@ void GeneralSettings::OnXImages()
     SettingsManager::SetSetting("showximage", (CheckboxChecked) ? "true" : "false");
 }
 
-void GeneralSettings::OnXEffects()
-{
-    // Whether or not we are checked
-    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_SHOWEFFECTS))->GetState() & BST_CHECKED) == BST_CHECKED);
-    // Set it
-    SettingsManager::SetSetting("showefx", (CheckboxChecked) ? "true" : "false");
-}
-
 void GeneralSettings::OnXRawFiles()
 {
     // Whether or not we are checked
@@ -115,19 +116,16 @@ void GeneralSettings::OnXMTL()
     SettingsManager::SetSetting("showxmtl", (CheckboxChecked) ? "true" : "false");
 }
 
-
-void GeneralSettings::OnSortByData()
+void GeneralSettings::OnAssetSortMethod()
 {
-    // Whether or not we are checked
-    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_SORTBYDATA))->GetState() & BST_CHECKED) == BST_CHECKED);
-    // Set it
-    SettingsManager::SetSetting("sortbydetails", (CheckboxChecked) ? "true" : "false");
-}
-
-void GeneralSettings::OnCreateXAssetLog()
-{
-    // Whether or not we are checked
-    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_CREATEXASSETLOG))->GetState() & BST_CHECKED) == BST_CHECKED);
-    // Set it
-    SettingsManager::SetSetting("createxassetlog", (CheckboxChecked) ? "true" : "false");
+    // Grab the sort method
+    auto SelectedFormat = ((CComboBox*)GetDlgItem(IDC_ASSET_SORT_METHOD))->GetCurSel();
+    // Check and set
+    switch (SelectedFormat)
+    {
+    case 0: SettingsManager::SetSetting("assetsortmethod", "Name"); break;
+    case 1: SettingsManager::SetSetting("assetsortmethod", "Details"); break;
+    case 2: SettingsManager::SetSetting("assetsortmethod", "None"); break;
+    default: SettingsManager::SetSetting("exportimg", "Name"); break;
+    }
 }

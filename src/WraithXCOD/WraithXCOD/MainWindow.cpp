@@ -535,10 +535,6 @@ void MainWindow::GetListViewInfo(LV_ITEM* ListItem, CWnd* Owner)
                     // Rawfile info
                     DetailsFmt.Format(L"Size: 0x%llx", Asset->AssetSize);
                     break;
-                case WraithAssetType::Effect:
-                    // Effects info
-                    DetailsFmt.Format(L"Elements: %d", ((CoDEffect_t*)Asset)->ElementCount);
-                    break;
                 }
 
                 // Copy

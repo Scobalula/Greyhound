@@ -106,7 +106,6 @@
     <ClCompile Include="CoDCDNDownloaderV0.cpp" />
     <ClCompile Include="CoDCDNDownloaderV1.cpp" />
     <ClCompile Include="CoDCDNDownloaderV2.cpp" />
-    <ClCompile Include="CoDEffectTranslator.cpp" />
     <ClCompile Include="CoDGDTProcessor.cpp" />
     <ClCompile Include="CoDIWITranslator.cpp" />
     <ClCompile Include="CoDPackageCache.cpp" />
@@ -179,7 +178,6 @@
     <ClInclude Include="CoDCDNDownloaderV0.h" />
     <ClInclude Include="CoDCDNDownloaderV1.h" />
     <ClInclude Include="CoDCDNDownloaderV2.h" />
-    <ClInclude Include="CoDEffectTranslator.h" />
     <ClInclude Include="CoDGDTProcessor.h" />
     <ClInclude Include="CoDIWITranslator.h" />
     <ClInclude Include="CoDPackageCache.h" />

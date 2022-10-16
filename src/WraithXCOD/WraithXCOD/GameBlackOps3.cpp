@@ -225,7 +225,6 @@ bool GameBlackOps3::LoadAssets()
     bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
     bool NeedsImages = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
-    bool NeedsFX = (SettingsManager::GetSetting("showefx", "false") == "true");
 
     // Check if we need assets
     if (NeedsAnims)
@@ -348,33 +347,6 @@ bool GameBlackOps3::LoadAssets()
                 // Add
                 CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
             }
-        });
-    }
-
-    if (NeedsFX)
-    {
-        // Parse the FX pool
-        CoDXPoolParser<uint64_t, BO3FxEffectDef>(CoDAssets::GameOffsetInfos[4], CoDAssets::GamePoolSizes[4], [](BO3FxEffectDef& Asset, uint64_t& AssetOffset)
-        {
-            // Validate and load if need be
-            auto FXName = CoDAssets::GameInstance->ReadNullTerminatedString(Asset.NamePtr);
-
-            // Make and add
-            auto LoadedFX = new CoDEffect_t();
-            // Set
-            LoadedFX->AssetName = FileSystems::GetFileName(FXName);
-            LoadedFX->FXFilePath = FileSystems::GetDirectoryName(FXName);
-
-            // Ensure that we aren't a rooted path (Black Ops 3 has retarded asset paths)
-            if (LoadedFX->FXFilePath.size() > 0 && LoadedFX->FXFilePath[0] == '/')
-                LoadedFX->FXFilePath.erase(0, 1);
-
-            LoadedFX->AssetPointer = AssetOffset;
-            LoadedFX->ElementCount = (Asset.ElemDefCountEmission + Asset.ElemDefCountLooping + Asset.ElemDefCountOneShot);
-            LoadedFX->AssetStatus = WraithAssetStatus::Loaded;
-
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedFX);
         });
     }
 

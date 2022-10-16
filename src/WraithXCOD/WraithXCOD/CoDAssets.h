@@ -259,8 +259,6 @@ private:
     static ExportGameResult ExportImageAsset(const CoDImage_t* Image, const std::string& ExportPath, const std::string& ImageExtension);
     // Exports a game sound asset
     static ExportGameResult ExportSoundAsset(const CoDSound_t* Sound, const std::string& ExportPath, const std::string& SoundExtension);
-    // Exports a game effect asset
-    static ExportGameResult ExportEffectAsset(const CoDEffect_t* Effect, const std::string& ExportPath);
     // Exports a game rawfile asset
     static ExportGameResult ExportRawfileAsset(const CoDRawFile_t* Rawfile, const std::string& ExportPath);
     // Exports a game rawfile asset
@@ -277,9 +275,6 @@ private:
 
     // Exports the asset in the list provided, in async
     static void ExportSelectedAssets(void* Caller, const std::unique_ptr<std::vector<CoDAsset_t*>>& Assets);
-
-    // Sorts the assets by various properties
-    static bool SortAssets(const CoDAsset_t* lhs, const CoDAsset_t* rhs);
 
     // A locking mutex for proper async operations
     static std::mutex CodMutex;

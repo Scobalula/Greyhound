@@ -30,8 +30,8 @@ private:
     void OnXRawFiles();
     void OnXSounds();
     void OnXMTL();
-    void OnSortByData();
-    void OnCreateXAssetLog();
+    void OnAssetSortMethod();
+
 
 protected:
 
