@@ -117,7 +117,6 @@ bool GameBlackOps::LoadAssets()
     // Prepare to load game assets, into the AssetPool
     bool NeedsAnims = (SettingsManager::GetSetting("showxanim", "true") == "true");
     bool NeedsModels = (SettingsManager::GetSetting("showxmodel", "true") == "true");
-    bool NeedsFX = (SettingsManager::GetSetting("showefx", "false") == "true");
     bool NeedsRawFiles = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
 
     // Check if we need assets
@@ -254,52 +253,6 @@ bool GameBlackOps::LoadAssets()
 
             // Advance
             ModelOffset += sizeof(BOXModel);
-        }
-    }
-
-    if (NeedsFX)
-    {
-        // FX are the third offset and third pool, skip 4 byte pointer to free head
-        auto FXOffset = CoDAssets::GameOffsetInfos[2] + 4;
-        auto FXCount = CoDAssets::GamePoolSizes[2];
-
-        // Calculate maximum pool size
-        auto MaximumPoolOffset = (FXCount * sizeof(BOFxEffectDef)) + FXOffset;
-        // Store original offset
-        auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[2];
-
-        // Loop and read
-        for (uint32_t i = 0; i < FXCount; i++)
-        {
-            // Read
-            auto FXResult = CoDAssets::GameInstance->Read<BOFxEffectDef>(FXOffset);
-
-            // Check whether or not to skip, if the handle is 0, or, if the handle is a pointer within the current pool
-            if ((FXResult.NamePtr > MinimumPoolOffset && FXResult.NamePtr < MaximumPoolOffset) || FXResult.NamePtr == 0)
-            {
-                // Advance
-                FXOffset += sizeof(BOFxEffectDef);
-                // Skip this asset
-                continue;
-            }
-
-            // Validate and load if need be
-            auto FXName = CoDAssets::GameInstance->ReadNullTerminatedString(FXResult.NamePtr);
-
-            // Make and add
-            auto LoadedFX = new CoDEffect_t();
-            // Set
-            LoadedFX->AssetName = FileSystems::GetFileName(FXName);
-            LoadedFX->FXFilePath = FileSystems::GetDirectoryName(FXName);
-            LoadedFX->AssetPointer = FXOffset;
-            LoadedFX->ElementCount = (FXResult.ElemDefCountEmission + FXResult.ElemDefCountLooping + FXResult.ElemDefCountOneShot);
-            LoadedFX->AssetStatus = WraithAssetStatus::Loaded;
-
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedFX);
-
-            // Advance
-            FXOffset += sizeof(BOFxEffectDef);
         }
     }
 

@@ -156,9 +156,6 @@
     <ClCompile Include="SABCache.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
-    <ClCompile Include="CoDEffectTranslator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameWorldWar2.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
@@ -373,9 +370,6 @@
     </ClInclude>
     <ClInclude Include="SABCache.h">
       <Filter>Header Files\Packages</Filter>
-    </ClInclude>
-    <ClInclude Include="CoDEffectTranslator.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameWorldWar2.h">
       <Filter>Header Files\Games</Filter>

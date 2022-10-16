@@ -16,6 +16,24 @@ CoDAsset_t::~CoDAsset_t()
     // Defaults
 }
 
+bool CoDAsset_t::Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const
+{
+    // For easy copying from our existing sort method, store with same var names temp
+    auto lhs = this;
+    auto rhs = candidate;
+
+    // By default, just check if it's none.
+    if (compareMethod != AssetCompareMethod::None)
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+    }
+
+    return false;
+}
+
 AssetPool::~AssetPool()
 {
     // Clean up the assets
@@ -48,6 +66,47 @@ CoDAnim_t::CoDAnim_t()
 CoDAnim_t::~CoDAnim_t()
 {
     // Defaults
+}
+
+bool CoDAnim_t::Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const
+{
+    // For easy copying from our existing sort method, store with same var names temp
+    auto lhs = this;
+    auto rhs = candidate;
+
+    switch (compareMethod)
+    {
+    case AssetCompareMethod::ByDetails:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+
+        if (candidate->AssetType == WraithAssetType::Animation)
+        {
+            auto Compare1 = (CoDAnim_t*)lhs;
+            auto Compare2 = (CoDAnim_t*)rhs;
+
+            if (Compare1->FrameCount < Compare2->FrameCount) return false;
+            if (Compare2->FrameCount < Compare1->FrameCount) return true;
+        }
+
+        // Fall back to a name comparison, it's still sorting by "details"
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    case AssetCompareMethod::ByName:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    }
+    
+    // Nothing, always return false.
+    return false;
 }
 
 XMaterial_t::XMaterial_t(uint32_t ImageCount)
@@ -133,6 +192,47 @@ CoDModel_t::~CoDModel_t()
     // Defaults
 }
 
+bool CoDModel_t::Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const
+{
+    // For easy copying from our existing sort method, store with same var names temp
+    auto lhs = this;
+    auto rhs = candidate;
+
+    switch (compareMethod)
+    {
+    case AssetCompareMethod::ByDetails:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+
+        if (candidate->AssetType == WraithAssetType::Model)
+        {
+            auto Compare1 = (CoDModel_t*)lhs;
+            auto Compare2 = (CoDModel_t*)rhs;
+
+            if (Compare1->BoneCount < Compare2->BoneCount) return false;
+            if (Compare2->BoneCount < Compare1->BoneCount) return true;
+        }
+
+        // Fall back to a name comparison, it's still sorting by "details"
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    case AssetCompareMethod::ByName:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    }
+
+    // Nothing, always return false.
+    return false;
+}
+
 CoDImage_t::CoDImage_t()
 {
     // Defaults
@@ -148,6 +248,50 @@ CoDImage_t::CoDImage_t()
 CoDImage_t::~CoDImage_t()
 {
     // Defaults
+}
+
+bool CoDImage_t::Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const
+{
+    // For easy copying from our existing sort method, store with same var names temp
+    auto lhs = this;
+    auto rhs = candidate;
+
+    switch (compareMethod)
+    {
+    case AssetCompareMethod::ByDetails:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+
+        if (candidate->AssetType == WraithAssetType::Image)
+        {
+            auto Compare1 = (CoDImage_t*)lhs;
+            auto Compare2 = (CoDImage_t*)rhs;
+
+            auto PixelCount1 = Compare1->Width * Compare1->Height;
+            auto PixelCount2 = Compare2->Width * Compare2->Height;
+
+            if (PixelCount1 < PixelCount2) return false;
+            if (PixelCount2 < PixelCount1) return true;
+        }
+
+        // Fall back to a name comparison, it's still sorting by "details"
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    case AssetCompareMethod::ByName:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    }
+
+    // Nothing, always return false.
+    return false;
 }
 
 CoDSound_t::CoDSound_t()
@@ -172,6 +316,47 @@ CoDSound_t::~CoDSound_t()
     // Defaults
 }
 
+bool CoDSound_t::Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const
+{
+    // For easy copying from our existing sort method, store with same var names temp
+    auto lhs = this;
+    auto rhs = candidate;
+
+    switch (compareMethod)
+    {
+    case AssetCompareMethod::ByDetails:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+
+        if (candidate->AssetType == WraithAssetType::Sound)
+        {
+            auto Compare1 = (CoDSound_t*)lhs;
+            auto Compare2 = (CoDSound_t*)rhs;
+
+            if (Compare1->Length < Compare2->Length) return false;
+            if (Compare2->Length < Compare1->Length) return true;
+        }
+
+        // Fall back to a name comparison, it's still sorting by "details"
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    case AssetCompareMethod::ByName:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    }
+
+    // Nothing, always return false.
+    return false;
+}
+
 CoDRawFile_t::CoDRawFile_t()
 {
     // Defaults
@@ -189,19 +374,45 @@ CoDRawFile_t::~CoDRawFile_t()
     // Defaults
 }
 
-CoDEffect_t::CoDEffect_t()
+bool CoDRawFile_t::Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const
 {
-    // Defaults
-    ElementCount = 0;
-    // Set type
-    AssetType = WraithAssetType::Effect;
-    // Size
-    AssetSize = -1;
-}
+    // For easy copying from our existing sort method, store with same var names temp
+    auto lhs = this;
+    auto rhs = candidate;
 
-CoDEffect_t::~CoDEffect_t()
-{
-    // Defaults
+    switch (compareMethod)
+    {
+    case AssetCompareMethod::ByDetails:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+
+        if (candidate->AssetType == WraithAssetType::RawFile)
+        {
+            auto Compare1 = (CoDRawFile_t*)lhs;
+            auto Compare2 = (CoDRawFile_t*)rhs;
+
+            if (Compare1->AssetSize < Compare2->AssetSize) return false;
+            if (Compare2->AssetSize < Compare1->AssetSize) return true;
+        }
+
+        // Fall back to a name comparison, it's still sorting by "details"
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    case AssetCompareMethod::ByName:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    }
+
+    // Nothing, always return false.
+    return false;
 }
 
 XAnim_t::XAnim_t()
@@ -279,6 +490,49 @@ CoDMaterial_t::~CoDMaterial_t()
 {
 }
 
+bool CoDMaterial_t::Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const
+{
+    // For easy copying from our existing sort method, store with same var names temp
+    auto lhs = this;
+    auto rhs = candidate;
+
+    switch (compareMethod)
+    {
+    case AssetCompareMethod::ByDetails:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+
+        if (candidate->AssetType == WraithAssetType::Material)
+        {
+            // Materials
+            auto Compare1 = (CoDMaterial_t*)lhs;
+            auto Compare2 = (CoDMaterial_t*)rhs;
+
+            // Sort by Image Count
+            if (Compare1->ImageCount < Compare2->ImageCount) return false;
+            if (Compare2->ImageCount < Compare1->ImageCount) return true;
+        }
+
+        // Fall back to a name comparison, it's still sorting by "details"
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    case AssetCompareMethod::ByName:
+    {
+        if (lhs->AssetType < rhs->AssetType) return true;
+        if (rhs->AssetType < lhs->AssetType) return false;
+        if (lhs->AssetName < rhs->AssetName) return true;
+        if (rhs->AssetName < lhs->AssetName) return false;
+        break;
+    }
+    }
+
+    // Nothing, always return false.
+    return false;
+}
+
 XMaterialSetting_t::XMaterialSetting_t(
     const char* name,
     const char* type,
@@ -336,4 +590,14 @@ XMaterialSetting_t::XMaterialSetting_t(
     // Append element count to match HLSL names
     if (numElements > 1)
         Type += std::to_string(numElements);
+}
+
+AssetCompareMethod AssetCompareMethodHelper::CalculateCompareMethod(const std::string& compareMethodStr)
+{
+    if (compareMethodStr == "Name")
+        return AssetCompareMethod::ByName;
+    else if (compareMethodStr == "Details")
+        return AssetCompareMethod::ByDetails;
+    else
+        return AssetCompareMethod::None;
 }

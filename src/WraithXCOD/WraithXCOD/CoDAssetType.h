@@ -12,6 +12,25 @@
 #include "Image.h"
 #include "CoDXAnimReader.h"
 
+// The asset sort methods.
+enum class AssetCompareMethod
+{
+    // No comparison is made.
+    None,
+    // Compares the assets by name only.
+    ByName,
+    // Compares the assets by details if they are the same type, otherwise their name.
+    ByDetails,
+};
+
+// A class to help with Asset Comparison
+class AssetCompareMethodHelper
+{
+public:
+    // Calculates the compare method from a string.
+    static AssetCompareMethod CalculateCompareMethod(const std::string& compareMethodStr);
+};
+
 // A class that represents an asset
 class CoDAsset_t : public WraithAsset
 {
@@ -29,6 +48,11 @@ public:
 
     // The assets offset in the loaded pool
     uint32_t AssetLoadedIndex;
+
+    // -- Asset Methods
+
+    // Compares the asset to this one, if compare details is enabled, they are used if the assets are the same type.
+    virtual bool Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const;
 };
 
 // A class that represents an asset pool
@@ -65,6 +89,9 @@ public:
 
     // Modern games
     bool isSiegeAnim;
+
+    // Compares the asset to this one, if compare details is enabled, they are used if the assets are the same type.
+    bool Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const;
 };
 
 // A class that represents a model asset
@@ -84,6 +111,9 @@ public:
     uint32_t CosmeticBoneCount;
     // The lod count
     uint16_t LodCount;
+
+    // Compares the asset to this one, if compare details is enabled, they are used if the assets are the same type.
+    bool Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const;
 };
 
 // A class that represents an image asset
@@ -101,6 +131,9 @@ public:
     uint16_t Height;
     // The format
     uint16_t Format;
+
+    // Compares the asset to this one, if compare details is enabled, they are used if the assets are the same type.
+    bool Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const;
 };
 
 class CoDRawFile_t : public CoDAsset_t
@@ -115,6 +148,9 @@ public:
     std::string RawFilePath;
     // The data itself
     uint64_t RawDataPointer;
+
+    // Compares the asset to this one, if compare details is enabled, they are used if the assets are the same type.
+    bool Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const;
 };
 
 // Types of sound assets
@@ -154,21 +190,9 @@ public:
 
     // The datatype for this entry
     SoundDataTypes DataType;
-};
 
-// A class that represents an effect asset
-class CoDEffect_t : public CoDAsset_t
-{
-public:
-    CoDEffect_t();
-    virtual ~CoDEffect_t();
-
-    // -- Image properties
-
-    // The file path
-    std::string FXFilePath;
-    // Total element count
-    uint32_t ElementCount;
+    // Compares the asset to this one, if compare details is enabled, they are used if the assets are the same type.
+    bool Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const;
 };
 
 // -- Generic structures for translating similar game formats
@@ -518,4 +542,7 @@ public:
 
     // The number of images
     size_t ImageCount;
+
+    // Compares the asset to this one, if compare details is enabled, they are used if the assets are the same type.
+    bool Compare(const CoDAsset_t* candidate, const AssetCompareMethod compareMethod) const;
 };

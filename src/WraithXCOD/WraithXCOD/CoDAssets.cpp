@@ -27,7 +27,6 @@
 // We need the CoDTranslators
 #include "CoDXAnimTranslator.h"
 #include "CoDXModelTranslator.h"
-#include "CoDEffectTranslator.h"
 #include "CoDRawfileTranslator.h"
 #include "CoDXConverter.h"
 
@@ -631,8 +630,16 @@ LoadGameResult CoDAssets::LoadGame()
         // Result check
         if (Success)
         {
-            // Sort the assets
-            std::stable_sort(GameAssets->LoadedAssets.begin(), GameAssets->LoadedAssets.end(), SortAssets);
+            // Sort the assets, for now we only support 2 modes, but this can be extended in the future.
+            auto sortMethod = AssetCompareMethodHelper::CalculateCompareMethod(SettingsManager::GetSetting("assetsortmethod", "Name"));
+
+            if (sortMethod != AssetCompareMethod::None)
+            {
+                std::stable_sort(GameAssets->LoadedAssets.begin(), GameAssets->LoadedAssets.end(), [sortMethod](const CoDAsset_t* lhs, const CoDAsset_t* rhs)
+                {
+                    return lhs->Compare(rhs, sortMethod);
+                });
+            }
 
             // Success
             return LoadGameResult::Success;
@@ -773,8 +780,17 @@ LoadGameResult CoDAssets::LoadGamePS()
         // Result check
         if (Success)
         {
-            // Sort the assets
-            std::stable_sort(GameAssets->LoadedAssets.begin(), GameAssets->LoadedAssets.end(), SortAssets);
+            // Sort the assets, for now we only support 2 modes, but this can be extended in the future.
+            auto sortMethod = AssetCompareMethodHelper::CalculateCompareMethod(SettingsManager::GetSetting("assetsortmethod", "Name"));
+
+            if (sortMethod != AssetCompareMethod::None)
+            {
+                std::stable_sort(GameAssets->LoadedAssets.begin(), GameAssets->LoadedAssets.end(), [sortMethod](const CoDAsset_t* lhs, const CoDAsset_t* rhs)
+                {
+                    return lhs->Compare(rhs, sortMethod);
+                });
+            }
+
 
             // Success
             return LoadGameResult::Success;
@@ -918,8 +934,17 @@ LoadGameFileResult CoDAssets::LoadFile(const std::string& FilePath)
     // Check result, then sort
     if (LoadResult)
     {
-        // Sort the assets
-        std::stable_sort(GameAssets->LoadedAssets.begin(), GameAssets->LoadedAssets.end(), SortAssets);
+        // Sort the assets, for now we only support 2 modes, but this can be extended in the future.
+        auto sortMethod = AssetCompareMethodHelper::CalculateCompareMethod(SettingsManager::GetSetting("assetsortmethod", "Name"));
+
+        if (sortMethod != AssetCompareMethod::None)
+        {
+            std::stable_sort(GameAssets->LoadedAssets.begin(), GameAssets->LoadedAssets.end(), [sortMethod](const CoDAsset_t* lhs, const CoDAsset_t* rhs)
+            {
+                return lhs->Compare(rhs, sortMethod);
+            });
+        }
+
         // Success
         return LoadGameFileResult::Success;
     }
@@ -933,127 +958,6 @@ LoadGameFileResult CoDAssets::LoadFile(const std::string& FilePath)
 
     // Return it
     return LoadGameFileResult::InvalidFile;
-}
-
-bool CoDAssets::SortAssets(const CoDAsset_t* lhs, const CoDAsset_t* rhs)
-{
-    // Sort by type
-    if (lhs->AssetType < rhs->AssetType) return true;
-    if (rhs->AssetType < lhs->AssetType) return false;
-
-    // Check if we want to sort this by asset data and that they have same asset type
-    if (lhs->AssetType == rhs->AssetType && SettingsManager::GetSetting("sortbydetails", "true") == "true")
-    {
-        // Sory by specific counts
-        switch (lhs->AssetType)
-        {
-        case WraithAssetType::Model:
-        {
-            // Models
-            auto Compare1 = (CoDModel_t*)lhs;
-            auto Compare2 = (CoDModel_t*)rhs;
-
-            // Sort by Bone Counts
-            if (Compare1->BoneCount < Compare2->BoneCount) return false;
-            if (Compare2->BoneCount < Compare1->BoneCount) return true;
-
-            // Done
-            break;
-        }
-        case WraithAssetType::Animation:
-        {
-            // Animations
-            auto Compare1 = (CoDAnim_t*)lhs;
-            auto Compare2 = (CoDAnim_t*)rhs;
-
-            // Sort by Frame Counts
-            if (Compare1->FrameCount < Compare2->FrameCount) return false;
-            if (Compare2->FrameCount < Compare1->FrameCount) return true;
-
-            // Done
-            break;
-        }
-        case WraithAssetType::Image:
-        {
-            // Images
-            auto Compare1 = (CoDImage_t*)lhs;
-            auto Compare2 = (CoDImage_t*)rhs;
-
-            // Pixel Counts
-            auto PixelCount1 = Compare1->Width * Compare1->Height;
-            auto PixelCount2 = Compare2->Width * Compare2->Height;
-
-            // Sort by Pixel Counts
-            if (PixelCount1 < PixelCount2) return false;
-            if (PixelCount2 < PixelCount1) return true;
-
-            // Done
-            break;
-        }
-        case WraithAssetType::RawFile:
-        {
-            // Rawfiles
-            auto Compare1 = (CoDRawFile_t*)lhs;
-            auto Compare2 = (CoDRawFile_t*)rhs;
-
-            // Sort by pure Size
-            if (Compare1->AssetSize < Compare2->AssetSize) return false;
-            if (Compare2->AssetSize < Compare1->AssetSize) return true;
-
-            // Done
-            break;
-        }
-        case WraithAssetType::Sound:
-        {
-            // Sounds
-            auto Compare1 = (CoDSound_t*)lhs;
-            auto Compare2 = (CoDSound_t*)rhs;
-
-            // Sort by duration
-            if (Compare1->Length < Compare2->Length) return false;
-            if (Compare2->Length < Compare1->Length) return true;
-
-            // Done
-            break;
-        }
-        case WraithAssetType::Effect:
-        {
-            // Effects
-            auto Compare1 = (CoDEffect_t*)lhs;
-            auto Compare2 = (CoDEffect_t*)rhs;
-
-            // Sort by Elements
-            if (Compare1->ElementCount < Compare2->ElementCount) return false;
-            if (Compare2->ElementCount < Compare1->ElementCount) return true;
-
-            // Done
-            break;
-        }
-        case WraithAssetType::Material:
-        {
-            // Materials
-            auto Compare1 = (CoDMaterial_t*)lhs;
-            auto Compare2 = (CoDMaterial_t*)rhs;
-
-            // Sort by Image Count
-            if (Compare1->ImageCount < Compare2->ImageCount) return false;
-            if (Compare2->ImageCount < Compare1->ImageCount) return true;
-
-            // Done
-            break;
-        }
-        default:
-            // Default, match by name
-            break;
-        }
-    }
-
-    // Sort by name
-    if (lhs->AssetName < rhs->AssetName) return true;
-    if (rhs->AssetName < lhs->AssetName) return false;
-
-    // Should basically never happen
-    return false;
 }
 
 ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
@@ -1078,19 +982,17 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
     // Send to specific export handler
     switch (Asset->AssetType)
     {
-        // Export an animation
+    // Export an animation
     case WraithAssetType::Animation: Result = ExportAnimationAsset((CoDAnim_t*)Asset, ExportPath); break;
-        // Export a model, combine the name of the model with the export path!
+    // Export a model, combine the name of the model with the export path!
     case WraithAssetType::Model: Result = ExportModelAsset((CoDModel_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;
-        // Export an image
+    // Export an image
     case WraithAssetType::Image: Result = ExportImageAsset((CoDImage_t*)Asset, ExportPath, ImageExtension); break;
-        // Export a sound
+    // Export a sound
     case WraithAssetType::Sound: Result = ExportSoundAsset((CoDSound_t*)Asset, ExportPath, CoDAssets::GameID == SupportedGames::WorldAtWar ? ".wav" : SoundExtension); break;
-        // Export a effect
-    case WraithAssetType::Effect: Result = ExportEffectAsset((CoDEffect_t*)Asset, ExportPath); break;
-        // Export a rawfile
+    // Export a rawfile
     case WraithAssetType::RawFile: Result = ExportRawfileAsset((CoDRawFile_t*)Asset, ExportPath); break;
-        // Export a material
+    // Export a material
     case WraithAssetType::Material: Result = ExportMaterialAsset((CoDMaterial_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;
     }
 
@@ -1472,10 +1374,6 @@ std::string CoDAssets::BuildExportPath(const CoDAsset_t* Asset)
             // Merge it
             ApplicationPath = FileSystems::CombinePath(ApplicationPath, ((CoDSound_t*)Asset)->FullPath);
         }
-        break;
-    case WraithAssetType::Effect:
-        // Default directory
-        ApplicationPath = FileSystems::CombinePath(ApplicationPath, "fxt");
         break;
     case WraithAssetType::RawFile:
         // Default directory
@@ -2070,23 +1968,6 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
                 Sound::ConvertSoundMemory(SoundData->DataBuffer, SoundData->DataSize, InFormat, FullSoundPath, SoundFormatType);
             }
         }
-    }
-
-    // Success, unless specific error
-    return ExportGameResult::Success;
-}
-
-ExportGameResult CoDAssets::ExportEffectAsset(const CoDEffect_t* Effect, const std::string& ExportPath)
-{
-    // Read from specific handler (By game)
-    switch (CoDAssets::GameID)
-    {
-    case SupportedGames::BlackOps:
-    case SupportedGames::BlackOps2:
-    case SupportedGames::BlackOps3:
-        // Send to generic translator
-        CoDEffectTranslator::TranslateEffect(Effect, ExportPath);
-        break;
     }
 
     // Success, unless specific error
