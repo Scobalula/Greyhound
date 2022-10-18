@@ -79,7 +79,6 @@ BEGIN
     LTEXT           "Anim Settings",IDC_ANIMPANEL,0,58,117,29,SS_NOTIFY
     LTEXT           "Image Settings",IDC_IMAGEPANEL,0,87,117,29,SS_NOTIFY
     LTEXT           "Sound Settings",IDC_SOUNDPANEL,0,116,117,29,SS_NOTIFY
-    LTEXT           "GDT Settings",IDC_GDTPANEL,0,145,117,29,SS_NOTIFY
 END
 
 IDD_GENERALSETTINGS DIALOGEX 0, 0, 350, 200
@@ -178,21 +177,6 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,158,285,11
     CONTROL         "Skip blank audio in SAB files",IDC_SKIPBLANKAUDIO,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,142,197,11
-END
-
-IDD_GDTSETTINGS DIALOGEX 0, 0, 350, 230
-STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_SYSMENU
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    LTEXT           "GDT export settings",IDC_TITLE,8,10,156,20
-    CONTROL         "Save a BO3 GDT file",IDC_BO3GDT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,32,157,11
-    CONTROL         "Save a Legacy GDT file",IDC_WAWGDT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,48,157,11
-    LTEXT           "Tip: The Greyhound GDT will be updated everytime you close the program",IDC_TIP,17,198,312,8
-    LTEXT           "Notice: To load properly, you must copy the assets to the same directory layout",IDC_NOTICE,17,210,319,8
-    PUSHBUTTON      "Clear Cache",IDC_CLEARCACHE,288,8,56,18
-    CONTROL         "Overwrite existing GDT file",IDC_OVERWRITEGDT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,64,157,11
-    CONTROL         "Clear GDT cache on successful export",IDC_CLEARCACHECLOSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,80,157,11
 END
 
 IDD_PROGRESSDIALOG DIALOGEX 0, 0, 229, 88
@@ -299,13 +283,6 @@ BEGIN
         VERTGUIDE, 17
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
-    END
-
-    IDD_GDTSETTINGS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 223
     END
 
     IDD_PROGRESSDIALOG, DIALOG
@@ -450,6 +427,11 @@ BEGIN
 END
 
 IDD_IMAGESETTINGS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_SETTINGSDIALOG AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

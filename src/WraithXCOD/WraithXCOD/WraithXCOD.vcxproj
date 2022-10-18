@@ -106,7 +106,6 @@
     <ClCompile Include="CoDCDNDownloaderV0.cpp" />
     <ClCompile Include="CoDCDNDownloaderV1.cpp" />
     <ClCompile Include="CoDCDNDownloaderV2.cpp" />
-    <ClCompile Include="CoDGDTProcessor.cpp" />
     <ClCompile Include="CoDIWITranslator.cpp" />
     <ClCompile Include="CoDPackageCache.cpp" />
     <ClCompile Include="CoDQTangent.cpp" />
@@ -137,7 +136,6 @@
     <ClCompile Include="GameVanguard.cpp" />
     <ClCompile Include="GameWorldAtWar.cpp" />
     <ClCompile Include="GameWorldWar2.cpp" />
-    <ClCompile Include="GDTSettings.cpp" />
     <ClCompile Include="GeneralSettings.cpp" />
     <ClCompile Include="ImageSettings.cpp" />
     <ClCompile Include="IPAKCache.cpp" />
@@ -178,7 +176,6 @@
     <ClInclude Include="CoDCDNDownloaderV0.h" />
     <ClInclude Include="CoDCDNDownloaderV1.h" />
     <ClInclude Include="CoDCDNDownloaderV2.h" />
-    <ClInclude Include="CoDGDTProcessor.h" />
     <ClInclude Include="CoDIWITranslator.h" />
     <ClInclude Include="CoDPackageCache.h" />
     <ClInclude Include="CoDQTangent.h" />
@@ -213,7 +210,6 @@
     <ClInclude Include="GameVanguard.h" />
     <ClInclude Include="GameWorldAtWar.h" />
     <ClInclude Include="GameWorldWar2.h" />
-    <ClInclude Include="GDTSettings.h" />
     <ClInclude Include="GeneralSettings.h" />
     <ClInclude Include="ImageSettings.h" />
     <ClInclude Include="IPAKCache.h" />
