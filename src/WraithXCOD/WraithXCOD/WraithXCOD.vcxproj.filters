@@ -135,12 +135,6 @@
     <ClCompile Include="SoundSettings.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="GDTSettings.cpp">
-      <Filter>Source Files\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="CoDGDTProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="XPAKSupport.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
@@ -347,13 +341,7 @@
     <ClInclude Include="SoundSettings.h">
       <Filter>Header Files\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="GDTSettings.h">
-      <Filter>Header Files\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="CoDXConverter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CoDGDTProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XPAKSupport.h">
@@ -490,6 +478,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\Resources\GreyhoundPride.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\Resources\GreyhoundEnhanced.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
