@@ -242,6 +242,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\WraithX\Resources\CheckMarkIcon.ico" />
+    <Image Include="..\Resources\GreyhoundEnhanced.ico" />
     <Image Include="..\Resources\GreyhoundPride.ico" />
     <Image Include="..\Resources\SettingHover.png" />
     <Image Include="..\Resources\SettingNormal.png" />

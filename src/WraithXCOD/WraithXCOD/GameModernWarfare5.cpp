@@ -134,33 +134,33 @@ bool GameModernWarfare5::LoadAssets()
         });
     }
 
-    if (NeedsImages)
-    {
-        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 19 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-        {
-            // Read
-            auto ImageResult = CoDAssets::GameInstance->Read<MW5GfxImage>(Asset.Header);
-            // Validate and load if need be
-            auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
-            // Log it
-            CoDAssets::LogXAsset("Image", ImageName);
-            // Check for loaded images
-            if (ImageResult.MipMaps == 0)
-                return;
-            // Make and add
-            auto LoadedImage = new CoDImage_t();
-            // Set
-            LoadedImage->AssetName = ImageName;
-            LoadedImage->AssetPointer = Asset.Header;
-            LoadedImage->Width = (uint16_t)ImageResult.Width;
-            LoadedImage->Height = (uint16_t)ImageResult.Height;
-            LoadedImage->Format = ImageResult.ImageFormat;
-            LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
-        });
-    }
+    //if (NeedsImages)
+    //{
+    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 19 * sizeof(ps::XAssetPool64));
+    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+    //    {
+    //        // Read
+    //        auto ImageResult = CoDAssets::GameInstance->Read<MW5GfxImage>(Asset.Header);
+    //        // Validate and load if need be
+    //        auto ImageName = FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(ImageResult.NamePtr));
+    //        // Log it
+    //        CoDAssets::LogXAsset("Image", ImageName);
+    //        // Check for loaded images
+    //        if (ImageResult.MipMaps == 0)
+    //            return;
+    //        // Make and add
+    //        auto LoadedImage = new CoDImage_t();
+    //        // Set
+    //        LoadedImage->AssetName = ImageName;
+    //        LoadedImage->AssetPointer = Asset.Header;
+    //        LoadedImage->Width = (uint16_t)ImageResult.Width;
+    //        LoadedImage->Height = (uint16_t)ImageResult.Height;
+    //        LoadedImage->Format = ImageResult.ImageFormat;
+    //        LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
+    //        // Add
+    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
+    //    });
+    //}
 
     if (NeedsAnims)
     {
@@ -583,7 +583,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
         // Read the image info
         auto ImageInfo = CoDAssets::GameInstance->Read<MW5XMaterialImage>(MaterialData.ImageTablePtr);
         // Read the image name (End of image - 8)
-        auto ImageName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr + 8));
+        auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
 
         // Default type
         auto DefaultUsage = ImageUsageType::Unknown;
@@ -676,6 +676,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
 
     if (ImageInfo.MipMaps == 0)
         return nullptr;
+
     // Read Array of Mip Maps
     MW5GfxMipArray<32> Mips{};
     size_t MipCount = std::min((size_t)ImageInfo.MipCount, (size_t)32);

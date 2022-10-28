@@ -103,7 +103,6 @@ struct MW5XModelSurface
 struct MW5GfxImage
 {
     uint64_t Hash;
-    uint64_t NamePtr;
     uint8_t Unk00[16];
     uint32_t BufferSize;
     uint32_t Unk02;

@@ -337,7 +337,7 @@ IDB_SETTINGSHOVER       PNG                     "..\\Resources\\SettingHover.png
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_MAINICON            ICON                    "..\\Resources\\GreyhoundPride.ico"
+IDI_MAINICON            ICON                    "..\\Resources\\GreyhoundEnhanced.ico"
 
 IDI_CHECKMARK           ICON                    "..\\..\\WraithX\\Resources\\CheckMarkIcon.ico"
 

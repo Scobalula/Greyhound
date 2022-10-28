@@ -480,6 +480,9 @@
     <Image Include="..\Resources\GreyhoundPride.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\Resources\GreyhoundEnhanced.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
