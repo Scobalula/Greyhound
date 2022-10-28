@@ -111,7 +111,7 @@ bool GameModernWarfare5::LoadAssets()
 
             // Check if the asset actually has a name.
             if (ModelResult.NamePtr > 0)
-                ModelName = FileSystems::GetFileName(Strings::SplitString(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr), ':', true)[0]);
+                ModelName = FileSystems::GetFileName(Strings::Replace(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr), "::", "_"));
             else
                 ModelName = CoDAssets::GetHashedName("xmodel", ModelResult.Hash);
 
@@ -162,32 +162,32 @@ bool GameModernWarfare5::LoadAssets()
     //    });
     //}
 
-    if (NeedsAnims)
-    {
-        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-        {
-            // Read
-            auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
-            // Validate and load if need be
-            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+    //if (NeedsAnims)
+    //{
+    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
+    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+    //    {
+    //        // Read
+    //        auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
+    //        // Validate and load if need be
+    //        auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
-            // Log it
-            CoDAssets::LogXAsset("Anim", AnimName);
+    //        // Log it
+    //        CoDAssets::LogXAsset("Anim", AnimName);
 
-            // Make and add
-            auto LoadedAnim = new CoDAnim_t();
-            // Set
-            LoadedAnim->AssetName = AnimName;
-            LoadedAnim->AssetPointer = Asset.Header;
-            LoadedAnim->Framerate = AnimResult.Framerate;
-            LoadedAnim->FrameCount = AnimResult.FrameCount;
-            LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
-            LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
-        });
-    }
+    //        // Make and add
+    //        auto LoadedAnim = new CoDAnim_t();
+    //        // Set
+    //        LoadedAnim->AssetName = AnimName;
+    //        LoadedAnim->AssetPointer = Asset.Header;
+    //        LoadedAnim->Framerate = AnimResult.Framerate;
+    //        LoadedAnim->FrameCount = AnimResult.FrameCount;
+    //        LoadedAnim->AssetStatus = Asset.Temp == 1 ? WraithAssetStatus::Placeholder : WraithAssetStatus::Loaded;
+    //        LoadedAnim->BoneCount = AnimResult.TotalBoneCount;
+    //        // Add
+    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedAnim);
+    //    });
+    //}
 
     if (NeedsMaterials)
     {
@@ -197,7 +197,7 @@ bool GameModernWarfare5::LoadAssets()
             // Read
             auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterial>(Asset.Header);
             // Validate and load if need be
-            auto MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MatResult.NamePtr);
+            auto MaterialName = CoDAssets::GetHashedName("xmaterial", MatResult.Hash);
 
             // Log it
             CoDAssets::LogXAsset("Material", MaterialName);
@@ -215,32 +215,32 @@ bool GameModernWarfare5::LoadAssets()
         });
     }
 
-    if (NeedsRawFiles)
-    {
-        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 37 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-        {
-            // Read
-            auto SoundResult = CoDAssets::GameInstance->Read<MW5SoundBank>(Asset.Header);
-            // Validate and load if need be
-            auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr) + ".sabs";
+    //if (NeedsRawFiles)
+    //{
+    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 37 * sizeof(ps::XAssetPool64));
+    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+    //    {
+    //        // Read
+    //        auto SoundResult = CoDAssets::GameInstance->Read<MW5SoundBank>(Asset.Header);
+    //        // Validate and load if need be
+    //        auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr) + ".sabs";
 
-            // Log it
-            CoDAssets::LogXAsset("RawFile", RawfileName);
+    //        // Log it
+    //        CoDAssets::LogXAsset("RawFile", RawfileName);
 
-            // Make and add
-            auto LoadedRawfile = new CoDRawFile_t();
-            // Set
-            LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
-            LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
-            LoadedRawfile->AssetPointer = Asset.Header;
-            LoadedRawfile->AssetSize = SoundResult.SoundBankSize;
-            LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
+    //        // Make and add
+    //        auto LoadedRawfile = new CoDRawFile_t();
+    //        // Set
+    //        LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
+    //        LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
+    //        LoadedRawfile->AssetPointer = Asset.Header;
+    //        LoadedRawfile->AssetSize = SoundResult.SoundBankSize;
+    //        LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
 
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
-        });
-    }
+    //        // Add
+    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
+    //    });
+    //}
 
     // Success, error only on specific load
     return true;
@@ -575,7 +575,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
     // Allocate a new material with the given image count
     XMaterial_t Result(MaterialData.ImageCount);
     // Clean the name, then apply it
-    Result.MaterialName = FileSystems::GetFileNameWithoutExtension(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr));
+    Result.MaterialName = CoDAssets::GetHashedName("ximage", MaterialData.Hash);
 
     // Iterate over material images, assign proper references if available
     for (uint32_t m = 0; m < MaterialData.ImageCount; m++)

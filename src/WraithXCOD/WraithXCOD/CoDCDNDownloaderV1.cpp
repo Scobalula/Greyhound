@@ -65,12 +65,12 @@ bool CoDCDNDownloaderV1::LoadCDNXPAK(const std::string& fileName)
 	auto header = handle.Read<VGXSUBHeader>();
 
 	// If we have a hash offset outside file, we not doing too good.
-	if (header.Magic != 0x4950414b && header.HashOffset >= handle.Size())
+	if (header.Magic != 0x4950414b && (uint64_t)header.HashOffset >= handle.Size())
 		return false;
 
 	handle.Seek(header.HashOffset, SEEK_SET);
 
-	for (uint64_t i = 0; i < header.HashCount; i++)
+	for (int64_t i = 0; i < header.HashCount; i++)
 	{
 		// Read it
 		auto packedEntry = handle.Read<VGXSUBHashEntry>();

@@ -78,15 +78,15 @@ struct MW5XModelSurface
     uint16_t StatusFlag;
     uint16_t VertexCount;
     uint16_t FacesCount;
+    uint16_t Padding5;
     uint16_t Padding6;
     uint16_t Padding7;
-    uint16_t Padding8;
     uint8_t VertListCount;
     uint8_t Padding0[19];
     uint16_t WeightCounts[8];
-    uint8_t Padding1[4];
+    uint8_t Padding1[8];
     float NewScale;
-    uint32_t Offsets[12];
+    uint32_t Offsets[13];
     uint64_t MeshBufferPointer;
     uint64_t RigidWeightsPtr;
     uint8_t Padding4[40];
@@ -96,7 +96,7 @@ struct MW5XModelSurface
     float Scale;
     float Min;
     float Max;
-    uint8_t Padding9[24];
+    uint8_t Padding9[16];
 };
 #pragma pack(pop)
 
@@ -236,7 +236,6 @@ struct MW5XAnimDeltaParts
 struct MW5XMaterial
 {
     uint64_t Hash;
-    uint64_t NamePtr;
     uint8_t Padding[16];
     uint8_t ImageCount;
     uint8_t Padding2[15];
