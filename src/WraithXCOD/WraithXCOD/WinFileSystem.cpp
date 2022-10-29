@@ -43,7 +43,7 @@ HANDLE WinFileSystem::OpenFile(const std::string& fileName, const std::string& m
 	}
 	else
 	{
-		std::memcpy(buffer, fileName.c_str(), std::max(sizeof(buffer), fileName.size()));
+		std::memcpy(buffer, fileName.c_str(), std::min(sizeof(buffer), fileName.size()));
 	}
 
 	if (mode == "r")
