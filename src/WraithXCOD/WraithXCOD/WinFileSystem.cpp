@@ -33,10 +33,17 @@ HANDLE WinFileSystem::OpenFile(const std::string& fileName, const std::string& m
 	HANDLE result = NULL;
 	char buffer[MAX_PATH]{};
 
-	if (sprintf_s(buffer, "%s%s%s", Directory.c_str(), (Directory.size() > 0 ? "\\" : ""), fileName.c_str()) <= 0)
+	if (PathIsRelativeA(fileName.c_str()))
 	{
-		LastErrorCode = 0x505000;
-		return NULL;
+		if (sprintf_s(buffer, "%s%s%s", Directory.c_str(), (Directory.size() > 0 ? "\\" : ""), fileName.c_str()) <= 0)
+		{
+			LastErrorCode = 0x505000;
+			return NULL;
+		}
+	}
+	else
+	{
+		std::memcpy(buffer, fileName.c_str(), std::max(sizeof(buffer), fileName.size()));
 	}
 
 	if (mode == "r")
@@ -165,19 +172,50 @@ size_t WinFileSystem::EnumerateFiles(const std::string& pattern, std::function<v
 	HANDLE findHandle;
 	WIN32_FIND_DATAA findData;
 	size_t results = 0;
-
-	auto fullPath = Directory + "\\" + pattern;
-	findHandle = FindFirstFileA(fullPath.c_str(), &findData);
-
-	if (findHandle != INVALID_HANDLE_VALUE)
+	std::vector<std::string> dirs
 	{
-		do
-		{
-			onFileFound(findData.cFileName, (size_t)findData.nFileSizeLow | ((size_t)findData.nFileSizeHigh << 32));
-			results++;
-		} while (FindNextFileA(findHandle, &findData));
+		Directory + "\\"
+	};
 
-		FindClose(findHandle);
+	while (!dirs.empty())
+	{
+		std::string currPath = dirs.back();
+		dirs.pop_back();
+
+		findHandle = FindFirstFileA((currPath + pattern).c_str(), &findData);
+
+		if (findHandle != INVALID_HANDLE_VALUE)
+		{
+			do
+			{
+				if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				{
+					onFileFound(currPath + findData.cFileName, (size_t)findData.nFileSizeLow | ((size_t)findData.nFileSizeHigh << 32));
+					results++;
+				}
+			} while (FindNextFileA(findHandle, &findData));
+
+			FindClose(findHandle);
+		}
+
+		// Locate sub dirs
+		findHandle = FindFirstFileA((currPath + "*").c_str(), &findData);
+
+		if (findHandle != INVALID_HANDLE_VALUE)
+		{
+			do
+			{
+				if (strcmp(findData.cFileName, ".") && strcmp(findData.cFileName, ".."))
+				{
+					if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+					{
+						dirs.push_back(currPath + findData.cFileName + "\\");
+					}
+				}
+			} while (FindNextFileA(findHandle, &findData));
+
+			FindClose(findHandle);
+		}
 	}
 
 	return results;

@@ -194,24 +194,55 @@ bool GameModernWarfare5::LoadAssets()
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 11 * sizeof(ps::XAssetPool64));
         ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
-            // Read
-            auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterial>(Asset.Header);
-            // Validate and load if need be
-            auto MaterialName = CoDAssets::GetHashedName("xmaterial", MatResult.Hash);
+            // Check for SP Files
+            if (CoDAssets::GameFlags == SupportedGameFlags::SP)
+            {
+                // Read
+                auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterialSP>(Asset.Header);
 
-            // Log it
-            CoDAssets::LogXAsset("Material", MaterialName);
+                std::string MaterialName;
 
-            // Make and add
-            auto LoadedMaterial = new CoDMaterial_t();
-            // Set
-            LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
-            LoadedMaterial->AssetPointer = Asset.Header;
-            LoadedMaterial->ImageCount = MatResult.ImageCount;
-            LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
+                // Validate and load if need be
+                if (MatResult.NamePtr > 0)
+                    MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MatResult.NamePtr);
+                else
+                    MaterialName = CoDAssets::GetHashedName("xmodel", MatResult.Hash);
 
-            // Add
-            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
+                // Log it
+                CoDAssets::LogXAsset("Material", MaterialName);
+
+                // Make and add
+                auto LoadedMaterial = new CoDMaterial_t();
+                // Set
+                LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
+                LoadedMaterial->AssetPointer = Asset.Header;
+                LoadedMaterial->ImageCount = MatResult.ImageCount;
+                LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
+
+                // Add
+                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
+            }
+            else
+            {
+                // Read
+                auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterial>(Asset.Header);
+                // Validate and load if need be
+                auto MaterialName = CoDAssets::GetHashedName("xmaterial", MatResult.Hash);
+
+                // Log it
+                CoDAssets::LogXAsset("Material", MaterialName);
+
+                // Make and add
+                auto LoadedMaterial = new CoDMaterial_t();
+                // Set
+                LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
+                LoadedMaterial->AssetPointer = Asset.Header;
+                LoadedMaterial->ImageCount = MatResult.ImageCount;
+                LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
+
+                // Add
+                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
+            }
         });
     }
 
@@ -569,41 +600,86 @@ void GameModernWarfare5::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
 
 const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
 {
-    // Prepare to parse the material
-    auto MaterialData = CoDAssets::GameInstance->Read<MW5XMaterial>(MaterialPointer);
-
-    // Allocate a new material with the given image count
-    XMaterial_t Result(MaterialData.ImageCount);
-    // Clean the name, then apply it
-    Result.MaterialName = CoDAssets::GetHashedName("ximage", MaterialData.Hash);
-
-    // Iterate over material images, assign proper references if available
-    for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
+    // Check for SP Files
+    if (CoDAssets::GameFlags == SupportedGameFlags::SP)
     {
-        // Read the image info
-        auto ImageInfo = CoDAssets::GameInstance->Read<MW5XMaterialImage>(MaterialData.ImageTablePtr);
-        // Read the image name (End of image - 8)
-        auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
+        // Prepare to parse the material
+        auto MaterialData = CoDAssets::GameInstance->Read<MW5XMaterialSP>(MaterialPointer);
 
-        // Default type
-        auto DefaultUsage = ImageUsageType::Unknown;
-        // Check 
-        switch (ImageInfo.Type)
+        // Allocate a new material with the given image count
+        XMaterial_t Result(MaterialData.ImageCount);
+        // Clean the name, then apply it
+        if (MaterialData.NamePtr > 0)
+            Result.MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr);
+        else
+            Result.MaterialName = CoDAssets::GetHashedName("ximage", MaterialData.Hash);
+
+        // Iterate over material images, assign proper references if available
+        for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
         {
-        case 0:
-            DefaultUsage = ImageUsageType::DiffuseMap;
-            break;
+            // Read the image info
+            auto ImageInfo = CoDAssets::GameInstance->Read<MW5XMaterialImage>(MaterialData.ImageTablePtr);
+            // Read the image name (End of image - 8)
+            auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
+
+            // Default type
+            auto DefaultUsage = ImageUsageType::Unknown;
+            // Check 
+            switch (ImageInfo.Type)
+            {
+            case 0:
+                DefaultUsage = ImageUsageType::DiffuseMap;
+                break;
+            }
+
+            // Assign the new image
+            Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
+
+            // Advance
+            MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
         }
 
-        // Assign the new image
-        Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
-
-        // Advance
-        MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
+        // Return it
+        return Result;
     }
+    else
+    {
+        // Prepare to parse the material
+        auto MaterialData = CoDAssets::GameInstance->Read<MW5XMaterial>(MaterialPointer);
 
-    // Return it
-    return Result;
+        // Allocate a new material with the given image count
+        XMaterial_t Result(MaterialData.ImageCount);
+        // Clean the name, then apply it
+        Result.MaterialName = CoDAssets::GetHashedName("ximage", MaterialData.Hash);
+
+        // Iterate over material images, assign proper references if available
+        for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
+        {
+            // Read the image info
+            auto ImageInfo = CoDAssets::GameInstance->Read<MW5XMaterialImage>(MaterialData.ImageTablePtr);
+            // Read the image name (End of image - 8)
+            auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
+
+            // Default type
+            auto DefaultUsage = ImageUsageType::Unknown;
+            // Check 
+            switch (ImageInfo.Type)
+            {
+            case 0:
+                DefaultUsage = ImageUsageType::DiffuseMap;
+                break;
+            }
+
+            // Assign the new image
+            Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
+
+            // Advance
+            MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
+        }
+
+        // Return it
+        return Result;
+    }
 }
 
 void GameModernWarfare5::PrepareVertexWeights(MemoryReader& ComplexReader, std::vector<WeightsData>& Weights, const XModelSubmesh_t & Submesh)
@@ -948,7 +1024,7 @@ std::string GameModernWarfare5::LoadStringEntry(uint64_t Index)
 void GameModernWarfare5::PerformInitialSetup()
 {
     // Prepare to copy the oodle dll
-    auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_6_win64.dll");
+    auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_8_win64.dll");
 
     // Load Caches
     CoDAssets::StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_string.wni"));
@@ -957,7 +1033,17 @@ void GameModernWarfare5::PerformInitialSetup()
 
     // Copy if not exists
     if (!FileSystems::FileExists(OurPath))
-        FileSystems::CopyFile(FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_7_win64.dll"), OurPath);
+    {
+        // Check for Battlenet
+        if (FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_8_win64.dll")))
+        {
+            FileSystems::CopyFile(FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_8_win64.dll"), OurPath);
+        }
+        else
+        {
+            FileSystems::CopyFile(FileSystems::CombinePath(ps::state->GameDirectory, "_retail_\\oo2core_8_win64.dll"), OurPath);
+        }
+    }
 }
 
 void GameModernWarfare5::PerformShutDown()

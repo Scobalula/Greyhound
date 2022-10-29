@@ -747,7 +747,7 @@ LoadGameResult CoDAssets::LoadGamePS()
         case 0x3232524157444F4D:
             GameModernWarfare5::PerformInitialSetup();
             GameID            = SupportedGames::ModernWarfare5;
-            GameFlags         = SupportedGameFlags::None;
+            GameFlags         = ps::state->HasFlag("sp") ? SupportedGameFlags::SP : SupportedGameFlags::MP;
             GameXImageHandler = GameModernWarfare5::LoadXImage;
             GameStringHandler = GameModernWarfare5::LoadStringEntry;
             GamePackageCache  = std::make_unique<XSUBCacheV2>();

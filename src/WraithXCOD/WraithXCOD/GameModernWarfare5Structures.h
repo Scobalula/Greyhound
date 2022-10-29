@@ -246,6 +246,20 @@ struct MW5XMaterial
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct MW5XMaterialSP
+{
+    uint64_t Hash;
+    uint64_t NamePtr;
+    uint8_t Padding[16];
+    uint8_t ImageCount;
+    uint8_t Padding2[15];
+    uint64_t TechsetPtr;
+    uint64_t ImageTablePtr;
+    uint8_t Padding3[32];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct MW5XMaterialImage
 {
     uint32_t Type;
