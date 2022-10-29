@@ -12,6 +12,7 @@ bool ps::State::Load(const std::string& path)
 {
 	std::ifstream s(path, std::ios::binary);
 	uint32_t stringSize = 0;
+	uint32_t flagCount = 0;
 
 	if (!s)
 		return false;
@@ -31,8 +32,50 @@ bool ps::State::Load(const std::string& path)
 
 	if (!s.read((char*)GameDirectory.data(), stringSize))
 		return false;
+
+	if (s.read((char*)&flagCount, sizeof(flagCount)))
+	{
+		for (uint32_t i = 0; i < flagCount; i++)
+		{
+			if (!s.read((char*)&stringSize, sizeof(stringSize)))
+				return false;
+
+			std::string flag(stringSize, '\0');
+
+			if (!s.read((char*)flag.data(), stringSize))
+				return false;
+
+			AddFlag(flag);
+		}
+	}
 	
 	return true;
+}
+
+void ps::State::AddFlag(const std::string& flag)
+{
+	if (HasFlag(flag))
+		return;
+
+	Flags.push_back(flag);
+}
+
+bool ps::State::HasFlag(const std::string& flag)
+{
+	for (auto& setFlag : Flags)
+	{
+		if (flag.size() == setFlag.size())
+		{
+			if (std::equal(flag.begin(), flag.end(), setFlag.begin(), [](const char& a, const char b)
+			{
+				return a == b || tolower(a) == tolower(b);
+			}))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void ps::PoolParser64(uint64_t offset, std::function<XAsset64(const uint64_t&)> request, std::function<void(XAsset64&)> callback)

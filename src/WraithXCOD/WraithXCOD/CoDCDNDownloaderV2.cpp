@@ -128,7 +128,7 @@ std::unique_ptr<uint8_t[]> CoDCDNDownloaderV2::ExtractCDNObject(uint64_t cacheID
 		return nullptr;
 	}
 
-	auto url = Strings::Format("%s/22/%02x/%016llx_%08llx_%s", CoDV2CDNURL, (uint8_t)entry.Hash, entry.Hash, entry.Size, entry.Flags ? "1" : "0");
+	auto url = Strings::Format("%s/23/%02x/%016llx_%08llx_%s", CoDV2CDNURL, (uint8_t)entry.Hash, entry.Hash, entry.Size, entry.Flags ? "1" : "0");
 	auto result = Client.DownloadData(url);
 
 	if (result == nullptr || result->BufferSize != entry.Size)

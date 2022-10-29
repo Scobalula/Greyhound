@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <stdint.h>
 #include <string>
 #include <memory>
@@ -21,12 +22,18 @@ namespace ps
         uint64_t PoolsAddress;
         // Address of Strings
         uint64_t StringsAddress;
+        // The game specific flags as a string array.
+        std::vector<std::string> Flags;
 
         // Creates a new state.
         State();
 
         // Loads the context from the provided file.
         bool Load(const std::string& path);
+        // Adds a game specific flag to this handler.
+        void AddFlag(const std::string& flag);
+        // Checks if the provided game specific flag is available.
+        bool HasFlag(const std::string& flag);
     };
 
     // Parasytes XAsset Structure.
