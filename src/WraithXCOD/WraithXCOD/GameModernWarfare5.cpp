@@ -204,9 +204,9 @@ bool GameModernWarfare5::LoadAssets()
 
                 // Validate and load if need be
                 if (MatResult.NamePtr > 0)
-                    MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MatResult.NamePtr);
+                    MaterialName = Strings::Replace(CoDAssets::GameInstance->ReadNullTerminatedString(MatResult.NamePtr), "*", "");
                 else
-                    MaterialName = CoDAssets::GetHashedName("xmodel", MatResult.Hash);
+                    MaterialName = CoDAssets::GetHashedName("xmaterial", MatResult.Hash);
 
                 // Log it
                 CoDAssets::LogXAsset("Material", MaterialName);
@@ -610,9 +610,9 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
         XMaterial_t Result(MaterialData.ImageCount);
         // Clean the name, then apply it
         if (MaterialData.NamePtr > 0)
-            Result.MaterialName = CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr);
+            Result.MaterialName = Strings::Replace(FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr)), "*", "");
         else
-            Result.MaterialName = CoDAssets::GetHashedName("ximage", MaterialData.Hash);
+            Result.MaterialName = CoDAssets::GetHashedName("xmaterial", MaterialData.Hash);
 
         // Iterate over material images, assign proper references if available
         for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
