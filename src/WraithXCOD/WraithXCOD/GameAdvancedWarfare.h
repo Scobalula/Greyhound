@@ -19,6 +19,8 @@ public:
     static bool LoadOffsets();
     // Loads assets for Advanced Warfare
     static bool LoadAssets();
+    // Loads assets for Advanced Warfare (Parasyte)
+    static bool LoadAssetsPS();
 
     // Reads an XAnim from Advanced Warfare
     static std::unique_ptr<XAnim_t> ReadXAnim(const CoDAnim_t* Animation);
@@ -29,6 +31,8 @@ public:
 
     // Reads an XImageDDS from a image reference from Advanced Warfare
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
+    // Reads an XImageDDS from a image reference from Advanced Warfare (Parasyte)
+    static std::unique_ptr<XImageDDS> LoadXImagePS(const XImage_t& Image);
 
     // Reads a string via it's string index for Advanced Warfare
     static std::string LoadStringEntry(uint64_t Index);

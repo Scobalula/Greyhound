@@ -723,6 +723,16 @@ LoadGameResult CoDAssets::LoadGamePS()
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
             Success = GameModernWarfareRM::LoadAssetsPS();
             break;
+        // Advanced Warfare
+        case 0x5241574E41564441:
+            GameID            = SupportedGames::AdvancedWarfare;
+            GameFlags         = SupportedGameFlags::None;
+            GameXImageHandler = GameAdvancedWarfare::LoadXImagePS;
+            GameStringHandler = GameAdvancedWarfare::LoadStringEntry;
+            GamePackageCache  = std::make_unique<PAKCache>();
+            GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
+            Success = GameAdvancedWarfare::LoadAssetsPS();
+            break;
         // Infinite Warfare
         case 0x4652415749464E49:
             GameID = SupportedGames::InfiniteWarfare;
