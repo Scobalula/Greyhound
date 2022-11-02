@@ -13,10 +13,17 @@
 #include "Strings.h"
 #include "FileSystems.h"
 #include "MemoryReader.h"
+#include "MemoryWriter.h"
 #include "TextWriter.h"
 #include "SettingsManager.h"
 #include "HalfFloats.h"
 #include "BinaryReader.h"
+#include "Sound.h"
+
+// We need Opus
+#include "..\..\External\Opus\include\opus.h"
+
+#include "SABSupport.h"
 
 // We need the QTangent
 #include "CoDQTangent.h"
@@ -172,6 +179,10 @@ bool GameModernWarfare5::LoadAssets()
             // Validate and load if need be
             auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
+            // No multi-buffer for now.
+            if (AnimResult.DataInfo.OffsetCount > 1)
+                return;
+
             // Log it
             CoDAssets::LogXAsset("Anim", AnimName);
 
@@ -246,32 +257,40 @@ bool GameModernWarfare5::LoadAssets()
         });
     }
 
-    //if (NeedsRawFiles)
-    //{
-    //    auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 37 * sizeof(ps::XAssetPool64));
-    //    ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
-    //    {
-    //        // Read
-    //        auto SoundResult = CoDAssets::GameInstance->Read<MW5SoundBank>(Asset.Header);
-    //        // Validate and load if need be
-    //        auto RawfileName = CoDAssets::GameInstance->ReadNullTerminatedString(SoundResult.NamePtr) + ".sabs";
+    if (NeedsSounds)
+    {
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 197 * sizeof(ps::XAssetPool64));
+        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        {
+            // Read
+            auto SoundResult = CoDAssets::GameInstance->Read<MW5SndAsset>(Asset.Header);
+            // Mask the name as hashes are 60Bit (Actually 63Bit but maintain with our existing tables)
+            SoundResult.Name &= 0xFFFFFFFFFFFFFFF;
+            // Validate and load if need be
+            auto SoundName = CoDAssets::GetHashedName("xsound", SoundResult.Name);
 
-    //        // Log it
-    //        CoDAssets::LogXAsset("RawFile", RawfileName);
+            // Log it
+            CoDAssets::LogXAsset("Sound", SoundName);
 
-    //        // Make and add
-    //        auto LoadedRawfile = new CoDRawFile_t();
-    //        // Set
-    //        LoadedRawfile->AssetName = FileSystems::GetFileName(RawfileName);
-    //        LoadedRawfile->RawFilePath = FileSystems::GetDirectoryName(RawfileName);
-    //        LoadedRawfile->AssetPointer = Asset.Header;
-    //        LoadedRawfile->AssetSize = SoundResult.SoundBankSize;
-    //        LoadedRawfile->AssetStatus = WraithAssetStatus::Loaded;
-
-    //        // Add
-    //        CoDAssets::GameAssets->LoadedAssets.push_back(LoadedRawfile);
-    //    });
-    //}
+            // Make and add
+            auto LoadedSound = new CoDSound_t();
+            // Set the name, but remove all extensions first
+            LoadedSound->AssetName = FileSystems::GetFileNamePurgeExtensions(SoundName);
+            LoadedSound->FullPath = FileSystems::GetDirectoryName(SoundName);
+            LoadedSound->AssetPointer = Asset.Header;
+            LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+            // Set various properties
+            LoadedSound->FrameRate = SoundResult.FrameRate;
+            LoadedSound->FrameCount = SoundResult.FrameCount;
+            LoadedSound->ChannelsCount = SoundResult.ChannelCount;
+            LoadedSound->AssetSize = -1;
+            LoadedSound->AssetStatus = WraithAssetStatus::Loaded;
+            LoadedSound->IsFileEntry = false;
+            LoadedSound->Length = (uint32_t)(1000.0f * (float)(LoadedSound->FrameCount / (float)(LoadedSound->FrameRate)));
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedSound);
+        });
+    }
 
     // Success, error only on specific load
     return true;
@@ -571,6 +590,46 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::ReadXImage(const CoDImage_t* Imag
 {
     // Proxy off
     return LoadXImage(XImage_t(ImageUsageType::DiffuseMap, 0, Image->AssetPointer, Image->AssetName));
+}
+
+std::unique_ptr<XSound> GameModernWarfare5::ReadXSound(const CoDSound_t* Sound)
+{
+    // Read the Sound Asset structure
+    auto SoundData = CoDAssets::GameInstance->Read<MW5SndAsset>(Sound->AssetPointer);
+
+    if (SoundData.StreamKey != 0)
+    {
+        // Buffer
+        std::unique_ptr<uint8_t[]> SoundBuffer = nullptr;
+        // Extract buffer, these are compressed
+        uint32_t SoundMemoryResult = 0;
+        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(SoundData.StreamKey, (int32_t)(((uint64_t)SoundData.Size + 4095) & 0xFFFFFFFFFFFFF000), SoundMemoryResult);
+
+        if (SoundMemoryResult == 0)
+            return nullptr;
+
+        if (SoundBuffer == nullptr)
+            return nullptr;
+
+        return SABSupport::DecodeOpusInterleaved(SoundBuffer.get() + SoundData.SeekTableSize, (size_t)SoundMemoryResult - SoundData.SeekTableSize, 0, SoundData.FrameRate, SoundData.ChannelCount, SoundData.FrameCount);
+    }
+    else
+    {
+        // Buffer
+        std::unique_ptr<uint8_t[]> SoundBuffer = nullptr;
+        // Extract buffer, these are compressed
+        uint32_t SoundMemoryResult = 0;
+        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(SoundData.StreamKeyEx, (int32_t)(((uint64_t)SoundData.LoadedSize + 4095) & 0xFFFFFFFFFFFFF000), SoundMemoryResult);
+
+        if (SoundMemoryResult == 0)
+            return nullptr;
+
+        if (SoundBuffer == nullptr)
+            return nullptr;
+
+        return SABSupport::DecodeOpusInterleaved(SoundBuffer.get() + 32 + SoundData.SeekTableSize, (size_t)SoundMemoryResult - 32 - SoundData.SeekTableSize, 0, SoundData.FrameRate, SoundData.ChannelCount, SoundData.FrameCount);
+    }
+
 }
 
 void GameModernWarfare5::TranslateRawfile(const CoDRawFile_t * Rawfile, const std::string & ExportPath)
