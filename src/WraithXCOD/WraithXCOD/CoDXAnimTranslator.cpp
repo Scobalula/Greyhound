@@ -847,13 +847,13 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnimReader(const std::
 
     // TODO: Could prob use MemoryReader to make this safer
 
-    auto indices = (uint16_t*)Animation->Reader->Indices;
-    auto dataByte = (uint8_t*)Animation->Reader->DataBytes;
-    auto dataShort = (int16_t*)Animation->Reader->DataShorts;
-    auto dataInt = (int32_t*)Animation->Reader->DataInts;
-    auto randomDataByte = (uint8_t*)Animation->Reader->RandomDataBytes;
-    auto randomDataShort = (int16_t*)Animation->Reader->RandomDataShorts;
-    auto randomDataInt = (int32_t*)Animation->Reader->RandomDataInts;
+    auto indices = (uint16_t*)Animation->Reader->Indices.get();
+    auto dataByte = (uint8_t*)Animation->Reader->DataBytes.get();
+    auto dataShort = (int16_t*)Animation->Reader->DataShorts.get();
+    auto dataInt = (int32_t*)Animation->Reader->DataInts.get();
+    auto randomDataByte = (uint8_t*)Animation->Reader->RandomDataBytes.get();
+    auto randomDataShort = (int16_t*)Animation->Reader->RandomDataShorts.get();
+    auto randomDataInt = (int32_t*)Animation->Reader->RandomDataInts.get();
 
     // Stage 0: Zero-Rotated bones
     // Zero-rotated bones must be reset to identity, they are the first set of bones

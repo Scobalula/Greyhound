@@ -171,6 +171,22 @@ struct MW5XAnimNotetrack
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct MW5XAnimDataInfo
+{
+    int32_t DataByteOffset;
+    int32_t DataShortOffset;
+    int32_t DataIntOffset;
+    int32_t Padding4;
+    uint64_t OffsetPtr;
+    uint64_t OffsetPtr2;
+    uint32_t StreamIndex;
+    uint32_t OffsetCount;
+    uint8_t Padding5[24];
+    uint64_t StreamInfoPtr;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct MW5XAnim
 {
     uint64_t Hash;
@@ -210,16 +226,7 @@ struct MW5XAnim
 
     uint8_t Padding3[20];
 
-    uint32_t DataByteOffset;
-    uint32_t DataShortOffset;
-    uint32_t DataIntOffset;
-    uint32_t Padding4;
-    uint64_t OffsetPtr;
-    uint64_t OffsetPtr2;
-    uint32_t StreamIndex;
-    uint32_t OffsetCount;
-    uint8_t Padding5[24];
-    uint64_t StreamInfoPtr;
+    MW5XAnimDataInfo DataInfo;
 };
 #pragma pack(pop)
 
@@ -283,3 +290,27 @@ struct MW5SoundBank
 #pragma pack(pop)
 
 extern uint32_t MW5DXGIFormats[52];
+
+#pragma pack(push, 1)
+struct MW5SndAsset
+{
+    uint64_t Name;
+    uint64_t Unk;
+    uint64_t StreamKeyEx;
+    uint64_t StreamKey;
+    uint32_t Size;
+    uint32_t Unk3;
+    uint64_t Unk4;
+    uint64_t Unk5;
+    uint32_t SeekTableSize;
+    uint32_t LoadedSize;
+    uint32_t FrameCount;
+    uint32_t FrameRate;
+    uint32_t Unk9;
+    uint8_t Unk10;
+    uint8_t Unk11;
+    uint8_t Unk12;
+    uint8_t ChannelCount;
+    uint64_t Unk13;
+};
+#pragma pack(pop)

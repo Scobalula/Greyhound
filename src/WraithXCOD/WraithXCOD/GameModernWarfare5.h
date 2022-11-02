@@ -34,6 +34,8 @@ public:
     static std::unique_ptr<XModel_t> ReadXModel(const CoDModel_t* Model);
     // Reads a XImage from Modern Warfare 5
     static std::unique_ptr<XImageDDS> ReadXImage(const CoDImage_t* Image);
+    // Reads an XSound from Modern Warfare 5
+    static std::unique_ptr<XSound> ReadXSound(const CoDSound_t* Sound);
     // Reads an XMaterial from it's logical offset in memory
     static const XMaterial_t ReadXMaterial(uint64_t MaterialPointer);
     // Reads a XImage from Modern Warfare 5
