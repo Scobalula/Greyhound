@@ -171,6 +171,22 @@ struct MW5XAnimNotetrack
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct MW5XAnimDataInfo
+{
+    int32_t DataByteOffset;
+    int32_t DataShortOffset;
+    int32_t DataIntOffset;
+    int32_t Padding4;
+    uint64_t OffsetPtr;
+    uint64_t OffsetPtr2;
+    uint32_t StreamIndex;
+    uint32_t OffsetCount;
+    uint8_t Padding5[24];
+    uint64_t StreamInfoPtr;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct MW5XAnim
 {
     uint64_t Hash;
@@ -210,16 +226,7 @@ struct MW5XAnim
 
     uint8_t Padding3[20];
 
-    uint32_t DataByteOffset;
-    uint32_t DataShortOffset;
-    uint32_t DataIntOffset;
-    uint32_t Padding4;
-    uint64_t OffsetPtr;
-    uint64_t OffsetPtr2;
-    uint32_t StreamIndex;
-    uint32_t OffsetCount;
-    uint8_t Padding5[24];
-    uint64_t StreamInfoPtr;
+    MW5XAnimDataInfo DataInfo;
 };
 #pragma pack(pop)
 
