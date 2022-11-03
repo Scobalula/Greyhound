@@ -601,9 +601,9 @@ std::unique_ptr<XSound> GameModernWarfare5::ReadXSound(const CoDSound_t* Sound)
     {
         // Buffer
         std::unique_ptr<uint8_t[]> SoundBuffer = nullptr;
-        // Extract buffer, these are compressed
+        // Extract buffer, these are compressed, pad the audio size since the size in sound asset is literal, but XPAK data is padded.
         uint32_t SoundMemoryResult = 0;
-        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(SoundData.StreamKey, (int32_t)(((uint64_t)SoundData.Size + 4095) & 0xFFFFFFFFFFFFF000), SoundMemoryResult);
+        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(SoundData.StreamKey, (int32_t)(((uint64_t)SoundData.Size + (size_t)SoundData.SeekTableSize + 4095) & 0xFFFFFFFFFFFFFFF0), SoundMemoryResult);
 
         if (SoundMemoryResult == 0)
             return nullptr;
@@ -617,9 +617,9 @@ std::unique_ptr<XSound> GameModernWarfare5::ReadXSound(const CoDSound_t* Sound)
     {
         // Buffer
         std::unique_ptr<uint8_t[]> SoundBuffer = nullptr;
-        // Extract buffer, these are compressed
+        // Extract buffer, these are compressed, pad the audio size since the size in sound asset is literal, but XPAK data is padded.
         uint32_t SoundMemoryResult = 0;
-        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(SoundData.StreamKeyEx, (int32_t)(((uint64_t)SoundData.LoadedSize + 4095) & 0xFFFFFFFFFFFFF000), SoundMemoryResult);
+        SoundBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(SoundData.StreamKeyEx, (int32_t)(((uint64_t)SoundData.LoadedSize + (size_t)SoundData.SeekTableSize + 4095) & 0xFFFFFFFFFFFFFFF0), SoundMemoryResult);
 
         if (SoundMemoryResult == 0)
             return nullptr;
