@@ -181,7 +181,10 @@ struct MW5XAnimDataInfo
     uint64_t OffsetPtr2;
     uint32_t StreamIndex;
     uint32_t OffsetCount;
-    uint8_t Padding5[24];
+    uint64_t PackedInfoPtr;
+    uint32_t PackedInfoCount;
+    uint32_t PackedInfoCount2;
+    uint64_t Flags;
     uint64_t StreamInfoPtr;
 };
 #pragma pack(pop)

@@ -642,7 +642,7 @@ void GameModernWarfare4::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
     // Size read
     uint32_t ResultSize = 0;
     // Buffer
-    std::unique_ptr<uint8_t[]> Data = CoDAssets::GamePackageCache->ExtractPackageObject(Info.StreamKey, ResultSize);
+    std::unique_ptr<uint8_t[]> Data = CoDAssets::GamePackageCache->ExtractPackageObject(Info.StreamKey, Info.BankFileSize, ResultSize);
 
     // Prepare if we have it
     if (Data != nullptr)
