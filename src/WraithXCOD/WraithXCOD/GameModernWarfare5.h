@@ -9,6 +9,7 @@
 #include "DBGameAssets.h"
 #include "CoDAssetType.h"
 #include "WraithModel.h"
+#include "WraithAnim.h"
 #include "WraithNameIndex.h"
 
 // We need the XModel Translator 
@@ -43,8 +44,10 @@ public:
 
     // Reads an XImageDDS from a image reference from Modern Warfare 5
     static std::unique_ptr<XImageDDS> LoadXImage(const XImage_t& Image);
-    // Loads a streamed XModel lod, streaming from cache if need be
+    // Loads a streamed XModel lod, streaming from cache if need be.
     static void LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel);
+    // Loads a streamed XAnim, streaming from cache if need be.
+    static void LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::unique_ptr<WraithAnim>& ResultAnim);
 
     // String Handlers for Modern Warfare 5
     static std::string LoadStringEntry(uint64_t Index);

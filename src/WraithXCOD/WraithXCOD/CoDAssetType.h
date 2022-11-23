@@ -4,6 +4,7 @@
 
 // We need the WraithAsset type
 #include "WraithAsset.h"
+#include "WraithAnim.h"
 
 // We need the base game assets
 #include "DBGameAssets.h"
@@ -499,6 +500,10 @@ struct XAnim_t
 
     // XAnim Reader (Streamed)
     std::unique_ptr<CoDXAnimReader> Reader;
+    // XAnim Reader Function
+    std::function<void(const std::unique_ptr<XAnim_t>&, std::unique_ptr<WraithAnim>&)> ReaderFunction;
+    // XAnim Reader Information Pointer.
+    uint64_t ReaderInformationPointer;
 };
 
 struct XImageDDS
