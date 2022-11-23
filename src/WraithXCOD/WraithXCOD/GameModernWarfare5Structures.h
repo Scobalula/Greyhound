@@ -197,7 +197,8 @@ struct MW5XAnim
     uint64_t BoneIDsPtr;
     uint64_t IndicesPtr;
     uint64_t NotificationsPtr;
-    uint8_t Padding[24];
+    uint64_t DeltaPartsPtr;
+    uint8_t Padding[16];
     uint32_t RandomDataShortCount;
     uint32_t RandomDataByteCount;
     uint32_t IndexCount;

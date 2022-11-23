@@ -29,6 +29,65 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
     // Apply looping
     Anim->Looping = Animation->LoopingAnimation;
 
+    //
+    // The following is a workaround for the fact that the ViewModel local-space transformation matricies are 0'd out, We can't use them in software like Maya without these
+    // So they are calculated on model-export from the global-space matricies. However, this means that we must modify our animation data to be absolutely positioned, and
+    // Modify the hierarchy after the base gun joint to reflect the relative animation data.
+    //
+
+    // Determine animation type
+    Anim->AnimType = WraithAnimationType::Relative;
+    // Check for viewmodel animations
+    if (Animation->ViewModelAnimation)
+    {
+        // Apply relative tags (Differ per-game)
+        switch (CoDAssets::GameID)
+        {
+        case SupportedGames::Ghosts:
+        case SupportedGames::BlackOps:
+        case SupportedGames::BlackOps2:
+        case SupportedGames::WorldAtWar:
+        case SupportedGames::ModernWarfare:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::WorldWar2:
+            Anim->AddBoneModifier("j_gun", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("j_gun1", WraithAnimationType::Relative);
+            break;
+        case SupportedGames::BlackOps3:
+        case SupportedGames::BlackOps4:
+            Anim->AddBoneModifier("tag_weapon", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("tag_weapon_le", WraithAnimationType::Relative);
+            break;
+        case SupportedGames::InfiniteWarfare:
+            Anim->AddBoneModifier("tag_weapon", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("tag_weapon1", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("j_gun", WraithAnimationType::Relative);
+            Anim->AddBoneModifier("j_gun1", WraithAnimationType::Relative);
+            break;
+        }
+
+        // Set type to absolute
+        Anim->AnimType = WraithAnimationType::Absolute;
+    }
+    // Check for delta animations
+    if (Animation->DeltaTranslationPtr != 0 || Animation->Delta2DRotationsPtr != 0 || Animation->Delta3DRotationsPtr != 0)
+    {
+        // We have a delta animation
+        Anim->AnimType = WraithAnimationType::Delta;
+        // Set the delta tag name
+        Anim->DeltaTagName = "tag_origin";
+    }
+    // Check for additive animations
+    if (Animation->AdditiveAnimation)
+    {
+        // Set type to additive (Overrides absolute)
+        Anim->AnimType = WraithAnimationType::Additive;
+    }
+
     // Check for a function.
     if (Animation->ReaderFunction != nullptr)
     {
@@ -36,65 +95,6 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
     }
     else
     {
-        //
-        // The following is a workaround for the fact that the ViewModel local-space transformation matricies are 0'd out, We can't use them in software like Maya without these
-        // So they are calculated on model-export from the global-space matricies. However, this means that we must modify our animation data to be absolutely positioned, and
-        // Modify the hierarchy after the base gun joint to reflect the relative animation data.
-        //
-
-        // Determine animation type
-        Anim->AnimType = WraithAnimationType::Relative;
-        // Check for viewmodel animations
-        if (Animation->ViewModelAnimation)
-        {
-            // Apply relative tags (Differ per-game)
-            switch (CoDAssets::GameID)
-            {
-            case SupportedGames::Ghosts:
-            case SupportedGames::BlackOps:
-            case SupportedGames::BlackOps2:
-            case SupportedGames::WorldAtWar:
-            case SupportedGames::ModernWarfare:
-            case SupportedGames::ModernWarfare2:
-            case SupportedGames::ModernWarfare3:
-            case SupportedGames::AdvancedWarfare:
-            case SupportedGames::ModernWarfareRemastered:
-            case SupportedGames::ModernWarfare2Remastered:
-            case SupportedGames::WorldWar2:
-                Anim->AddBoneModifier("j_gun", WraithAnimationType::Relative);
-                Anim->AddBoneModifier("j_gun1", WraithAnimationType::Relative);
-                break;
-            case SupportedGames::BlackOps3:
-            case SupportedGames::BlackOps4:
-                Anim->AddBoneModifier("tag_weapon", WraithAnimationType::Relative);
-                Anim->AddBoneModifier("tag_weapon_le", WraithAnimationType::Relative);
-                break;
-            case SupportedGames::InfiniteWarfare:
-                Anim->AddBoneModifier("tag_weapon", WraithAnimationType::Relative);
-                Anim->AddBoneModifier("tag_weapon1", WraithAnimationType::Relative);
-                Anim->AddBoneModifier("j_gun", WraithAnimationType::Relative);
-                Anim->AddBoneModifier("j_gun1", WraithAnimationType::Relative);
-                break;
-            }
-
-            // Set type to absolute
-            Anim->AnimType = WraithAnimationType::Absolute;
-        }
-        // Check for delta animations
-        if (Animation->DeltaTranslationPtr != 0 || Animation->Delta2DRotationsPtr != 0 || Animation->Delta3DRotationsPtr != 0)
-        {
-            // We have a delta animation
-            Anim->AnimType = WraithAnimationType::Delta;
-            // Set the delta tag name
-            Anim->DeltaTagName = "tag_origin";
-        }
-        // Check for additive animations
-        if (Animation->AdditiveAnimation)
-        {
-            // Set type to additive (Overrides absolute)
-            Anim->AnimType = WraithAnimationType::Additive;
-        }
-
         // Calculate the size of frames and inline bone indicies
         uint32_t FrameSize = (Animation->FrameCount > 255) ? 2 : 1;
         uint32_t BoneTypeSize = (Animation->TotalBoneCount > 255) ? 2 : 1;
@@ -615,108 +615,13 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
             // Build the translation key
             Anim->AddTranslationKey(TagNames[BoneID], 0, Coords.X, Coords.Y, Coords.Z);
         }
+    }
 
-        // Stage 8: Delta translation data, handled on a per-game basis
-        // Delta translations appear in their own pointer, but have some game specific structures
-        if (Animation->DeltaTranslationPtr != 0)
-        {
-            // Handle per-game specific data
-            switch (CoDAssets::GameID)
-            {
-            case SupportedGames::WorldAtWar:
-            case SupportedGames::BlackOps:
-            case SupportedGames::BlackOps2:
-            case SupportedGames::ModernWarfare:
-            case SupportedGames::ModernWarfare2:
-            case SupportedGames::ModernWarfare3:
-            case SupportedGames::QuantumSolace:
-                // Build translations for 32bit games
-                DeltaTranslations32(Anim, FrameSize, Animation);
-                break;
-            case SupportedGames::Ghosts:
-            case SupportedGames::AdvancedWarfare:
-            case SupportedGames::ModernWarfareRemastered:
-            case SupportedGames::ModernWarfare2Remastered:
-            case SupportedGames::InfiniteWarfare:
-            case SupportedGames::BlackOps3:
-            case SupportedGames::BlackOps4:
-            case SupportedGames::BlackOpsCW:
-            case SupportedGames::WorldWar2:
-            case SupportedGames::ModernWarfare4:
-            case SupportedGames::Vanguard:
-                // Build translations for 64bit games
-                DeltaTranslations64(Anim, FrameSize, Animation);
-                break;
-            }
-        }
-
-        // Stage 9: Delta 2D rotation data, handled on a per-game basis
-        // Delta 2D rotations appear in their own pointer, but have some game specific structures
-        if (Animation->Delta2DRotationsPtr != 0)
-        {
-            // Handle per-game specific data
-            switch (CoDAssets::GameID)
-            {
-            case SupportedGames::WorldAtWar:
-            case SupportedGames::BlackOps:
-            case SupportedGames::BlackOps2:
-            case SupportedGames::ModernWarfare:
-            case SupportedGames::ModernWarfare2:
-            case SupportedGames::ModernWarfare3:
-            case SupportedGames::QuantumSolace:
-                // Build 2d rotations for 32bit games
-                Delta2DRotations32(Anim, FrameSize, Animation);
-                break;
-            case SupportedGames::Ghosts:
-            case SupportedGames::AdvancedWarfare:
-            case SupportedGames::ModernWarfareRemastered:
-            case SupportedGames::ModernWarfare2Remastered:
-            case SupportedGames::InfiniteWarfare:
-            case SupportedGames::BlackOps3:
-            case SupportedGames::BlackOps4:
-            case SupportedGames::BlackOpsCW:
-            case SupportedGames::WorldWar2:
-            case SupportedGames::ModernWarfare4:
-            case SupportedGames::Vanguard:
-                // Build 2d rotations for 64bit games
-                Delta2DRotations64(Anim, FrameSize, Animation);
-                break;
-            }
-        }
-
-        // Stage 10: Delta 3D rotation data, handled on a per-game basis
-        // Delta 3D rotations appear in their own pointer, but have some game specific structures
-        if (Animation->Delta3DRotationsPtr != 0)
-        {
-            // Handle per-game specific data
-            switch (CoDAssets::GameID)
-            {
-            case SupportedGames::BlackOps2:
-            case SupportedGames::ModernWarfare2:
-            case SupportedGames::ModernWarfare3:
-            case SupportedGames::QuantumSolace:
-                // Build 3d rotations for 32bit games
-                Delta3DRotations32(Anim, FrameSize, Animation);
-                break;
-            case SupportedGames::Ghosts:
-            case SupportedGames::AdvancedWarfare:
-            case SupportedGames::ModernWarfareRemastered:
-            case SupportedGames::ModernWarfare2Remastered:
-            case SupportedGames::InfiniteWarfare:
-            case SupportedGames::BlackOps3:
-            case SupportedGames::BlackOps4:
-            case SupportedGames::BlackOpsCW:
-            case SupportedGames::WorldWar2:
-            case SupportedGames::ModernWarfare4:
-            case SupportedGames::Vanguard:
-                // Build 3d rotations for 64bit games
-                Delta3DRotations64(Anim, FrameSize, Animation);
-                break;
-            }
-        }
-
-        // Stage 11: Notifications
-        // Notifications appear in their own pointer, but have some game specific structures
+    // Stage 8: Delta translation data, handled on a per-game basis
+    // Delta translations appear in their own pointer, but have some game specific structures
+    if (Animation->DeltaTranslationPtr != 0)
+    {
+        // Handle per-game specific data
         switch (CoDAssets::GameID)
         {
         case SupportedGames::WorldAtWar:
@@ -725,49 +630,147 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::ModernWarfare:
         case SupportedGames::ModernWarfare2:
         case SupportedGames::ModernWarfare3:
-        case SupportedGames::ModernWarfare4:
+        case SupportedGames::QuantumSolace:
+            // Build translations for 32bit games
+            DeltaTranslations32(Anim, (Animation->FrameCount > 255) ? 2 : 1, Animation);
+            break;
         case SupportedGames::Ghosts:
         case SupportedGames::AdvancedWarfare:
         case SupportedGames::ModernWarfareRemastered:
         case SupportedGames::ModernWarfare2Remastered:
         case SupportedGames::InfiniteWarfare:
-        case SupportedGames::WorldWar2:
-        case SupportedGames::QuantumSolace:
-            // Build standard notetracks
-            NotetracksStandard(Anim, Animation);
-            break;
         case SupportedGames::BlackOps3:
-            // Black Ops 3 has a new format
-            NotetracksBO3(Anim, Animation);
-            break;
         case SupportedGames::BlackOps4:
-            // Black Ops 4 has a new format
-            NotetracksBO4(Anim, Animation);
-            break;
         case SupportedGames::BlackOpsCW:
-            // Black Ops CW has a new format
-            NotetracksCW(Anim, Animation);
-            break;
+        case SupportedGames::WorldWar2:
+        case SupportedGames::ModernWarfare4:
+        case SupportedGames::ModernWarfare5:
         case SupportedGames::Vanguard:
-            // Build standard notetracks
-            NotetracksVG(Anim, Animation);
+            // Build translations for 64bit games
+            DeltaTranslations64(Anim, (Animation->FrameCount > 255) ? 2 : 1, Animation);
             break;
         }
+    }
 
-        // Stage 12: Blendshapes, this is only supported by some newer games
+    // Stage 9: Delta 2D rotation data, handled on a per-game basis
+    // Delta 2D rotations appear in their own pointer, but have some game specific structures
+    if (Animation->Delta2DRotationsPtr != 0)
+    {
+        // Handle per-game specific data
         switch (CoDAssets::GameID)
         {
+        case SupportedGames::WorldAtWar:
+        case SupportedGames::BlackOps:
+        case SupportedGames::BlackOps2:
+        case SupportedGames::ModernWarfare:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::QuantumSolace:
+            // Build 2d rotations for 32bit games
+            Delta2DRotations32(Anim, (Animation->FrameCount > 255) ? 2 : 1, Animation);
+            break;
+        case SupportedGames::Ghosts:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::InfiniteWarfare:
+        case SupportedGames::BlackOps3:
         case SupportedGames::BlackOps4:
         case SupportedGames::BlackOpsCW:
-            // Black Ops 4 has a new format
-            BlendShapesBO4(Anim, Animation);
-            break;
+        case SupportedGames::WorldWar2:
+        case SupportedGames::ModernWarfare4:
+        case SupportedGames::ModernWarfare5:
         case SupportedGames::Vanguard:
-            //case SupportedGames::ModernWarfare:
-                // Modern Warfare has a new format
-            BlendShapesMW(Anim, Animation);
+            // Build 2d rotations for 64bit games
+            Delta2DRotations64(Anim, (Animation->FrameCount > 255) ? 2 : 1, Animation);
             break;
         }
+    }
+
+    // Stage 10: Delta 3D rotation data, handled on a per-game basis
+    // Delta 3D rotations appear in their own pointer, but have some game specific structures
+    if (Animation->Delta3DRotationsPtr != 0)
+    {
+        // Handle per-game specific data
+        switch (CoDAssets::GameID)
+        {
+        case SupportedGames::BlackOps2:
+        case SupportedGames::ModernWarfare2:
+        case SupportedGames::ModernWarfare3:
+        case SupportedGames::QuantumSolace:
+            // Build 3d rotations for 32bit games
+            Delta3DRotations32(Anim, (Animation->FrameCount > 255) ? 2 : 1, Animation);
+            break;
+        case SupportedGames::Ghosts:
+        case SupportedGames::AdvancedWarfare:
+        case SupportedGames::ModernWarfareRemastered:
+        case SupportedGames::ModernWarfare2Remastered:
+        case SupportedGames::InfiniteWarfare:
+        case SupportedGames::BlackOps3:
+        case SupportedGames::BlackOps4:
+        case SupportedGames::BlackOpsCW:
+        case SupportedGames::WorldWar2:
+        case SupportedGames::ModernWarfare4:
+        case SupportedGames::ModernWarfare5:
+        case SupportedGames::Vanguard:
+            // Build 3d rotations for 64bit games
+            Delta3DRotations64(Anim, (Animation->FrameCount > 255) ? 2 : 1, Animation);
+            break;
+        }
+    }
+
+    // Stage 11: Notifications
+    // Notifications appear in their own pointer, but have some game specific structures
+    switch (CoDAssets::GameID)
+    {
+    case SupportedGames::WorldAtWar:
+    case SupportedGames::BlackOps:
+    case SupportedGames::BlackOps2:
+    case SupportedGames::ModernWarfare:
+    case SupportedGames::ModernWarfare2:
+    case SupportedGames::ModernWarfare3:
+    case SupportedGames::ModernWarfare4:
+    case SupportedGames::Ghosts:
+    case SupportedGames::AdvancedWarfare:
+    case SupportedGames::ModernWarfareRemastered:
+    case SupportedGames::ModernWarfare2Remastered:
+    case SupportedGames::InfiniteWarfare:
+    case SupportedGames::WorldWar2:
+    case SupportedGames::QuantumSolace:
+        // Build standard notetracks
+        NotetracksStandard(Anim, Animation);
+        break;
+    case SupportedGames::BlackOps3:
+        // Black Ops 3 has a new format
+        NotetracksBO3(Anim, Animation);
+        break;
+    case SupportedGames::BlackOps4:
+        // Black Ops 4 has a new format
+        NotetracksBO4(Anim, Animation);
+        break;
+    case SupportedGames::BlackOpsCW:
+        // Black Ops CW has a new format
+        NotetracksCW(Anim, Animation);
+        break;
+    case SupportedGames::Vanguard:
+        // Build standard notetracks
+        NotetracksVG(Anim, Animation);
+        break;
+    }
+
+    // Stage 12: Blendshapes, this is only supported by some newer games
+    switch (CoDAssets::GameID)
+    {
+    case SupportedGames::BlackOps4:
+    case SupportedGames::BlackOpsCW:
+        // Black Ops 4 has a new format
+        BlendShapesBO4(Anim, Animation);
+        break;
+    case SupportedGames::Vanguard:
+        //case SupportedGames::ModernWarfare:
+            // Modern Warfare has a new format
+        BlendShapesMW(Anim, Animation);
+        break;
     }
 
     // Return it
@@ -1193,6 +1196,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnimReader(const std::
         case SupportedGames::WorldWar2:
         case SupportedGames::ModernWarfare4:
         case SupportedGames::Vanguard:
+        case SupportedGames::ModernWarfare5:
             // Build translations for 64bit games
             DeltaTranslations64(Anim, FrameSize, Animation);
             break;
@@ -1226,6 +1230,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnimReader(const std::
         case SupportedGames::BlackOpsCW:
         case SupportedGames::WorldWar2:
         case SupportedGames::ModernWarfare4:
+        case SupportedGames::ModernWarfare5:
         case SupportedGames::Vanguard:
             // Build 2d rotations for 64bit games
             Delta2DRotations64(Anim, FrameSize, Animation);
@@ -1258,6 +1263,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnimReader(const std::
         case SupportedGames::WorldWar2:
         case SupportedGames::ModernWarfare4:
         case SupportedGames::Vanguard:
+        case SupportedGames::ModernWarfare5:
             // Build 3d rotations for 64bit games
             Delta3DRotations64(Anim, FrameSize, Animation);
             break;

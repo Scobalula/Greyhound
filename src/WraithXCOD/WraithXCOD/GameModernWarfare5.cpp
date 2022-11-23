@@ -179,10 +179,6 @@ bool GameModernWarfare5::LoadAssets()
             // Validate and load if need be
             auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
-            // No multi-buffer for now.
-            //if (AnimResult.DataInfo.OffsetCount != 1)
-            //    return;
-
             // Log it
             CoDAssets::LogXAsset("Anim", AnimName);
 
@@ -296,20 +292,53 @@ bool GameModernWarfare5::LoadAssets()
     return true;
 }
 
+// A structure to hold an xanim buffer state.
 struct XAnimBufferState
 {
+    // The packed per frame information.
     uint32_t* PackedPerFrameInfo;
-    size_t BufferAIndex;
-    size_t BufferAOffset;
+    // The current buffer index requested from the packed buffer.
+    size_t BufferIndex;
+    // The offset within the buffer from the packed buffer.
+    size_t BufferOffset;
+    // The number of buffers.
     size_t OffsetCount;
+    // The current offset within the packed buffer.
     size_t PackedPerFrameOffset;
 };
 
-__int64 __fastcall XAnimCalculateBufferOffset(XAnimBufferState* animState, const size_t start, const size_t count)
+// Handles calculating the offset within the buffer for the given key index.
+size_t XAnimCalculateBufferOffset(const XAnimBufferState* animState, const size_t index, const size_t count)
 {
-    return true;
+    if (count == 0)
+        return 0;
+
+    size_t mask = index + count - 1;
+    size_t start = index >> 5;
+    size_t end = mask >> 5;
+    size_t result = 0;
+
+    for (size_t i = start; i <= end; i++)
+    {
+        if (animState->PackedPerFrameInfo[i] == 0)
+            continue;
+
+        uint32_t maskA = 0xFFFFFFFF;
+        uint32_t maskB = 0xFFFFFFFF;
+
+        // If we're at the start or end, we need to calculate trailing bit masks.
+        if (i == start)
+            maskA = 0xFFFFFFFF >> (index & 0x1F);
+        if (i == end)
+            maskB = 0xFFFFFFFF << (31 - (mask & 0x1F));
+
+        result += __popcnt(animState->PackedPerFrameInfo[i] & maskA & maskB);
+    }
+
+    return result;
 }
 
+// Increments the buffers for the given bone.
 template <typename T>
 void XAnimIncrementBuffers(XAnimBufferState* animState, int tableSize, const size_t elemCount, std::vector<T*>& buffers)
 {
@@ -328,13 +357,14 @@ void XAnimIncrementBuffers(XAnimBufferState* animState, int tableSize, const siz
     }
 }
 
+// Calculates the buffer and offsets from the packed buffer.
 void XAnimCalculateBufferIndex(XAnimBufferState* animState, const size_t tableSize, const size_t keyFrameIndex)
 {
     // Check if we are small enough to take it from the initial buffer.
     if (tableSize < 4 || animState->OffsetCount == 1)
     {
-        animState->BufferAIndex = 0;
-        animState->BufferAOffset = keyFrameIndex;
+        animState->BufferIndex = 0;
+        animState->BufferOffset = keyFrameIndex;
     }
     else
     {
@@ -346,8 +376,8 @@ void XAnimCalculateBufferIndex(XAnimBufferState* animState, const size_t tableSi
             {
                 if (((0x80000000 >> ((keyFrameIndex + (i * tableSize) + animState->PackedPerFrameOffset) & 0x1F)) & animState->PackedPerFrameInfo[(keyFrameIndex + (i * tableSize) + animState->PackedPerFrameOffset) >> 5]) != 0)
                 {
-                    animState->BufferAIndex = i;
-                    animState->BufferAOffset = XAnimCalculateBufferOffset(animState, animState->PackedPerFrameOffset + tableSize * animState->BufferAIndex, keyFrameIndex);
+                    animState->BufferIndex = i;
+                    animState->BufferOffset = XAnimCalculateBufferOffset(animState, animState->PackedPerFrameOffset + tableSize * animState->BufferIndex, keyFrameIndex);
                     return;
                 }
             }
@@ -366,7 +396,7 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         // Read the XAnim structure
         auto AnimData = CoDAssets::GameInstance->Read<MW5XAnim>(Animation->AssetPointer);
 
-        // No stream info, not supported atm.
+        // No stream info, haven't encountered any yet.
         if (AnimData.DataInfo.StreamInfoPtr == 0)
         {
             return nullptr;
@@ -399,7 +429,7 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->LoopingAnimation = false /*(AnimData.Flags & 1)*/;
 
         // Read the delta data
-        auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(AnimData.TwoDRotatedBoneCount);
+        auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(AnimData.DeltaPartsPtr);
 
         std::unique_ptr<uint8_t[]> AnimBuffer = nullptr;
         size_t AnimBufferSize = 0;
@@ -1219,10 +1249,10 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
 
             XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
 
-            auto randomDataShort = randomDataShorts[state.BufferAIndex] + 2 * state.BufferAOffset;
+            auto randomDataShort = randomDataShorts[state.BufferIndex] + 2 * state.BufferOffset;
 
-            float RZ = (float)*randomDataShort++ * 0.000030518509f;
-            float RW = (float)*randomDataShort++ * 0.000030518509f;
+            float RZ = (float)randomDataShort[0] * 0.000030518509f;
+            float RW = (float)randomDataShort[2] * 0.000030518509f;
 
             ResultAnim->AddRotationKey(Anim->Reader->BoneNames[currentBoneIndex], frame, 0, 0, RZ, RW);
         }
@@ -1241,9 +1271,6 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
         if (tableSize >= 0x40 && !byteFrames)
             dataShort += (tableSize - 1 >> 8) + 2;
 
-        if (Anim->Reader->BoneNames[currentBoneIndex] == "j_spinelower")
-            DebugBreak();
-
         for (int i = 0; i < tableSize + 1; i++)
         {
             uint32_t frame = 0;
@@ -1259,7 +1286,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
 
             XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
 
-            auto randomDataShort = randomDataShorts[state.BufferAIndex] + 4 * state.BufferAOffset;
+            auto randomDataShort = randomDataShorts[state.BufferIndex] + 4 * state.BufferOffset;
 
             float RX = (float)randomDataShort[0] * 0.000030518509f;
             float RY = (float)randomDataShort[1] * 0.000030518509f;
@@ -1332,12 +1359,12 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
 
             XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
 
-            auto randomDataByte = randomDataBytes[state.BufferAIndex] + 3 * state.BufferAOffset;
+            auto randomDataByte = randomDataBytes[state.BufferIndex] + 3 * state.BufferOffset;
 
             // Calculate translation
-            float TranslationX = (frameVecX * (float)*randomDataByte++) + minsVecX;
-            float TranslationY = (frameVecY * (float)*randomDataByte++) + minsVecY;
-            float TranslationZ = (frameVecZ * (float)*randomDataByte++) + minsVecZ;
+            float TranslationX = (frameVecX * (float)randomDataByte[0]) + minsVecX;
+            float TranslationY = (frameVecY * (float)randomDataByte[1]) + minsVecY;
+            float TranslationZ = (frameVecZ * (float)randomDataByte[2]) + minsVecZ;
             // Add
             ResultAnim->AddTranslationKey(Anim->Reader->BoneNames[boneIndex], frame, TranslationX, TranslationY, TranslationZ);
         }
@@ -1355,8 +1382,6 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
 
         if (tableSize >= 0x40 && !byteFrames)
             dataShort += (tableSize - 1 >> 8) + 2;
-
-
 
         float minsVecX = *(float*)dataInt++;
         float minsVecY = *(float*)dataInt++;
@@ -1380,12 +1405,12 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
 
             XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
 
-            auto randomDataShort = randomDataShorts[state.BufferAIndex] + 3 * state.BufferAOffset;
+            auto randomDataShort = randomDataShorts[state.BufferIndex] + 3 * state.BufferOffset;
 
             // Calculate translation
-            float TranslationX = (frameVecX * (float)(uint16_t)*randomDataShort++) + minsVecX;
-            float TranslationY = (frameVecY * (float)(uint16_t)*randomDataShort++) + minsVecY;
-            float TranslationZ = (frameVecZ * (float)(uint16_t)*randomDataShort++) + minsVecZ;
+            float TranslationX = (frameVecX * (float)(uint16_t)randomDataShort[0]) + minsVecX;
+            float TranslationY = (frameVecY * (float)(uint16_t)randomDataShort[1]) + minsVecY;
+            float TranslationZ = (frameVecZ * (float)(uint16_t)randomDataShort[2]) + minsVecZ;
             // Add
             ResultAnim->AddTranslationKey(Anim->Reader->BoneNames[boneIndex], frame, TranslationX, TranslationY, TranslationZ);
         }
