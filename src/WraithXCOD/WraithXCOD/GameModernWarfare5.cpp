@@ -548,8 +548,8 @@ std::unique_ptr<XModel_t> GameModernWarfare5::ReadXModel(const CoDModel_t* Model
             // Grab reference
             auto& LodReference = ModelAsset->ModelLods[i];
 
-            // Set distance
-            LodReference.LodDistance = ModelLod.LodDistance[0];
+            // Set distance (use index, "distance" we see may be bounds? doesn't line up)
+            LodReference.LodDistance = i;
 
             // Set stream key and info ptr
             LodReference.LODStreamInfoPtr = ModelLod.MeshPtr;
