@@ -151,7 +151,12 @@ struct WAWXMaterial
 struct WAWXMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[8];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t SamplerState;
+    uint8_t Semantic;
+    int8_t IsMatureContent;
+    uint8_t padding[3];
     uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -349,7 +354,12 @@ struct BOXMaterial
 struct BOXMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[8];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t SamplerState;
+    uint8_t Semantic;
+    int8_t IsMatureContent;
+    uint8_t padding[3];
     uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -566,7 +576,12 @@ struct BO2XMaterial
 struct BO2XMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[8];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t SamplerState;
+    uint8_t Semantic;
+    int8_t IsMatureContent;
+    uint8_t padding[3];
     uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -1304,7 +1319,10 @@ struct MWXMaterial
 struct MWXMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -1485,7 +1503,10 @@ struct MW2XMaterial
 struct MW2XMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -1650,7 +1671,10 @@ struct MW3XMaterial
 struct MW3XMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint32_t ImagePtr;
 };
 #pragma pack(pop)
@@ -1840,7 +1864,10 @@ struct GhostsXMaterial
 struct GhostsXMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -2097,7 +2124,10 @@ struct AWXMaterial
 struct AWXMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -2379,7 +2409,10 @@ struct MWRXMaterial
 struct MWRXMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -2626,7 +2659,10 @@ struct IWXMaterial
 struct IWXMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -2836,7 +2872,10 @@ struct WWIIXMaterial
 struct WWIIXMaterialImage
 {
     uint32_t SemanticHash;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint64_t ImagePtr;
 };
 #pragma pack(pop)
@@ -3421,7 +3460,10 @@ struct MW4XMaterial
 struct MW4XMaterialImage
 {
     uint32_t Type;
-    uint8_t Padding[4];
+    int8_t NameStart;
+    int8_t NameEnd;
+    uint8_t samplerState;
+    uint8_t semantic;
     uint64_t ImagePtr;
 };
 #pragma pack(pop)

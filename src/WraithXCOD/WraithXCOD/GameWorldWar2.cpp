@@ -629,7 +629,7 @@ std::unique_ptr<XImageDDS> GameWorldWar2::ReadXImage(const CoDImage_t* Image)
         Usage = ImageUsageType::NormalMap;
     }
     // Proxy off
-    return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
+    return LoadXImage(XImage_t(Usage, 0, 0, 0, Image->AssetPointer, Image->AssetName));
 }
 
 std::unique_ptr<XSound> GameWorldWar2::ReadXSound(const CoDSound_t* Sound)
@@ -865,7 +865,7 @@ const XMaterial_t GameWorldWar2::ReadXMaterial(uint64_t MaterialPointer)
         }
 
         // Assign the new image
-        Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.ImagePtr, ImageName);
+        Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.NameStart, ImageInfo.NameEnd, ImageInfo.ImagePtr, ImageName);
 
         // Advance
         MaterialData.ImageTablePtr += sizeof(WWIIXMaterialImage);
