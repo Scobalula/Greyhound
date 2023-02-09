@@ -2051,7 +2051,7 @@ ExportGameResult CoDAssets::ExportMaterialAsset(const CoDMaterial_t* Material, c
     // Process Image Names
     ExportMaterialImageNames(XMaterial, ExportPath);
     // Process the material
-    //ExportMaterialImages(XMaterial, ExportPath, ImageExtension, ImageFormatType);
+    ExportMaterialImages(XMaterial, ExportPath, ImageExtension, ImageFormatType);
 
     // Success, unless specific error
     return ExportGameResult::Success;
