@@ -1354,7 +1354,7 @@ std::string GameVanguard::LoadStringEntry(uint64_t Index)
 void GameVanguard::PerformInitialSetup()
 {
     // Load Caches
-    StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_string.wni"));
+    StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xstrings.wni"));
     AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xsounds_unverified.wni"));
     // Prepare to copy the oodle dll
     auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_8_win64.dll");

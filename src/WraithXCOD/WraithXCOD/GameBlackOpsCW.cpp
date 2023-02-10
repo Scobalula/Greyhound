@@ -1509,7 +1509,7 @@ void GameBlackOpsCW::PerformInitialSetup()
     AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(),    "package_index\\fnv1a_xsounds.wni"));
     AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(),    "package_index\\fnv1a_xmodels.wni"));
     AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(),    "package_index\\fnv1a_xanims.wni"));
-    StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(),       "package_index\\fnv1a_string.wni"));
+    StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(),       "package_index\\fnv1a_xstrings.wni"));
     // Prepare to copy the oodle dll
     auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_8_win64.dll");
     // Copy if not exists
