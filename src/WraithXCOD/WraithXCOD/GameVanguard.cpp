@@ -387,7 +387,7 @@ bool GameVanguard::LoadAssets()
 
 
                     // Log it
-                    CoDAssets::LogXAsset("Sound", NameResult->second);
+                    CoDAssets::LogXAsset("Sound", FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
 
 #if _DEBUG
                     Writer.WriteLineFmt("%llx,%s", Entry.Key, FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
