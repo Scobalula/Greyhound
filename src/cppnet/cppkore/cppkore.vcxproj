@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{88BC2D60-A093-4E61-B194-59AB8BE4E33E}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>cppkore</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>cppkore</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>$(SolutionDir)External\Flac1.3.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>$(SolutionDir)External\Flac1.3.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="Action.h" />
+    <ClInclude Include="Adler32.h" />
+    <ClInclude Include="AnchorStyles.h" />
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="AnimationTypes.h" />
+    <ClInclude Include="Appearence.h" />
+    <ClInclude Include="Application.h" />
+    <ClInclude Include="AtomicListBase.h" />
+    <ClInclude Include="AtomicQueueBase.h" />
+    <ClInclude Include="AutodeskMaya.h" />
+    <ClInclude Include="AutoScaleMode.h" />
+    <ClInclude Include="BinaryReader.h" />
+    <ClInclude Include="BinaryWriter.h" />
+    <ClInclude Include="Bone.h" />
+    <ClInclude Include="BoneFlags.h" />
+    <ClInclude Include="BorderStyle.h" />
+    <ClInclude Include="BoundsSpecified.h" />
+    <ClInclude Include="BufferedGraphics.h" />
+    <ClInclude Include="Button.h" />
+    <ClInclude Include="ButtonBase.h" />
+    <ClInclude Include="ButtonFlags.h" />
+    <ClInclude Include="CacheVirtualItemsEventArgs.h" />
+    <ClInclude Include="CancelEventArgs.h" />
+    <ClInclude Include="CastAsset.h" />
+    <ClInclude Include="CastNode.h" />
+    <ClInclude Include="CharacterCasing.h" />
+    <ClInclude Include="CheckBox.h" />
+    <ClInclude Include="CheckBoxImage.h" />
+    <ClInclude Include="CheckState.h" />
+    <ClInclude Include="clipboard\clip.h" />
+    <ClInclude Include="clipboard\clip_lock_impl.h" />
+    <ClInclude Include="CloseReason.h" />
+    <ClInclude Include="CoDAssetType.h" />
+    <ClInclude Include="CoDXAnimReader.h" />
+    <ClInclude Include="CoDXAssetExport.h" />
+    <ClInclude Include="ColumnClickEventArgs.h" />
+    <ClInclude Include="ColumnHeader.h" />
+    <ClInclude Include="ColumnHeaderStyle.h" />
+    <ClInclude Include="ComboBox.h" />
+    <ClInclude Include="ComboBoxStyle.h" />
+    <ClInclude Include="Compression.h" />
+    <ClInclude Include="CompressionMode.h" />
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="ConsoleColor.h" />
+    <ClInclude Include="ConsoleKey.h" />
+    <ClInclude Include="ConsoleKeyInfo.h" />
+    <ClInclude Include="ConsoleStream.h" />
+    <ClInclude Include="ContainerControl.h" />
+    <ClInclude Include="ContentAlignment.h" />
+    <ClInclude Include="Control.h" />
+    <ClInclude Include="ControlCollection.h" />
+    <ClInclude Include="ControlTypes.h" />
+    <ClInclude Include="ControlStates.h" />
+    <ClInclude Include="ControlStyles.h" />
+    <ClInclude Include="CRC32.h" />
+    <ClInclude Include="CreateParams.h" />
+    <ClInclude Include="Curve.h" />
+    <ClInclude Include="DBGameAssets.h" />
+    <ClInclude Include="DDS.h" />
+    <ClInclude Include="DeflateCodec.h" />
+    <ClInclude Include="DeflateStream.h" />
+    <ClInclude Include="DialogResult.h" />
+    <ClInclude Include="DictionaryBase.h" />
+    <ClInclude Include="Directory.h" />
+    <ClInclude Include="DragDropEffects.h" />
+    <ClInclude Include="DragEventArgs.h" />
+    <ClInclude Include="DrawingBase.h" />
+    <ClInclude Include="DrawListViewColumnHeaderEventArgs.h" />
+    <ClInclude Include="DrawListViewItemEventArgs.h" />
+    <ClInclude Include="DrawListViewSubItemEventArgs.h" />
+    <ClInclude Include="DrawMode.h" />
+    <ClInclude Include="DrawToolTipEventArgs.h" />
+    <ClInclude Include="DropTarget.h" />
+    <ClInclude Include="Encryption.h" />
+    <ClInclude Include="Environment.h" />
+    <ClInclude Include="EventBase.h" />
+    <ClInclude Include="Exporter.h" />
+    <ClInclude Include="Face.h" />
+    <ClInclude Include="FBXExport.h" />
+    <ClInclude Include="File.h" />
+    <ClInclude Include="FileAccess.h" />
+    <ClInclude Include="FileMode.h" />
+    <ClInclude Include="FileShare.h" />
+    <ClInclude Include="FileStream.h" />
+    <ClInclude Include="FlatStyle.h" />
+    <ClInclude Include="Font.h" />
+    <ClInclude Include="FontArial.h" />
+    <ClInclude Include="GLTFExport.h" />
+    <ClInclude Include="GreyhoundTheme.h" />
+    <ClInclude Include="Image.h" />
+    <ClInclude Include="InternetPortType.h" />
+    <ClInclude Include="Job.h" />
+    <ClInclude Include="JobManager.h" />
+    <ClInclude Include="JobWorker.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="KaydaraFBX.h" />
+    <ClInclude Include="KaydaraFBXContainer.h" />
+    <ClInclude Include="KoreTheme.h" />
+    <ClInclude Include="LZ4.h" />
+    <ClInclude Include="LZOConf.h" />
+    <ClInclude Include="LZODefs.h" />
+    <ClInclude Include="MayaExport.h" />
+    <ClInclude Include="MemoryReader.h" />
+    <ClInclude Include="MemoryWriter.h" />
+    <ClInclude Include="MiniLZO.h" />
+    <ClInclude Include="MiniZ_Common.h" />
+    <ClInclude Include="MiniZ_TDef.h" />
+    <ClInclude Include="MiniZ_TInfl.h" />
+    <ClInclude Include="ModelFragmentShader.h" />
+    <ClInclude Include="ModelVertexShader.h" />
+    <ClInclude Include="ObjExport.h" />
+    <ClInclude Include="WraithAnim.h" />
+    <ClInclude Include="WraithAsset.h" />
+    <ClInclude Include="WraithBinaryReader.h" />
+    <ClInclude Include="WraithBinaryWriter.h" />
+    <ClInclude Include="WraithModel.h" />
+    <ClInclude Include="WraithProcessReader.h" />
+    <ClInclude Include="WraithTextReader.h" />
+    <ClInclude Include="WraithTextWriter.h" />
+    <ClInclude Include="OpenFileDialog.h" />
+    <ClInclude Include="ParallelTask.h" />
+    <ClInclude Include="Patterns.h" />
+    <ClInclude Include="RenderFont.h" />
+    <ClInclude Include="Form.h" />
+    <ClInclude Include="FormBorderStyle.h" />
+    <ClInclude Include="FormClosedEventArgs.h" />
+    <ClInclude Include="FormClosingEventArgs.h" />
+    <ClInclude Include="FormStartPosition.h" />
+    <ClInclude Include="FormWindowState.h" />
+    <ClInclude Include="GroupBox.h" />
+    <ClInclude Include="Half.h" />
+    <ClInclude Include="HandledMouseEventArgs.h" />
+    <ClInclude Include="HashComparer.h" />
+    <ClInclude Include="HashHelpers.h" />
+    <ClInclude Include="HorizontalAlignment.h" />
+    <ClInclude Include="Icon.h" />
+    <ClInclude Include="PopupEventArgs.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Salsa20.h" />
+    <ClInclude Include="SaveFileDialog.h" />
+    <ClInclude Include="SEAnimExport.h" />
+    <ClInclude Include="SEModelExport.h" />
+    <ClInclude Include="Sound.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="stb_image_write.h" />
+    <ClInclude Include="Strings.h" />
+    <ClInclude Include="Systems.h" />
+    <ClInclude Include="TextFormatFlags.h" />
+    <ClInclude Include="TextRenderer.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="ImmutableStringBase.h" />
+    <ClInclude Include="InvalidateEventArgs.h" />
+    <ClInclude Include="IOError.h" />
+    <ClInclude Include="ItemActivation.h" />
+    <ClInclude Include="KeyEventArgs.h" />
+    <ClInclude Include="KeyPressEventArgs.h" />
+    <ClInclude Include="Keys.h" />
+    <ClInclude Include="Kore.h" />
+    <ClInclude Include="Label.h" />
+    <ClInclude Include="LabelEditEventArgs.h" />
+    <ClInclude Include="ListBase.h" />
+    <ClInclude Include="ListView.h" />
+    <ClInclude Include="ListViewAlignment.h" />
+    <ClInclude Include="ListViewFlags.h" />
+    <ClInclude Include="ListViewItem.h" />
+    <ClInclude Include="ListViewItemStates.h" />
+    <ClInclude Include="ListViewVirtualItemsSelectionRangeChangedEventArgs.h" />
+    <ClInclude Include="LZ4Codec.h" />
+    <ClInclude Include="LZ4Stream.h" />
+    <ClInclude Include="LZHAMCodec.h" />
+    <ClInclude Include="LZO1XCodec.h" />
+    <ClInclude Include="Mangle.h" />
+    <ClInclude Include="Mangler.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="MathHelper.h" />
+    <ClInclude Include="Matrix.h" />
+    <ClInclude Include="MemoryStream.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Message.h" />
+    <ClInclude Include="MessageBox.h" />
+    <ClInclude Include="MessageBoxButtons.h" />
+    <ClInclude Include="MessageBoxDefaultButton.h" />
+    <ClInclude Include="MessageBoxIcon.h" />
+    <ClInclude Include="MessageBoxOptions.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="AssetRenderer.h" />
+    <ClInclude Include="MouseButtons.h" />
+    <ClInclude Include="MouseEventArgs.h" />
+    <ClInclude Include="OpenGLViewport.h" />
+    <ClInclude Include="PaintEventArgs.h" />
+    <ClInclude Include="PaintFrameEventArgs.h" />
+    <ClInclude Include="Panel.h" />
+    <ClInclude Include="Process.h" />
+    <ClInclude Include="ProcessInfo.h" />
+    <ClInclude Include="ProcessModule.h" />
+    <ClInclude Include="ProcessStartInfo.h" />
+    <ClInclude Include="ProcessThread.h" />
+    <ClInclude Include="ProgressBar.h" />
+    <ClInclude Include="ProgressBarStyle.h" />
+    <ClInclude Include="Quaternion.h" />
+    <ClInclude Include="RadioButton.h" />
+    <ClInclude Include="Registry.h" />
+    <ClInclude Include="RegistryHive.h" />
+    <ClInclude Include="RegistryKey.h" />
+    <ClInclude Include="RegistryValueType.h" />
+    <ClInclude Include="RegistryView.h" />
+    <ClInclude Include="RenderShader.h" />
+    <ClInclude Include="RenderViewCamera.h" />
+    <ClInclude Include="RetrieveVirtualItemEventArgs.h" />
+    <ClInclude Include="ScrollBars.h" />
+    <ClInclude Include="SEAsset.h" />
+    <ClInclude Include="SecureString.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="SortOrder.h" />
+    <ClInclude Include="SpecialFolder.h" />
+    <ClInclude Include="stdext.h" />
+    <ClInclude Include="Path.h" />
+    <ClInclude Include="Pattern.h" />
+    <ClInclude Include="ProcessReader.h" />
+    <ClInclude Include="ProcessStream.h" />
+    <ClInclude Include="SeekOrigin.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Stream.h" />
+    <ClInclude Include="StreamReader.h" />
+    <ClInclude Include="StreamWriter.h" />
+    <ClInclude Include="StringBase.h" />
+    <ClInclude Include="Task.h" />
+    <ClInclude Include="TextBox.h" />
+    <ClInclude Include="TextBoxBase.h" />
+    <ClInclude Include="TextBoxFlags.h" />
+    <ClInclude Include="TextReader.h" />
+    <ClInclude Include="TextureGPUDecoder.h" />
+    <ClInclude Include="TextWriter.h" />
+    <ClInclude Include="Thread.h" />
+    <ClInclude Include="ThreadStart.h" />
+    <ClInclude Include="tiny_gltf.h" />
+    <ClInclude Include="ToolTip.h" />
+    <ClInclude Include="ToolTipIcon.h" />
+    <ClInclude Include="UIXButton.h" />
+    <ClInclude Include="UIXCheckBox.h" />
+    <ClInclude Include="UIXComboBox.h" />
+    <ClInclude Include="UIXControls.h" />
+    <ClInclude Include="UIXGroupBox.h" />
+    <ClInclude Include="UIXLabel.h" />
+    <ClInclude Include="UIXListView.h" />
+    <ClInclude Include="UIXListViewHeader.h" />
+    <ClInclude Include="UIXProgressBar.h" />
+    <ClInclude Include="UIXRadioButton.h" />
+    <ClInclude Include="UIXRenderer.h" />
+    <ClInclude Include="UIXTextBox.h" />
+    <ClInclude Include="UIXTheme.h" />
+    <ClInclude Include="UIXToolTip.h" />
+    <ClInclude Include="UnrealEngine.h" />
+    <ClInclude Include="Uri.h" />
+    <ClInclude Include="ValveSMD.h" />
+    <ClInclude Include="ValveSMDExport.h" />
+    <ClInclude Include="Vector2.h" />
+    <ClInclude Include="Vector3.h" />
+    <ClInclude Include="Vertex.h" />
+    <ClInclude Include="VertexBuffer.h" />
+    <ClInclude Include="View.h" />
+    <ClInclude Include="WAV.h" />
+    <ClInclude Include="WavefrontOBJ.h" />
+    <ClInclude Include="WebClient.h" />
+    <ClInclude Include="Win32Error.h" />
+    <ClInclude Include="WraithCube.h" />
+    <ClInclude Include="WraithTheme.h" />
+    <ClInclude Include="XAnimRawExport.h" />
+    <ClInclude Include="XMBExport.h" />
+    <ClInclude Include="XMEExport.h" />
+    <ClInclude Include="XNALaraAscii.h" />
+    <ClInclude Include="XNALaraBinary.h" />
+    <ClInclude Include="XNALaraExport.h" />
+    <ClInclude Include="XXHash.h" />
+    <ClInclude Include="ZipArchive.h" />
+    <ClInclude Include="ZipEntry.h" />
+    <ClInclude Include="ZLibCodec.h" />
+    <ClInclude Include="__ConsoleInit.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Adler32.cpp" />
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="AutodeskMaya.cpp" />
+    <ClCompile Include="BinaryReader.cpp" />
+    <ClCompile Include="BinaryWriter.cpp" />
+    <ClCompile Include="Bone.cpp" />
+    <ClCompile Include="BufferedGraphics.cpp" />
+    <ClCompile Include="Button.cpp" />
+    <ClCompile Include="ButtonBase.cpp" />
+    <ClCompile Include="CacheVirtualItemsEventArgs.cpp" />
+    <ClCompile Include="CancelEventArgs.cpp" />
+    <ClCompile Include="CastAsset.cpp" />
+    <ClCompile Include="CastExport.cpp" />
+    <ClInclude Include="CastExport.h" />
+    <ClCompile Include="CastNode.cpp" />
+    <ClCompile Include="CheckBox.cpp" />
+    <ClCompile Include="clipboard\clip.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="clipboard\clip_win.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="CoDAssetType.cpp" />
+    <ClCompile Include="CoDXAnimReader.cpp" />
+    <ClCompile Include="CoDXAssetExport.cpp" />
+    <ClCompile Include="ColumnClickEventArgs.cpp" />
+    <ClCompile Include="ColumnHeader.cpp" />
+    <ClCompile Include="ComboBox.cpp" />
+    <ClCompile Include="Compression.cpp" />
+    <ClCompile Include="Console.cpp" />
+    <ClCompile Include="ConsoleColor.cpp" />
+    <ClCompile Include="ConsoleStream.cpp" />
+    <ClCompile Include="ContainerControl.cpp" />
+    <ClCompile Include="Control.cpp" />
+    <ClCompile Include="ControlCollection.cpp" />
+    <ClCompile Include="CRC32.cpp" />
+    <ClCompile Include="Curve.cpp" />
+    <ClCompile Include="DBGameAssets.cpp" />
+    <ClCompile Include="DDS.cpp" />
+    <ClCompile Include="DeflateCodec.cpp" />
+    <ClCompile Include="DeflateStream.cpp" />
+    <ClCompile Include="Directory.cpp" />
+    <ClCompile Include="DragEventArgs.cpp" />
+    <ClCompile Include="DrawListViewColumnHeaderEventArgs.cpp" />
+    <ClCompile Include="DrawListViewItemEventArgs.cpp" />
+    <ClCompile Include="DrawListViewSubItemEventArgs.cpp" />
+    <ClCompile Include="DrawToolTipEventArgs.cpp" />
+    <ClCompile Include="DropTarget.cpp" />
+    <ClCompile Include="Encryption.cpp" />
+    <ClCompile Include="Environment.cpp" />
+    <ClCompile Include="Face.cpp" />
+    <ClCompile Include="FBXExport.cpp" />
+    <ClCompile Include="File.cpp" />
+    <ClCompile Include="FileStream.cpp" />
+    <ClCompile Include="Font.cpp" />
+    <ClCompile Include="Form.cpp" />
+    <ClCompile Include="FormClosedEventArgs.cpp" />
+    <ClCompile Include="FormClosingEventArgs.cpp" />
+    <ClCompile Include="GLTFExport.cpp" />
+    <ClCompile Include="GreyhoundTheme.cpp" />
+    <ClCompile Include="GroupBox.cpp" />
+    <ClCompile Include="Half.cpp" />
+    <ClCompile Include="HandledMouseEventArgs.cpp" />
+    <ClCompile Include="Icon.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="Job.cpp" />
+    <ClCompile Include="JobManager.cpp" />
+    <ClCompile Include="JobWorker.cpp" />
+    <ClCompile Include="KaydaraFBX.cpp" />
+    <ClCompile Include="KaydaraFBXContainer.cpp" />
+    <ClCompile Include="KoreTheme.cpp" />
+    <ClCompile Include="LZ4.cpp" />
+    <ClCompile Include="MayaExport.cpp" />
+    <ClCompile Include="MemoryReader.cpp" />
+    <ClCompile Include="MemoryWriter.cpp" />
+    <ClCompile Include="MiniLZO.cpp" />
+    <ClCompile Include="miniz.cpp" />
+    <ClCompile Include="MiniZ_TDef.cpp" />
+    <ClCompile Include="MiniZ_TInfl.cpp" />
+    <ClCompile Include="MiniZ_Zip.cpp" />
+    <ClInclude Include="MiniZ_Zip.h" />
+    <ClCompile Include="ObjExport.cpp" />
+    <ClCompile Include="WraithAnim.cpp" />
+    <ClCompile Include="WraithAsset.cpp" />
+    <ClCompile Include="WraithBinaryReader.cpp" />
+    <ClCompile Include="WraithBinaryWriter.cpp" />
+    <ClCompile Include="WraithModel.cpp" />
+    <ClCompile Include="WraithProcessReader.cpp" />
+    <ClCompile Include="WraithTextReader.cpp" />
+    <ClCompile Include="WraithTextWriter.cpp" />
+    <ClCompile Include="OpenFileDialog.cpp" />
+    <ClCompile Include="Patterns.cpp" />
+    <ClCompile Include="PopupEventArgs.cpp" />
+    <ClCompile Include="RenderFont.cpp" />
+    <ClCompile Include="Salsa20.cpp" />
+    <ClCompile Include="SaveFileDialog.cpp" />
+    <ClCompile Include="SEAnimExport.cpp" />
+    <ClCompile Include="SEModelExport.cpp" />
+    <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="Strings.cpp" />
+    <ClCompile Include="Systems.cpp" />
+    <ClCompile Include="TextRenderer.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="InvalidateEventArgs.cpp" />
+    <ClCompile Include="IOError.cpp" />
+    <ClCompile Include="KeyEventArgs.cpp" />
+    <ClCompile Include="KeyPressEventArgs.cpp" />
+    <ClCompile Include="Label.cpp" />
+    <ClCompile Include="LabelEditEventArgs.cpp" />
+    <ClCompile Include="ListView.cpp" />
+    <ClCompile Include="ListViewItem.cpp" />
+    <ClCompile Include="ListViewVirtualItemsSelectionRangeChangedEventArgs.cpp" />
+    <ClCompile Include="LZ4Codec.cpp" />
+    <ClCompile Include="LZ4Stream.cpp" />
+    <ClCompile Include="LZHAMCodec.cpp" />
+    <ClCompile Include="LZO1XCodec.cpp" />
+    <ClCompile Include="Mangle.cpp" />
+    <ClCompile Include="Mangler.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="Matrix.cpp" />
+    <ClCompile Include="MemoryStream.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MessageBox.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="AssetRenderer.cpp" />
+    <ClCompile Include="MouseEventArgs.cpp" />
+    <ClCompile Include="OpenGLViewport.cpp" />
+    <ClCompile Include="PaintEventArgs.cpp" />
+    <ClCompile Include="PaintFrameEventArgs.cpp" />
+    <ClCompile Include="Panel.cpp" />
+    <ClCompile Include="Path.cpp" />
+    <ClCompile Include="Pattern.cpp" />
+    <ClCompile Include="Process.cpp" />
+    <ClCompile Include="ProcessReader.cpp" />
+    <ClCompile Include="ProcessStream.cpp" />
+    <ClCompile Include="ProgressBar.cpp" />
+    <ClCompile Include="Quaternion.cpp" />
+    <ClCompile Include="RadioButton.cpp" />
+    <ClCompile Include="Registry.cpp" />
+    <ClCompile Include="RegistryKey.cpp" />
+    <ClCompile Include="RenderShader.cpp" />
+    <ClCompile Include="RenderViewCamera.cpp" />
+    <ClCompile Include="RetrieveVirtualItemEventArgs.cpp" />
+    <ClCompile Include="SEAsset.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="StreamReader.cpp" />
+    <ClCompile Include="StreamWriter.cpp" />
+    <ClCompile Include="TextBox.cpp" />
+    <ClCompile Include="TextBoxBase.cpp" />
+    <ClCompile Include="TextReader.cpp" />
+    <ClCompile Include="TextureGPUDecoder.cpp" />
+    <ClCompile Include="TextWriter.cpp" />
+    <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="ToolTip.cpp" />
+    <ClCompile Include="UIXButton.cpp" />
+    <ClCompile Include="UIXCheckBox.cpp" />
+    <ClCompile Include="UIXComboBox.cpp" />
+    <ClCompile Include="UIXGroupBox.cpp" />
+    <ClCompile Include="UIXLabel.cpp" />
+    <ClCompile Include="UIXListView.cpp" />
+    <ClCompile Include="UIXListViewHeader.cpp" />
+    <ClCompile Include="UIXProgressBar.cpp" />
+    <ClCompile Include="UIXRadioButton.cpp" />
+    <ClCompile Include="UIXTextBox.cpp" />
+    <ClCompile Include="UIXTheme.cpp" />
+    <ClCompile Include="UIXToolTip.cpp" />
+    <ClCompile Include="UnrealEngine.cpp" />
+    <ClCompile Include="Uri.cpp" />
+    <ClCompile Include="ValveSMD.cpp" />
+    <ClCompile Include="ValveSMDExport.cpp" />
+    <ClCompile Include="Vector2.cpp" />
+    <ClCompile Include="Vector3.cpp" />
+    <ClCompile Include="Vertex.cpp" />
+    <ClCompile Include="VertexBuffer.cpp" />
+    <ClCompile Include="WAV.cpp" />
+    <ClCompile Include="WavefrontOBJ.cpp" />
+    <ClCompile Include="WebClient.cpp" />
+    <ClCompile Include="Win32Error.cpp" />
+    <ClCompile Include="WraithCube.cpp" />
+    <ClCompile Include="WraithTheme.cpp" />
+    <ClCompile Include="XAnimRawExport.cpp" />
+    <ClCompile Include="XMBExport.cpp" />
+    <ClCompile Include="XMEExport.cpp" />
+    <ClCompile Include="XNALaraAscii.cpp" />
+    <ClCompile Include="XNALaraBinary.cpp" />
+    <ClCompile Include="XNALaraExport.cpp" />
+    <ClCompile Include="XXHash.cpp" />
+    <ClCompile Include="ZipArchive.cpp" />
+    <ClCompile Include="ZLibCodec.cpp" />
+    <ClCompile Include="__ConsoleInit.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="CppKore.natvis" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

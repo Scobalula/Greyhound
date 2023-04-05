@@ -1,0 +1,1552 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\IO">
+      <UniqueIdentifier>{d96abbd0-aa31-4b1c-ba39-aeb04f6c443d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IO">
+      <UniqueIdentifier>{eabba284-5560-4089-9f57-37bf6c7d451f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Data">
+      <UniqueIdentifier>{b84aef37-f23a-485e-ae6d-3b197fe20e3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Data">
+      <UniqueIdentifier>{164a360e-4c3f-403d-8580-dd9b0f81a232}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Threading">
+      <UniqueIdentifier>{bde97faa-f1dd-4c3b-acc6-55fe7bdb1ce4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Threading">
+      <UniqueIdentifier>{35c8b5d5-d9b7-4827-8d20-4b5754ea8070}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Diagnostics">
+      <UniqueIdentifier>{fc8281e8-ddf3-45e1-8aaa-e20c621f1db3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Diagnostics">
+      <UniqueIdentifier>{7ed7c84e-47c3-41f8-885a-13344e98b713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\System">
+      <UniqueIdentifier>{9c5f7aac-affd-4512-97a4-0a5d048a02e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\System">
+      <UniqueIdentifier>{aa5da805-ec43-4f92-8b5f-4b00b8e7bd2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Math">
+      <UniqueIdentifier>{ce07f034-8d05-4bfe-ab76-95e14b672c5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Math">
+      <UniqueIdentifier>{d7f0ece7-f3fc-468f-8b9c-8949f8ee495f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Win32">
+      <UniqueIdentifier>{816f9384-501c-4174-add5-a914d6aa66e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Win32">
+      <UniqueIdentifier>{a13074c4-3469-4489-b9d1-21348f5b3e88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Compression">
+      <UniqueIdentifier>{374ef221-c5aa-48c9-b7e9-5fa7e662c8db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Compression">
+      <UniqueIdentifier>{4781918a-7243-4750-a76b-394d3bca0267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Forms">
+      <UniqueIdentifier>{b3f9ae8f-54a1-433b-850d-2dace70a1439}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Forms">
+      <UniqueIdentifier>{27a79727-7e95-46f7-af7d-00203d1b2467}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Drawing">
+      <UniqueIdentifier>{1302f91e-8460-4751-a1c4-66a234d77be9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Forms\EventArgs">
+      <UniqueIdentifier>{f5c7a2b0-b080-4416-b23c-6a97296e07f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Forms\EventArgs">
+      <UniqueIdentifier>{7749b0ed-b23c-45de-99fb-85ca33d00793}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Drawing">
+      <UniqueIdentifier>{55e4197d-9b85-4410-bdac-e27fd91d46be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Assets">
+      <UniqueIdentifier>{4afecb02-c985-41b4-adb2-26f3d5c90552}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Assets">
+      <UniqueIdentifier>{c1bdba66-5788-4c22-99d8-fab0836cbff6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Assets\Exporters">
+      <UniqueIdentifier>{3d66bc92-7d2e-47ed-a18d-1af3fec5d2e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Assets\Exporters">
+      <UniqueIdentifier>{b1907ef1-dedc-4ec2-916a-aec6de1d2715}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Hashing">
+      <UniqueIdentifier>{bcfb9225-7966-41c7-bf52-4c817c907953}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Hashing">
+      <UniqueIdentifier>{d5a3e68c-fac0-4c43-a9a3-4cffd224132f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MGL">
+      <UniqueIdentifier>{48d0df58-f9c7-4c3e-af45-b5a44ba780d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MGL">
+      <UniqueIdentifier>{af4d46a3-fb46-4bab-8140-bb0b3f06ac04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Natvis Files">
+      <UniqueIdentifier>{a7d14d19-0af3-48cb-82a4-84471f5b5971}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UIX">
+      <UniqueIdentifier>{4b826953-8d4d-486a-bae9-cb7bfa06d1f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UIX">
+      <UniqueIdentifier>{8d414705-c0f8-4918-b24f-dfd5d4e6d5e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MGL\Fonts">
+      <UniqueIdentifier>{bc22a61f-cd16-4ef6-9305-94ecd0c67e21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MGL\Shaders">
+      <UniqueIdentifier>{5df6e022-9307-438b-88ed-81433c6fe778}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UIX\Images">
+      <UniqueIdentifier>{a07c1a9f-1774-4279-8e76-fd5843e18df5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Net">
+      <UniqueIdentifier>{61ad359c-9f84-4e6a-8515-7214a11d6cb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Net">
+      <UniqueIdentifier>{aa21e46f-59af-4f5e-908b-63d84d67bc55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UIX\Themes">
+      <UniqueIdentifier>{0d459ee9-9191-44d0-bfc6-b2ebf3e87d20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UIX\Themes">
+      <UniqueIdentifier>{96d3895a-4359-4887-8baa-3b11259c392f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Jobs">
+      <UniqueIdentifier>{483322b8-289e-49e6-8674-c5fc249d76a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Jobs">
+      <UniqueIdentifier>{6a6efd51-9e66-4743-9230-ca30f9e8f648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Clipboard">
+      <UniqueIdentifier>{397d58cc-16d7-4d29-98f1-9fd4d17b1ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Clipboard">
+      <UniqueIdentifier>{27d34575-ed65-4358-abfe-15a2b3247727}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Stream.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="SeekOrigin.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileStream.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileMode.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileAccess.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileShare.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryReader.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryStream.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryWriter.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IOError.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessStream.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessReader.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Pattern.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Path.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="StringBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ListBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Kore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="File.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Directory.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="TextReader.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamReader.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="TextWriter.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread.h">
+      <Filter>Header Files\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadStart.h">
+      <Filter>Header Files\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="Task.h">
+      <Filter>Header Files\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamWriter.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Process.h">
+      <Filter>Header Files\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessInfo.h">
+      <Filter>Header Files\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="SpecialFolder.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessStartInfo.h">
+      <Filter>Header Files\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessModule.h">
+      <Filter>Header Files\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessThread.h">
+      <Filter>Header Files\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="SecureString.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Quaternion.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="RegistryKey.h">
+      <Filter>Header Files\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="RegistryView.h">
+      <Filter>Header Files\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Win32Error.h">
+      <Filter>Header Files\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="RegistryHive.h">
+      <Filter>Header Files\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="RegistryValueType.h">
+      <Filter>Header Files\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry.h">
+      <Filter>Header Files\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Console.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleKey.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleKeyInfo.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleStream.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="__ConsoleInit.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleColor.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="LZ4Stream.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="CompressionMode.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="LZ4Codec.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Form.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Control.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Button.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Message.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseButtons.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ControlStyles.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ControlStates.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawingBase.h">
+      <Filter>Header Files\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="PaintEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferedGraphics.h">
+      <Filter>Header Files\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateParams.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="EventBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="InvalidateEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="HandledMouseEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="AnchorStyles.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ControlCollection.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonBase.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonFlags.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentAlignment.h">
+      <Filter>Header Files\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatStyle.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogResult.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBox.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Keys.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyPressEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="Appearence.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckState.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Font.h">
+      <Filter>Header Files\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="Label.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="BorderStyle.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Action.h">
+      <Filter>Header Files\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="RadioButton.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ControlTypes.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="GroupBox.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressBar.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressBarStyle.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="TextBoxBase.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="TextBoxFlags.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageBox.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageBoxButtons.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageBoxIcon.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageBoxDefaultButton.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageBoxOptions.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Bone.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="BoneFlags.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Face.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Exporter.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="ImmutableStringBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WavefrontOBJ.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="XXHash.h">
+      <Filter>Header Files\Hashing</Filter>
+    </ClInclude>
+    <ClInclude Include="ValveSMD.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="XNALaraAscii.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="XNALaraBinary.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="Half.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXAssetExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="AutodeskMaya.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="CRC32.h">
+      <Filter>Header Files\Hashing</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLViewport.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderViewCamera.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="MathHelper.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderShader.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Mangler.h">
+      <Filter>Header Files\MGL</Filter>
+    </ClInclude>
+    <ClInclude Include="Mangle.h">
+      <Filter>Header Files\MGL</Filter>
+    </ClInclude>
+    <ClInclude Include="TextBox.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterCasing.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollBars.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="HorizontalAlignment.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="FormBorderStyle.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="FormWindowState.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="CloseReason.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="FormStartPosition.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="CancelEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="FormClosingEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="FormClosedEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="Panel.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="PaintFrameEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="Icon.h">
+      <Filter>Header Files\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="DropTarget.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="DragDropEffects.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="DragEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboBox.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawMode.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboBoxStyle.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ListView.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ListViewFlags.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemActivation.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ListViewAlignment.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ColumnHeaderStyle.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="SortOrder.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="View.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ColumnHeader.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ListViewItem.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="LabelEditEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="CacheVirtualItemsEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="RetrieveVirtualItemEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="LZHAMCodec.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="ListViewVirtualItemsSelectionRangeChangedEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="ListViewItemStates.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawListViewItemEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawListViewSubItemEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawListViewColumnHeaderEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="ColumnClickEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolTip.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolTipIcon.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="DDS.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HashHelpers.h">
+      <Filter>Header Files\Hashing</Filter>
+    </ClInclude>
+    <ClInclude Include="HashComparer.h">
+      <Filter>Header Files\Hashing</Filter>
+    </ClInclude>
+    <ClInclude Include="SEAsset.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXButton.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="UnrealEngine.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="ZLibCodec.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="DeflateCodec.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="LZO1XCodec.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureGPUDecoder.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ContainerControl.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="PopupEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawToolTipEventArgs.h">
+      <Filter>Header Files\Forms\EventArgs</Filter>
+    </ClInclude>
+    <ClInclude Include="FontArial.h">
+      <Filter>Header Files\MGL\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderFont.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelVertexShader.h">
+      <Filter>Header Files\MGL\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelFragmentShader.h">
+      <Filter>Header Files\MGL\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXTheme.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXRadioButton.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXProgressBar.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="KaydaraFBXContainer.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="KaydaraFBX.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXCheckBox.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBoxImage.h">
+      <Filter>Header Files\UIX\Images</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXComboBox.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXGroupBox.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXTextBox.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="ZipArchive.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="ZipEntry.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="DeflateStream.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="Uri.h">
+      <Filter>Header Files\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="InternetPortType.h">
+      <Filter>Header Files\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXListView.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXRenderer.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithTheme.h">
+      <Filter>Header Files\UIX\Themes</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXLabel.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXListViewHeader.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="KoreTheme.h">
+      <Filter>Header Files\UIX\Themes</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXToolTip.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenFileDialog.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="SaveFileDialog.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="WAV.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRenderer.h">
+      <Filter>Header Files\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="TextFormatFlags.h">
+      <Filter>Header Files\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="ParallelTask.h">
+      <Filter>Header Files\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetRenderer.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="CastAsset.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="CastNode.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationTypes.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Curve.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JobManager.h">
+      <Filter>Header Files\Jobs</Filter>
+    </ClInclude>
+    <ClInclude Include="Job.h">
+      <Filter>Header Files\Jobs</Filter>
+    </ClInclude>
+    <ClInclude Include="JobWorker.h">
+      <Filter>Header Files\Jobs</Filter>
+    </ClInclude>
+    <ClInclude Include="AtomicQueueBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoScaleMode.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundsSpecified.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="UIXControls.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="AtomicListBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Adler32.h">
+      <Filter>Header Files\Hashing</Filter>
+    </ClInclude>
+    <ClInclude Include="clipboard\clip.h">
+      <Filter>Header Files\Clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="clipboard\clip_lock_impl.h">
+      <Filter>Header Files\Clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="Compression.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryReader.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryWriter.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Sound.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Salsa20.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Image.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="FBXExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="GLTFExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="MayaExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="SEAnimExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="SEModelExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="ValveSMDExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="XAnimRawExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="XMBExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="XMEExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="XNALaraExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="WebClient.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithBinaryWriter.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithBinaryReader.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Patterns.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="tiny_gltf.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image_write.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithProcessReader.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithTextWriter.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithTextReader.h">
+      <Filter>Header Files\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniLZO.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniZ_Common.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniZ_TDef.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniZ_TInfl.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="LZ4.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="LZOConf.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="LZODefs.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="Strings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GreyhoundTheme.h">
+      <Filter>Header Files\UIX\Themes</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithCube.h">
+      <Filter>Header Files\UIX</Filter>
+    </ClInclude>
+    <ClInclude Include="CastExport.h">
+      <Filter>Header Files\Assets\Exporters</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniZ_Zip.h">
+      <Filter>Header Files\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithAsset.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithAnim.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithModel.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDAssetType.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="DBGameAssets.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXAnimReader.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileStream.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryReader.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryStream.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryWriter.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IOError.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessStream.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessReader.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Pattern.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Path.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="File.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Directory.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TextReader.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamReader.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Thread.cpp">
+      <Filter>Source Files\Threading</Filter>
+    </ClCompile>
+    <ClCompile Include="TextWriter.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamWriter.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Process.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector2.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Quaternion.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="RegistryKey.cpp">
+      <Filter>Source Files\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Win32Error.cpp">
+      <Filter>Source Files\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry.cpp">
+      <Filter>Source Files\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Console.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="ConsoleStream.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="__ConsoleInit.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="ConsoleColor.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="LZ4Stream.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="LZ4Codec.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="Form.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="Control.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="PaintEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="MouseEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="InvalidateEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="HandledMouseEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlCollection.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferedGraphics.cpp">
+      <Filter>Source Files\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonBase.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyPressEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckBox.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="Font.cpp">
+      <Filter>Source Files\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="Label.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="RadioButton.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="GroupBox.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressBar.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageBox.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="TextBoxBase.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="Bone.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Face.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBuffer.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="WavefrontOBJ.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="XXHash.cpp">
+      <Filter>Source Files\Hashing</Filter>
+    </ClCompile>
+    <ClCompile Include="ValveSMD.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="XNALaraAscii.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="XNALaraBinary.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="Half.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDXAssetExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="AutodeskMaya.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="CRC32.cpp">
+      <Filter>Source Files\Hashing</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLViewport.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderViewCamera.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Mangler.cpp">
+      <Filter>Source Files\MGL</Filter>
+    </ClCompile>
+    <ClCompile Include="Mangle.cpp">
+      <Filter>Source Files\MGL</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderShader.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="TextBox.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="CancelEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="FormClosingEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="FormClosedEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="PaintFrameEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="Icon.cpp">
+      <Filter>Source Files\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="DropTarget.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="DragEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Panel.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="ComboBox.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="ListView.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="ColumnHeader.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="ListViewItem.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="LabelEditEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="CacheVirtualItemsEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="RetrieveVirtualItemEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="LZHAMCodec.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="ListViewVirtualItemsSelectionRangeChangedEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawListViewItemEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawListViewSubItemEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawListViewColumnHeaderEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="ColumnClickEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolTip.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="DDS.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="SEAsset.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="UnrealEngine.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXButton.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="ZLibCodec.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="DeflateCodec.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="LZO1XCodec.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureGPUDecoder.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="ContainerControl.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="PopupEventArgs.cpp">
+      <Filter>Source Files\Forms\EventArgs</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawToolTipEventArgs.cpp">
+      <Filter>Source Files\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderFont.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXTheme.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXRadioButton.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXProgressBar.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="KaydaraFBXContainer.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="KaydaraFBX.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXCheckBox.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXComboBox.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXGroupBox.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXTextBox.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="ZipArchive.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="DeflateStream.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="Uri.cpp">
+      <Filter>Source Files\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXListView.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithTheme.cpp">
+      <Filter>Source Files\UIX\Themes</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXLabel.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXListViewHeader.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="KoreTheme.cpp">
+      <Filter>Source Files\UIX\Themes</Filter>
+    </ClCompile>
+    <ClCompile Include="UIXToolTip.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenFileDialog.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="SaveFileDialog.cpp">
+      <Filter>Source Files\Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="WAV.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRenderer.cpp">
+      <Filter>Source Files\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetRenderer.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="CastNode.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="CastAsset.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="Curve.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="JobManager.cpp">
+      <Filter>Source Files\Jobs</Filter>
+    </ClCompile>
+    <ClCompile Include="JobWorker.cpp">
+      <Filter>Source Files\Jobs</Filter>
+    </ClCompile>
+    <ClCompile Include="Job.cpp">
+      <Filter>Source Files\Jobs</Filter>
+    </ClCompile>
+    <ClCompile Include="Adler32.cpp">
+      <Filter>Source Files\Hashing</Filter>
+    </ClCompile>
+    <ClCompile Include="clipboard\clip.cpp">
+      <Filter>Source Files\Clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="clipboard\clip_win.cpp">
+      <Filter>Source Files\Clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="Compression.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryReader.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryWriter.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Sound.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Image.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="CastExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="FBXExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="GLTFExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="MayaExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="SEAnimExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="SEModelExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="ValveSMDExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="XAnimRawExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="XMBExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="XMEExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="XNALaraExport.cpp">
+      <Filter>Source Files\Assets\Exporters</Filter>
+    </ClCompile>
+    <ClCompile Include="WebClient.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithBinaryWriter.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithBinaryReader.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Patterns.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithProcessReader.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithTextWriter.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniZ_Zip.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithTextReader.cpp">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="miniz.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniLZO.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniZ_TDef.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniZ_TInfl.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="LZ4.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="Salsa20.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Encryption.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Strings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GreyhoundTheme.cpp">
+      <Filter>Source Files\UIX\Themes</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithCube.cpp">
+      <Filter>Source Files\UIX</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithAsset.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithModel.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithAnim.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="DBGameAssets.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDAssetType.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDXAnimReader.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="CppKore.natvis">
+      <Filter>Natvis Files</Filter>
+    </Natvis>
+  </ItemGroup>
+</Project>

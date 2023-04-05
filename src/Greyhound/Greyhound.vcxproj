@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{9b96fb51-505f-4c9a-ae48-1be328c9d930}</ProjectGuid>
+    <RootNamespace>Legion</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Greyhound</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)cppnet\cppkore;$(IncludePath);$(ProjectDir);$(SolutionDir)External\CascLib\bin\CascLib\x64\ReleaseUD;$(SolutionDir)External\DirectXShaderCompiler\include</IncludePath>
+    <LibraryPath>$(SolutionDir)bin\x64\Debug;$(SolutionDir)cppnet\cppkore_libs;$(SolutionDir)External\CascLib-2.1\bin\CascLib\x64\DebugUD;$(SolutionDir)External\Flac1.3.2\src\libFLAC\x64;$(SolutionDir)External\Opus\win32\VS2015\x64\Debug;$(SolutionDir)cppnet\cppkore_libs\ZLib;$(SolutionDir)objs\x64\Debug\lib;$(LibraryPath)</LibraryPath>
+    <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>Greyhound</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)cppnet\cppkore;$(ProjectDir);$(SolutionDir)External\CascLib\bin\CascLib\x64\ReleaseUD;$(SolutionDir)External\DirectXShaderCompiler\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)bin\x64\Release;$(SolutionDir)cppnet\cppkore_libs;$(SolutionDir)External\CascLib-2.1\bin\CascLib\x64\ReleaseUD;$(SolutionDir)objs\x64\Release\lib;$(SolutionDir)cppnet\cppkore_libs\ZLib;$(SolutionDir)External\Flac1.3.2\src\libFLAC\x64\Release;$(SolutionDir)External\Opus\win32\VS2015\x64\Release;$(LibraryPath)</LibraryPath>
+    <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>Greyhound</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <AdditionalDependencies>cppkore.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamcomp_x64D.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamdecomp_x64D.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamlib_x64D.lib;..\\cppkore_libs\\OODLE\\oo2core_x64D.lib;opus.lib;comsupp.lib;libFLAC_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>$(PropertyPreprocessorDefinitions);NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>cppkore.lib;CascLibRUD.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamcomp_x64.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamdecomp_x64.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamlib_x64.lib;..\\cppkore_libs\\OODLE\\oo2core_x64.lib;opus.lib;comsupp.lib;libFLAC_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Casc.cpp" />
+    <ClCompile Include="CASCCache.cpp" />
+    <ClCompile Include="CascFileSystem.cpp" />
+    <ClCompile Include="CoDAssets.cpp" />
+    <ClCompile Include="CoDCDNCache.cpp" />
+    <ClCompile Include="CoDCDNDownloader.cpp" />
+    <ClCompile Include="CoDCDNDownloaderV0.cpp" />
+    <ClCompile Include="CoDCDNDownloaderV1.cpp" />
+    <ClCompile Include="CoDCDNDownloaderV2.cpp" />
+    <ClCompile Include="CoDFileHandle.cpp" />
+    <ClCompile Include="CoDFileSystem.cpp" />
+    <ClCompile Include="CoDIWITranslator.cpp" />
+    <ClCompile Include="CoDPackageCache.cpp" />
+    <ClCompile Include="CoDQTangent.cpp" />
+    <ClCompile Include="CoDRawfileTranslator.cpp" />
+    <ClCompile Include="CoDRawImageTranslator.cpp" />
+    <ClCompile Include="CoDXAnimTranslator.cpp" />
+    <ClCompile Include="CoDXModelTranslator.cpp" />
+    <ClCompile Include="GameAdvancedWarfare.cpp" />
+    <ClCompile Include="GameBlackOps.cpp" />
+    <ClCompile Include="GameBlackOps2.cpp" />
+    <ClCompile Include="GameBlackOps3.cpp" />
+    <ClCompile Include="GameBlackOps4.cpp" />
+    <ClCompile Include="GameBlackOpsCW.cpp" />
+    <ClCompile Include="GameGhosts.cpp" />
+    <ClCompile Include="GameInfiniteWarfare.cpp" />
+    <ClCompile Include="GameModernWarfare.cpp" />
+    <ClCompile Include="GameModernWarfare2.cpp" />
+    <ClCompile Include="GameModernWarfare2RM.cpp" />
+    <ClCompile Include="GameModernWarfare3.cpp" />
+    <ClCompile Include="GameModernWarfare4.cpp" />
+    <ClCompile Include="GameModernWarfare5.cpp" />
+    <ClCompile Include="GameModernWarfare5Structures.cpp" />
+    <ClCompile Include="GameModernWarfareRM.cpp" />
+    <ClCompile Include="GameQuantumSolace.cpp" />
+    <ClCompile Include="GameVanguard.cpp" />
+    <ClCompile Include="GameWorldAtWar.cpp" />
+    <ClCompile Include="GameWorldWar2.cpp" />
+    <ClCompile Include="IPAKCache.cpp" />
+    <ClCompile Include="IPAKSupport.cpp" />
+    <ClCompile Include="IWDCache.cpp" />
+    <ClCompile Include="IWDSupport.cpp" />
+    <ClCompile Include="PAKCache.cpp" />
+    <ClCompile Include="PAKSupport.cpp" />
+    <ClCompile Include="Parasyte.cpp" />
+    <ClCompile Include="SABCache.cpp" />
+    <ClCompile Include="SABSupport.cpp" />
+    <ClCompile Include="Siren.cpp" />
+    <ClCompile Include="src\CommandLine.cpp" />
+    <ClCompile Include="src\ExportManager.cpp" />
+    <ClCompile Include="src\WraithMain.cpp" />
+    <ClCompile Include="src\WraithPreview.cpp" />
+    <ClCompile Include="src\WraithProgress.cpp" />
+    <ClCompile Include="src\WraithSettings.cpp" />
+    <ClCompile Include="src\Logger.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\Utils.cpp" />
+    <ClCompile Include="VGXPAKCache.cpp" />
+    <ClCompile Include="VGXSUBCache.cpp" />
+    <ClCompile Include="WinFileSystem.cpp" />
+    <ClCompile Include="WraithNameIndex.cpp" />
+    <ClCompile Include="XPAKCache.cpp" />
+    <ClCompile Include="XPAKSupport.cpp" />
+    <ClCompile Include="XPTOCCache.cpp" />
+    <ClCompile Include="XSUBCache.cpp" />
+    <ClCompile Include="XSUBCacheV2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="basetypes.h" />
+    <ClInclude Include="Casc.h" />
+    <ClInclude Include="CASCCache.h" />
+    <ClInclude Include="CascFileSystem.h" />
+    <ClInclude Include="CoDAssets.h" />
+    <ClInclude Include="CoDCDNCache.h" />
+    <ClInclude Include="CoDCDNDownloader.h" />
+    <ClInclude Include="CoDCDNDownloaderV0.h" />
+    <ClInclude Include="CoDCDNDownloaderV1.h" />
+    <ClInclude Include="CoDCDNDownloaderV2.h" />
+    <ClInclude Include="CoDFileHandle.h" />
+    <ClInclude Include="CoDFileSystem.h" />
+    <ClInclude Include="CoDIWITranslator.h" />
+    <ClInclude Include="CoDPackageCache.h" />
+    <ClInclude Include="CoDQTangent.h" />
+    <ClInclude Include="CoDRawfileTranslator.h" />
+    <ClInclude Include="CoDRawImageTranslator.h" />
+    <ClInclude Include="CoDXAnimTranslator.h" />
+    <ClInclude Include="CodXConverter.h" />
+    <ClInclude Include="CoDXModelTranslator.h" />
+    <ClInclude Include="CoDXPoolParser.h" />
+    <ClInclude Include="CommandLine.h" />
+    <ClInclude Include="DBGameFiles.h" />
+    <ClInclude Include="DBGameGenerics.h" />
+    <ClInclude Include="ExportAsset.h" />
+    <ClInclude Include="ExportManager.h" />
+    <ClInclude Include="GameAdvancedWarfare.h" />
+    <ClInclude Include="GameBlackOps.h" />
+    <ClInclude Include="GameBlackOps2.h" />
+    <ClInclude Include="GameBlackOps3.h" />
+    <ClInclude Include="GameBlackOps4.h" />
+    <ClInclude Include="GameBlackOpsCW.h" />
+    <ClInclude Include="GameGhosts.h" />
+    <ClInclude Include="GameInfiniteWarfare.h" />
+    <ClInclude Include="GameModernWarfare.h" />
+    <ClInclude Include="GameModernWarfare2.h" />
+    <ClInclude Include="GameModernWarfare2RM.h" />
+    <ClInclude Include="GameModernWarfare3.h" />
+    <ClInclude Include="GameModernWarfare4.h" />
+    <ClInclude Include="GameModernWarfare5.h" />
+    <ClInclude Include="GameModernWarfare5Structures.h" />
+    <ClInclude Include="GameModernWarfareRM.h" />
+    <ClInclude Include="GameQuantumSolace.h" />
+    <ClInclude Include="GameVanguard.h" />
+    <ClInclude Include="GameWorldAtWar.h" />
+    <ClInclude Include="GameWorldWar2.h" />
+    <ClInclude Include="IPAKCache.h" />
+    <ClInclude Include="IPAKSupport.h" />
+    <ClInclude Include="IWDCache.h" />
+    <ClInclude Include="IWDSupport.h" />
+    <ClInclude Include="WraithMain.h" />
+    <ClInclude Include="WraithNameIndex.h" />
+    <ClInclude Include="WraithPreview.h" />
+    <ClInclude Include="WraithProgress.h" />
+    <ClInclude Include="WraithSettings.h" />
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="PAKCache.h" />
+    <ClInclude Include="PAKSupport.h" />
+    <ClInclude Include="Parasyte.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SABCache.h" />
+    <ClInclude Include="SABSupport.h" />
+    <ClInclude Include="Siren.h" />
+    <ClInclude Include="Utils.h" />
+    <ClInclude Include="version.h" />
+    <ClInclude Include="VGXPAKCache.h" />
+    <ClInclude Include="VGXSUBCache.h" />
+    <ClInclude Include="WinFileSystem.h" />
+    <ClInclude Include="XPAKCache.h" />
+    <ClInclude Include="XPAKSupport.h" />
+    <ClInclude Include="XPTOCCache.h" />
+    <ClInclude Include="XSUBCache.h" />
+    <ClInclude Include="XSUBCacheV2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\cppnet\cppkore\cppkore.vcxproj">
+      <Project>{88bc2d60-a093-4e61-b194-59ab8be4e33e}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Wraith.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Resources\LegionIcon.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

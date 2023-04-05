@@ -1,0 +1,465 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Greyhound">
+      <UniqueIdentifier>{4adac555-ff17-4801-8d18-d0bf34cafea1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Greyhound\Main">
+      <UniqueIdentifier>{4028e0e9-cfed-4f20-840c-cb8f35400108}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Greyhound\UI">
+      <UniqueIdentifier>{67f8e4f0-3227-4208-bbce-8d0ef26dc57a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Greyhound\Core">
+      <UniqueIdentifier>{2ad5041f-9602-4aa4-ac5c-3d94598651ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Greyhound\Preview">
+      <UniqueIdentifier>{72c346a6-6ed2-46f8-a4c3-489f7b11a713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Greyhound\Cod">
+      <UniqueIdentifier>{c0f3d609-2e1f-472f-bb5a-e53f09e9c9e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Greyhound\Games">
+      <UniqueIdentifier>{6511cb53-811d-4885-a888-afd6cb69029b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Greyhound\Packages">
+      <UniqueIdentifier>{60a68249-aaae-4a61-ace1-7ec8b677896e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Greyhound\Helpers">
+      <UniqueIdentifier>{7e588a75-d9ba-4d55-808a-3053ac0ae9e0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\CommandLine.cpp">
+      <Filter>Greyhound\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Greyhound\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WraithMain.cpp">
+      <Filter>Greyhound\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Logger.cpp">
+      <Filter>Greyhound\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportManager.cpp">
+      <Filter>Greyhound\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils.cpp">
+      <Filter>Greyhound\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pch.cpp">
+      <Filter>Greyhound\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WraithPreview.cpp">
+      <Filter>Greyhound\Preview</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WraithProgress.cpp">
+      <Filter>Greyhound\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WraithSettings.cpp">
+      <Filter>Greyhound\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDAssets.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="GameAdvancedWarfare.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameBlackOps.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameBlackOps2.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameBlackOps3.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameBlackOps4.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameBlackOpsCW.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameGhosts.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameInfiniteWarfare.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare2.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare2RM.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare3.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare4.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare5.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare5Structures.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfareRM.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameQuantumSolace.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameVanguard.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameWorldAtWar.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameWorldWar2.cpp">
+      <Filter>Greyhound\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="CascFileSystem.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNCache.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloader.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV0.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV1.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV2.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDFileHandle.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDFileSystem.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDIWITranslator.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDPackageCache.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDQTangent.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDRawfileTranslator.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDRawImageTranslator.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDXAnimTranslator.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDXModelTranslator.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="Parasyte.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="WinFileSystem.cpp">
+      <Filter>Greyhound\Cod</Filter>
+    </ClCompile>
+    <ClCompile Include="CASCCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="IPAKCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="IPAKSupport.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="IWDCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="IWDSupport.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="PAKCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="PAKSupport.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="SABCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="SABSupport.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="VGXPAKCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="VGXSUBCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="XPAKCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="XPAKSupport.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="XPTOCCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="XSUBCache.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="XSUBCacheV2.cpp">
+      <Filter>Greyhound\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="Siren.cpp">
+      <Filter>Greyhound\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="Casc.cpp">
+      <Filter>Greyhound\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="WraithNameIndex.cpp">
+      <Filter>Greyhound\Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CommandLine.h">
+      <Filter>Greyhound\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithMain.h">
+      <Filter>Greyhound\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithProgress.h">
+      <Filter>Greyhound\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithSettings.h">
+      <Filter>Greyhound\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Greyhound\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportAsset.h">
+      <Filter>Greyhound\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportManager.h">
+      <Filter>Greyhound\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="basetypes.h">
+      <Filter>Greyhound\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Greyhound\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Greyhound\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Greyhound\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithPreview.h">
+      <Filter>Greyhound\Preview</Filter>
+    </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>Greyhound\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="GameAdvancedWarfare.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameBlackOps.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameBlackOps2.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameBlackOps3.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameBlackOps4.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameBlackOpsCW.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGhosts.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameInfiniteWarfare.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare2.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare2RM.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare3.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare4.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare5.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare5Structures.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfareRM.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameQuantumSolace.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameVanguard.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameWorldAtWar.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameWorldWar2.h">
+      <Filter>Greyhound\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDAssets.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CascFileSystem.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNCache.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloader.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV0.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV1.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV2.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDFileHandle.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDFileSystem.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDIWITranslator.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDPackageCache.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDQTangent.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDRawfileTranslator.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDRawImageTranslator.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXAnimTranslator.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXModelTranslator.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXPoolParser.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="DBGameFiles.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="DBGameGenerics.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="Parasyte.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="WinFileSystem.h">
+      <Filter>Greyhound\Cod</Filter>
+    </ClInclude>
+    <ClInclude Include="CASCCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="IPAKCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="IPAKSupport.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="IWDCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="IWDSupport.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="PAKCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="PAKSupport.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="SABCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="SABSupport.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="VGXPAKCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="VGXSUBCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="XPAKCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="XPAKSupport.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="XPTOCCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="XSUBCache.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="XSUBCacheV2.h">
+      <Filter>Greyhound\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="Siren.h">
+      <Filter>Greyhound\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="Casc.h">
+      <Filter>Greyhound\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="CodXConverter.h">
+      <Filter>Greyhound\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="WraithNameIndex.h">
+      <Filter>Greyhound\Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Wraith.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Resources\LegionIcon.ico" />
+  </ItemGroup>
+</Project>
