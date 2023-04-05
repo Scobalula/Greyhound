@@ -21,7 +21,7 @@ WraithNameIndex GameBlackOps4::AssetNameCache = WraithNameIndex();
 
 // -- Initialize Decryption Table
 
-uint32_t* DecryptionTable = new uint32_t[4082]
+uint32_t DecryptionTable[4082]
 {
     0x024FCAAE, 0x02E543B3, 0x001C94DD, 0x051D15E4, 0x00FB831A, 0x01E16CA9, 0x0285BE0A, 0x05910248,
     0x022CDDE4, 0x05C224AE, 0x00A9ADC0, 0x00B04EB8, 0x037AC36C, 0x05E6572A, 0x00486B19, 0x01049B4E,
