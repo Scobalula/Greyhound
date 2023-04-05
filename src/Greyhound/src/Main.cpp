@@ -3,8 +3,6 @@
 #include "WraithMain.h"
 #include "ExportManager.h"
 #include "UIXTheme.h"
-#include "KoreTheme.h"
-#include "WraithTheme.h"
 #include "GreyhoundTheme.h"
 #include "CommandLine.h"
 #include <CoDAssets.h>
@@ -81,8 +79,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     Forms::Application::EnableVisualStyles();
     UIX::UIXTheme::InitializeRenderer(new Themes::GreyhoundTheme());
-    //UIX::UIXTheme::ShutdownRenderer();
-    //UIX::UIXTheme::InitializeRenderer(new Themes::KoreTheme());
     ExportManager::InitializeExporter();
 
 
@@ -106,12 +102,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     // Clean up files
     CleanupFilesystem();
-
     WraithMain* main = new WraithMain();
     Forms::Application::Run(main);
-
     UIX::UIXTheme::ShutdownRenderer();
-
     // Tell the asset cache to clean up (Prevents crash on async cache loading)
     CoDAssets::CleanUpGame();
 
