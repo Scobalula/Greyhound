@@ -45,6 +45,9 @@
     <TargetName>Greyhound</TargetName>
     <LibraryPath>..\..\External\CascLib\bin\CascLib\x64\ReleaseUD;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -87,9 +90,6 @@
     <ProjectReference Include="..\..\External\DirectXTex\DirectXTex\DirectXTex_Desktop_2019_Win10.vcxproj">
       <Project>{371b9fa9-4c90-4ac6-a123-aced756d6c77}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\External\Opus\win32\VS2015\opus.vcxproj">
-      <Project>{219ec965-228a-1824-174d-96449d05f88a}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\WraithX\WraithX\WraithX.vcxproj">
       <Project>{bff7e83b-acd0-447f-a4de-a11d726acae1}</Project>
     </ProjectReference>
@@ -107,7 +107,9 @@
     <ClCompile Include="CoDCDNDownloaderV1.cpp" />
     <ClCompile Include="CoDCDNDownloaderV2.cpp" />
     <ClCompile Include="CoDIWITranslator.cpp" />
+    <ClCompile Include="CoDPackage.cpp" />
     <ClCompile Include="CoDPackageCache.cpp" />
+    <ClCompile Include="CoDPackageDefinition.cpp" />
     <ClCompile Include="CoDQTangent.cpp" />
     <ClCompile Include="CoDRawfileTranslator.cpp" />
     <ClCompile Include="CoDRawImageTranslator.cpp" />
@@ -149,6 +151,7 @@
     <ClCompile Include="PAKCache.cpp" />
     <ClCompile Include="PAKSupport.cpp" />
     <ClCompile Include="Parasyte.cpp" />
+    <ClCompile Include="PreviewWindow.cpp" />
     <ClCompile Include="SABCache.cpp" />
     <ClCompile Include="SABSupport.cpp" />
     <ClCompile Include="SettingsWindow.cpp" />
@@ -158,6 +161,8 @@
     <ClCompile Include="VGXSUBCache.cpp" />
     <ClCompile Include="WinFileSystem.cpp" />
     <ClCompile Include="XPAKCache.cpp" />
+    <ClCompile Include="XPAKPackage.cpp" />
+    <ClCompile Include="XPAKPackageDefinition.cpp" />
     <ClCompile Include="XPAKSupport.cpp" />
     <ClCompile Include="XPTOCCache.cpp" />
     <ClCompile Include="XSUBCache.cpp" />
@@ -177,7 +182,9 @@
     <ClInclude Include="CoDCDNDownloaderV1.h" />
     <ClInclude Include="CoDCDNDownloaderV2.h" />
     <ClInclude Include="CoDIWITranslator.h" />
+    <ClInclude Include="CoDPackage.h" />
     <ClInclude Include="CoDPackageCache.h" />
+    <ClInclude Include="CoDPackageDefinition.h" />
     <ClInclude Include="CoDQTangent.h" />
     <ClInclude Include="CoDRawfileTranslator.h" />
     <ClInclude Include="CoDRawImageTranslator.h" />
@@ -222,6 +229,7 @@
     <ClInclude Include="PAKCache.h" />
     <ClInclude Include="PAKSupport.h" />
     <ClInclude Include="Parasyte.h" />
+    <ClInclude Include="PreviewWindow.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SABCache.h" />
     <ClInclude Include="SABSupport.h" />
@@ -232,6 +240,8 @@
     <ClInclude Include="VGXSUBCache.h" />
     <ClInclude Include="WinFileSystem.h" />
     <ClInclude Include="XPAKCache.h" />
+    <ClInclude Include="XPAKPackage.h" />
+    <ClInclude Include="XPAKPackageDefinition.h" />
     <ClInclude Include="XPAKSupport.h" />
     <ClInclude Include="XPTOCCache.h" />
     <ClInclude Include="XSUBCache.h" />

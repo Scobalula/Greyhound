@@ -312,43 +312,43 @@ void MainWindow::DoDataExchange(CDataExchange* pDX)
 
 void MainWindow::OnFilesDrop(const std::vector<std::wstring> Files)
 {
-    // Ensure that the load file button is currently enabled
-    if (this->GetDlgItem(IDC_LOADFILE)->IsWindowEnabled() && Files.size() > 0)
-    {
-        // We can proceed to load the file
-        auto Result = Strings::ToNormalString(Files[0]);
-        // Ensure result is ok
-        if (!Strings::IsNullOrWhiteSpace(Result))
-        {
-            // Disable control states
-            GetDlgItem(IDC_LOADGAME)->EnableWindow(false);
-            GetDlgItem(IDC_LOADFILE)->EnableWindow(false);
-            GetDlgItem(IDC_EXPORTSELECTED)->EnableWindow(false);
-            GetDlgItem(IDC_EXPORTALL)->EnableWindow(false);
-            GetDlgItem(IDC_CLEARALL)->EnableWindow(false);
-            GetDlgItem(IDC_SEARCH)->EnableWindow(false);
-            GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
+    //// Ensure that the load file button is currently enabled
+    //if (this->GetDlgItem(IDC_LOADFILE)->IsWindowEnabled() && Files.size() > 0)
+    //{
+    //    // We can proceed to load the file
+    //    auto Result = Strings::ToNormalString(Files[0]);
+    //    // Ensure result is ok
+    //    if (!Strings::IsNullOrWhiteSpace(Result))
+    //    {
+    //        // Disable control states
+    //        GetDlgItem(IDC_LOADGAME)->EnableWindow(false);
+    //        GetDlgItem(IDC_LOADFILE)->EnableWindow(false);
+    //        GetDlgItem(IDC_EXPORTSELECTED)->EnableWindow(false);
+    //        GetDlgItem(IDC_EXPORTALL)->EnableWindow(false);
+    //        GetDlgItem(IDC_CLEARALL)->EnableWindow(false);
+    //        GetDlgItem(IDC_SEARCH)->EnableWindow(false);
+    //        GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
 
-            // Clear all assets
-            AssetListView.SetVirtualCount(0);
-            // Set the display
-            CString AssetCountFmt;
-            // Format
-            AssetCountFmt.Format(L"Assets loaded: 0");
-            // Apply
-            SetDlgItemText(IDC_ASSETCOUNT, AssetCountFmt);
+    //        // Clear all assets
+    //        AssetListView.SetVirtualCount(0);
+    //        // Set the display
+    //        CString AssetCountFmt;
+    //        // Format
+    //        AssetCountFmt.Format(L"Assets loaded: 0");
+    //        // Apply
+    //        SetDlgItemText(IDC_ASSETCOUNT, AssetCountFmt);
 
-            // Prepare to pass it off
-            std::thread LoadAsync([this, Result]
-            {
-                // Run it
-                this->LoadGameFileAsync(Result);
-            });
+    //        // Prepare to pass it off
+    //        std::thread LoadAsync([this, Result]
+    //        {
+    //            // Run it
+    //            this->LoadGameFilesAsync(Result);
+    //        });
 
-            // Detatch
-            LoadAsync.detach();
-        }
-    }
+    //        // Detatch
+    //        LoadAsync.detach();
+    //    }
+    //}
 }
 
 void MainWindow::OnAssetListDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
@@ -854,9 +854,10 @@ void MainWindow::OnSupport()
 void MainWindow::OnLoadFile()
 {
     // Prepare to load a file, first, ask for one
-    auto Result = WraithFileDialogs::OpenFileDialog("Select a game file to load", "", "All files (*.*)|*.*;|Image Package Files (*.iwd, *.ipak, *.xpak)|*.iwd;*.ipak;*.xpak|Sound Package Files (*.sabs, *.sabl)|*.sabs;*.sabl;", this->GetSafeHwnd());
+    auto Results = WraithFileDialogs::OpenMultiFileDialog("Select a game file to load", "", "All files (*.*)|*.*;|Image Package Files (*.iwd, *.ipak, *.xpak)|*.iwd;*.ipak;*.xpak|Sound Package Files (*.sabs, *.sabl)|*.sabs;*.sabl;", this->GetSafeHwnd());
+
     // Make sure
-    if (!Strings::IsNullOrWhiteSpace(Result))
+    if (Results.size() > 0)
     {
         // Disable control states
         GetDlgItem(IDC_LOADGAME)->EnableWindow(false);
@@ -877,10 +878,10 @@ void MainWindow::OnLoadFile()
         SetDlgItemText(IDC_ASSETCOUNT, AssetCountFmt);
 
         // Prepare to pass it off
-        std::thread LoadAsync([this, Result]
+        std::thread LoadAsync([this, Results]
         {
             // Run it
-            this->LoadGameFileAsync(Result);
+            this->LoadGameFilesAsync(Results);
         });
 
         // Detatch
@@ -888,14 +889,16 @@ void MainWindow::OnLoadFile()
     }
 }
 
-void MainWindow::LoadGameFileAsync(const std::string& FilePath)
+void MainWindow::LoadGameFilesAsync(const std::vector<std::string>& FilePaths)
 {
-    // Prepare to load the file, and report back if need be
-    auto LoadFileResult = CoDAssets::BeginGameFileMode(FilePath);
+    CoDAssets::GameAssets.reset(new AssetPool());
 
-    // Check if we had success
-    if (LoadFileResult == LoadGameFileResult::Success)
+    for (auto& FilePath : FilePaths)
     {
+        // Prepare to load the file, and report back if need be
+        auto LoadFileResult = CoDAssets::BeginGameFileMode(FilePath);
+    }
+
         // Setup the controls for game loaded, setup game cube
         GetDlgItem(IDC_LOADGAME)->EnableWindow(false);
         GetDlgItem(IDC_LOADFILE)->EnableWindow(false);
@@ -919,35 +922,35 @@ void MainWindow::LoadGameFileAsync(const std::string& FilePath)
         AssetCountFmt.Format(L"Assets loaded: %d", AssetsCount);
         // Apply
         SetDlgItemText(IDC_ASSETCOUNT, AssetCountFmt);
-    }
-    else if (LoadFileResult == LoadGameFileResult::InvalidFile)
-    {
-        // Setup default controls
-        GetDlgItem(IDC_LOADGAME)->EnableWindow(true);
-        GetDlgItem(IDC_LOADFILE)->EnableWindow(true);
-        GetDlgItem(IDC_EXPORTSELECTED)->EnableWindow(false);
-        GetDlgItem(IDC_EXPORTALL)->EnableWindow(false);
-        GetDlgItem(IDC_CLEARALL)->EnableWindow(false);
-        GetDlgItem(IDC_SEARCH)->EnableWindow(false);
-        GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
+    //}
+    //else if (LoadFileResult == LoadGameFileResult::InvalidFile)
+    //{
+    //    // Setup default controls
+    //    GetDlgItem(IDC_LOADGAME)->EnableWindow(true);
+    //    GetDlgItem(IDC_LOADFILE)->EnableWindow(true);
+    //    GetDlgItem(IDC_EXPORTSELECTED)->EnableWindow(false);
+    //    GetDlgItem(IDC_EXPORTALL)->EnableWindow(false);
+    //    GetDlgItem(IDC_CLEARALL)->EnableWindow(false);
+    //    GetDlgItem(IDC_SEARCH)->EnableWindow(false);
+    //    GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
 
-        // Notify the user about the issue
-        MessageBoxA(this->GetSafeHwnd(), "The file you have provided was invalid.", "Greyhound", MB_OK | MB_ICONWARNING);
-    }
-    else if (LoadFileResult == LoadGameFileResult::UnknownError)
-    {
-        // Setup default controls
-        GetDlgItem(IDC_LOADGAME)->EnableWindow(true);
-        GetDlgItem(IDC_LOADFILE)->EnableWindow(true);
-        GetDlgItem(IDC_EXPORTSELECTED)->EnableWindow(false);
-        GetDlgItem(IDC_EXPORTALL)->EnableWindow(false);
-        GetDlgItem(IDC_CLEARALL)->EnableWindow(false);
-        GetDlgItem(IDC_SEARCH)->EnableWindow(false);
-        GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
+    //    // Notify the user about the issue
+    //    MessageBoxA(this->GetSafeHwnd(), "The file you have provided was invalid.", "Greyhound", MB_OK | MB_ICONWARNING);
+    //}
+    //else if (LoadFileResult == LoadGameFileResult::UnknownError)
+    //{
+    //    // Setup default controls
+    //    GetDlgItem(IDC_LOADGAME)->EnableWindow(true);
+    //    GetDlgItem(IDC_LOADFILE)->EnableWindow(true);
+    //    GetDlgItem(IDC_EXPORTSELECTED)->EnableWindow(false);
+    //    GetDlgItem(IDC_EXPORTALL)->EnableWindow(false);
+    //    GetDlgItem(IDC_CLEARALL)->EnableWindow(false);
+    //    GetDlgItem(IDC_SEARCH)->EnableWindow(false);
+    //    GetDlgItem(IDC_SEARCHTEXT)->EnableWindow(false);
 
-        // Notify the user about the issue
-        MessageBoxA(this->GetSafeHwnd(), "An unknown error has occured while loading the file.", "Greyhound", MB_OK | MB_ICONWARNING);
-    }
+    //    // Notify the user about the issue
+    //    MessageBoxA(this->GetSafeHwnd(), "An unknown error has occured while loading the file.", "Greyhound", MB_OK | MB_ICONWARNING);
+    //}
 }
 
 LRESULT MainWindow::UpdateCubeIcon(WPARAM wParam, LPARAM lParam)

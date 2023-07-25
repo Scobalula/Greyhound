@@ -21,7 +21,7 @@
 #include "Sound.h"
 
 // We need Opus
-#include "..\..\External\Opus\include\opus.h"
+#include "opus\opus.h"
 
 #include "SABSupport.h"
 

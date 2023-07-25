@@ -240,6 +240,21 @@
     <ClCompile Include="CoDCDNDownloaderV0.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CoDPackage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDPackageDefinition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="XPAKPackageDefinition.cpp">
+      <Filter>Source Files\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="XPAKPackage.cpp">
+      <Filter>Source Files\Packages</Filter>
+    </ClCompile>
+    <ClCompile Include="PreviewWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoDAssets.h">
@@ -456,6 +471,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CoDCDNDownloaderV0.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDPackage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDPackageDefinition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XPAKPackage.h">
+      <Filter>Header Files\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="XPAKPackageDefinition.h">
+      <Filter>Header Files\Packages</Filter>
+    </ClInclude>
+    <ClInclude Include="PreviewWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
