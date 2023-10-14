@@ -5,17 +5,13 @@
 class CoDFileHandle
 {
 private:
-	// The actual file handle.
-	HANDLE Handle;
 	// The file system this handle was opened from.
 	CoDFileSystem* FileSystem;
+	// The actual file handle.
+	HANDLE Handle;
 public:
 	// Creates a new file handle.
-	CoDFileHandle();
-	// Creates a new file handle.
 	CoDFileHandle(HANDLE handle, CoDFileSystem* fileSystem);
-	// Opens the file handle.
-	bool Open(HANDLE handle, CoDFileSystem* fileSystem);
 	// Destroys the file handle.
 	~CoDFileHandle();
 	// Checks if the file handle is valid.

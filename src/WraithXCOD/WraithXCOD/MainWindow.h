@@ -57,7 +57,7 @@ public:
     // Clear the game in async
     void ClearAllAsync();
     // Load a game file in async
-    void LoadGameFilesAsync(const std::vector<std::string>& FilePath);
+    void LoadGameFileAsync(const std::string& FilePath);
 
 protected:
 

@@ -19,7 +19,7 @@
 #include "DBGameFiles.h"
 
 // We need Opus
-#include "opus\opus.h"
+#include "..\..\External\Opus\include\opus.h"
 
 // Calculates the hash of a sound string
 uint32_t HashSoundString(const std::string& Value)

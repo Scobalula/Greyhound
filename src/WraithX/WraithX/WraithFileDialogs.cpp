@@ -93,7 +93,7 @@ std::vector<std::string> WraithFileDialogs::OpenMultiFileDialog(const std::strin
     OpenFileBuffer.hwndOwner = Owner;
     OpenFileBuffer.lpstrFilter = ResultFilter.c_str();
     OpenFileBuffer.lpstrFile = Buffer;
-    OpenFileBuffer.nMaxFile = sizeof(Buffer);
+    OpenFileBuffer.nMaxFile = 0x2000;
     OpenFileBuffer.lpstrTitle = Title.c_str();
     OpenFileBuffer.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER | OFN_HIDEREADONLY;
 
@@ -103,15 +103,15 @@ std::vector<std::string> WraithFileDialogs::OpenMultiFileDialog(const std::strin
         // We got it, prepare to parse result
         char* PathBuffer = OpenFileBuffer.lpstrFile;
         // Get the directory
-        std::string Directory = std::string(PathBuffer, (size_t)OpenFileBuffer.nFileOffset - 1);
+        std::string Directory = std::string(PathBuffer);
         // Advance
-        PathBuffer += OpenFileBuffer.nFileOffset;
+        PathBuffer += (Directory.length() + 1);
         // Loop
         while (*PathBuffer)
         {
             // Load file name
             std::string FileName = std::string(PathBuffer);
-
+            
             // Combine and add
             Result.push_back(FileSystems::CombinePath(Directory, FileName));
 

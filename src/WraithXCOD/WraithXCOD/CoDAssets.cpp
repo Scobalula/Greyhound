@@ -87,12 +87,6 @@
 #include "GLTFExport.h"
 #include "CastExport.h"
 
-#include "CoDFileHandle.h"
-#include "WinFileSystem.h"
-
-#include "CoDPackageDefinition.h"
-#include "XPAKPackageDefinition.h"
-
 // TODO: Use image usage/semantic hashes to determine image types instead when reading from XMaterials
 
 // -- Setup global variables
@@ -149,11 +143,6 @@ std::string CoDAssets::LatestExportPath = "";
 
 // Set game directory
 std::string CoDAssets::GameDirectory = "";
-
-std::vector<CoDPackageDefinition*> PackageDefinitions =
-{
-    new XPAKPackageDefinition(),
-};
 
 // Image Hashes from Black Ops 3's Techsets
 std::map<uint32_t, std::string> SemanticHashes = 
@@ -509,8 +498,8 @@ FindGameResult CoDAssets::BeginGameMode()
 
 LoadGameFileResult CoDAssets::BeginGameFileMode(const std::string& FilePath)
 {
-    //// Force clean up first, so we don't store redundant assets
-    //CoDAssets::CleanUpGame();
+    // Force clean up first, so we don't store redundant assets
+    CoDAssets::CleanUpGame();
 
     // Aquire a lock
     std::lock_guard<std::mutex> Lock(CodMutex);
@@ -832,56 +821,14 @@ ps::XAsset64 CoDAssets::ParasyteRequest(const uint64_t& AssetPointer)
 
 LoadGameFileResult CoDAssets::LoadFile(const std::string& FilePath)
 {
-    //// Setup the assets
-    //GameAssets.reset(new AssetPool());
-
-    const size_t fileHeaderSize = 8192;
+    // Setup the assets
+    GameAssets.reset(new AssetPool());
 
     // Load result
     auto LoadResult = false;
 
     // Determine based on file extension first
     auto FileExt = Strings::ToLower(FileSystems::GetExtension(FilePath));
-
-    // Default WinFileSystem
-    auto fs = std::make_unique<WinFileSystem>("");
-    auto fh = CoDFileHandle(fs->OpenFile(FilePath, "r"), fs.get());
-    auto header = fh.Read(fileHeaderSize);
-
-    // Attempt to find the matching definition to use.
-    for (auto& Definition : PackageDefinitions)
-    {
-        if (Definition->IsValid(FilePath, FileExt, header.get(), fileHeaderSize))
-        {
-            // Now that we've found a valid package, we can create it and load
-            auto package = Definition->Create(fs.get(), FilePath);
-
-            package->Load();
-
-            for (auto& item : package->Items)
-            {
-                // Make and add
-                auto LoadedImage = new CoDImage_t();
-                // Set
-                LoadedImage->AssetName = item.second->Name;
-                LoadedImage->AssetPointer = 0;
-                LoadedImage->AssetSize = 0;
-                LoadedImage->Width = 0;
-                LoadedImage->Height = 0;
-                LoadedImage->Format = 0;
-                LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
-                // File entry mode
-                LoadedImage->IsFileEntry = true;
-
-                // Add
-                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedImage);
-            }
-        }
-    }
-
-    return LoadGameFileResult::InvalidFile;
-
-    // Our file header
 
     // Check known extensions
     if (FileExt == ".xpak")
@@ -970,10 +917,10 @@ LoadGameFileResult CoDAssets::LoadFile(const std::string& FilePath)
         // Cache if success
         if (LoadResult)
         {
-            //// Allocate a new SAB Cache
-            //GamePackageCache = std::make_unique<SABCache>();
-            //// Cache file path for faster extraction
-            //GamePackageCache->LoadPackageCacheAsync(FilePath);
+            // Allocate a new SAB Cache
+            GamePackageCache = std::make_unique<SABCache>();
+            // Cache file path for faster extraction
+            GamePackageCache->LoadPackageCacheAsync(FilePath);
 
             // Set file mode
             GameFlags = SupportedGameFlags::Files;

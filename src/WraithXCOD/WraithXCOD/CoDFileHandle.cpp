@@ -1,25 +1,15 @@
 #include "stdafx.h"
 #include "CoDFileHandle.h"
 
-CoDFileHandle::CoDFileHandle() : Handle(INVALID_HANDLE_VALUE), FileSystem(nullptr)
+CoDFileHandle::CoDFileHandle(HANDLE handle, CoDFileSystem* fileSystem)
 {
-}
-
-CoDFileHandle::CoDFileHandle(HANDLE handle, CoDFileSystem* fileSystem) : Handle(handle), FileSystem(fileSystem)
-{
-}
-
-bool CoDFileHandle::Open(HANDLE handle, CoDFileSystem* fileSystem)
-{
-    Handle = handle;
     FileSystem = fileSystem;
-
-    return IsValid();
+    Handle = handle;
 }
 
 const bool CoDFileHandle::IsValid() const
 {
-    return FileSystem != nullptr && Handle != NULL && Handle != INVALID_HANDLE_VALUE;
+    return Handle != NULL && Handle != INVALID_HANDLE_VALUE;
 }
 
 std::unique_ptr<uint8_t[]> CoDFileHandle::Read(const size_t size)
