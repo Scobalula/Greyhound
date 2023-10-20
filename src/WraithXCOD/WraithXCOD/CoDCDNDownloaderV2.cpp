@@ -48,7 +48,7 @@ bool CoDCDNDownloaderV2::Initialize(const std::string& gameDirectory)
 	}
 
 	// Enumerate all cdn files.
-	FileSystem->EnumerateFiles("*cdn.xpak", [this](const std::string& fileName, const size_t size)
+	FileSystem->EnumerateFiles("mp23\*cdn.xpak", [this](const std::string& fileName, const size_t size)
 	{
 		this->LoadCDNXPAK(fileName);
 	});

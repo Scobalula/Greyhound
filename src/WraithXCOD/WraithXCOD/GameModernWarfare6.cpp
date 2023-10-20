@@ -1,14 +1,16 @@
 #include "stdafx.h"
 
 // The class we are implementing
-#include "GameModernWarfare5.h"
-#include "GameModernWarfare5Structures.h"
+#include "GameModernWarfare6.h"
+#include "GameModernWarfare6Structures.h"
 
 // We need the CoDAssets class
 #include "CoDAssets.h"
 #include "CoDRawImageTranslator.h"
 #include "CoDXPoolParser.h"
 #include "DBGameFiles.h"
+#include "CoDXModelMeshHelper.h"
+#include "CoDXModelBonesHelper.h"
 // We need the following WraithX classes
 #include "Strings.h"
 #include "FileSystems.h"
@@ -30,7 +32,7 @@
 
 // -- Begin XModelStream structures
 
-struct MW5GfxRigidVerts
+struct MW6GfxRigidVerts
 {
     uint16_t BoneIndex;
     uint16_t VertexCount;
@@ -40,7 +42,7 @@ struct MW5GfxRigidVerts
 };
 
 #pragma pack(push, 1)
-struct MW5GfxStreamVertex
+struct MW6GfxStreamVertex
 {
     uint64_t PackedPosition; // Packed 21bits, scale + offset in Mesh Info
     uint32_t BiNormal;
@@ -50,7 +52,7 @@ struct MW5GfxStreamVertex
 };
 #pragma pack(pop)
 
-struct MW5GfxStreamFace
+struct MW6GfxStreamFace
 {
     uint16_t Index1;
     uint16_t Index2;
@@ -61,7 +63,7 @@ struct MW5GfxStreamFace
 
 // -- Modern Warfare 5 Pool Data Structure
 
-struct MW5XAssetPoolData
+struct MW6XAssetPoolData
 {
     // The beginning of the pool
     uint64_t PoolPtr;
@@ -77,7 +79,7 @@ struct MW5XAssetPoolData
 };
 
 // Calculates the hash of a sound string
-uint32_t MW5HashSoundString(const std::string& Value)
+uint32_t MW6HashSoundString(const std::string& Value)
 {
     uint32_t Result = 5381;
 
@@ -88,15 +90,15 @@ uint32_t MW5HashSoundString(const std::string& Value)
 }
 
 // Verify that our pool data is exactly 0x20
-static_assert(sizeof(MW5XAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
+static_assert(sizeof(MW6XAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
 
-bool GameModernWarfare5::LoadOffsets()
+bool GameModernWarfare6::LoadOffsets()
 {
     // Failed
     return false;
 }
 
-bool GameModernWarfare5::LoadAssets()
+bool GameModernWarfare6::LoadAssets()
 {
     // Prepare to load game assets, into the AssetPool
     bool NeedsAnims     = (SettingsManager::GetSetting("showxanim", "true") == "true");
@@ -112,7 +114,7 @@ bool GameModernWarfare5::LoadAssets()
         ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
-            auto ModelResult = CoDAssets::GameInstance->Read<MW5XModel>(Asset.Header);
+            auto ModelResult = CoDAssets::GameInstance->Read<MW6XModel>(Asset.Header);
 
             std::string ModelName;
 
@@ -143,11 +145,11 @@ bool GameModernWarfare5::LoadAssets()
 
     if (NeedsImages)
     {
-        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 19 * sizeof(ps::XAssetPool64));
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 21 * sizeof(ps::XAssetPool64));
         ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
-            auto ImageResult = CoDAssets::GameInstance->Read<MW5GfxImage>(Asset.Header);
+            auto ImageResult = CoDAssets::GameInstance->Read<MW6GfxImage>(Asset.Header);
             // Mask the name as hashes are 60Bit (Actually 63Bit but maintain with our existing tables)
             ImageResult.Hash &= 0xFFFFFFFFFFFFFFF;
             // Validate and load if need be
@@ -175,9 +177,9 @@ bool GameModernWarfare5::LoadAssets()
         ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
-            auto AnimResult = CoDAssets::GameInstance->Read<MW5XAnim>(Asset.Header);
+            auto AnimResult = CoDAssets::GameInstance->Read<MW6XAnim>(Asset.Header);
             // Validate and load if need be
-            auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
+            auto AnimName = CoDAssets::GetHashedName("xanim", AnimResult.Hash);
 
             // Log it
             CoDAssets::LogXAsset("Anim", AnimName);
@@ -201,55 +203,24 @@ bool GameModernWarfare5::LoadAssets()
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 11 * sizeof(ps::XAssetPool64));
         ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
-            // Check for SP Files
-            if (CoDAssets::GameFlags == SupportedGameFlags::SP)
-            {
-                // Read
-                auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterialSP>(Asset.Header);
+            // Read
+            auto MatResult = CoDAssets::GameInstance->Read<MW6XMaterial>(Asset.Header);
+            // Validate and load if need be
+            auto MaterialName = CoDAssets::GetHashedName("xmaterial", MatResult.Hash);
 
-                std::string MaterialName;
+            // Log it
+            CoDAssets::LogXAsset("Material", MaterialName);
 
-                // Validate and load if need be
-                if (MatResult.NamePtr > 0)
-                    MaterialName = Strings::Replace(CoDAssets::GameInstance->ReadNullTerminatedString(MatResult.NamePtr), "*", "");
-                else
-                    MaterialName = CoDAssets::GetHashedName("xmaterial", MatResult.Hash);
+            // Make and add
+            auto LoadedMaterial = new CoDMaterial_t();
+            // Set
+            LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
+            LoadedMaterial->AssetPointer = Asset.Header;
+            LoadedMaterial->ImageCount = MatResult.ImageCount;
+            LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
 
-                // Log it
-                CoDAssets::LogXAsset("Material", MaterialName);
-
-                // Make and add
-                auto LoadedMaterial = new CoDMaterial_t();
-                // Set
-                LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
-                LoadedMaterial->AssetPointer = Asset.Header;
-                LoadedMaterial->ImageCount = MatResult.ImageCount;
-                LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
-
-                // Add
-                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
-            }
-            else
-            {
-                // Read
-                auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterial>(Asset.Header);
-                // Validate and load if need be
-                auto MaterialName = CoDAssets::GetHashedName("xmaterial", MatResult.Hash);
-
-                // Log it
-                CoDAssets::LogXAsset("Material", MaterialName);
-
-                // Make and add
-                auto LoadedMaterial = new CoDMaterial_t();
-                // Set
-                LoadedMaterial->AssetName = FileSystems::GetFileName(MaterialName);
-                LoadedMaterial->AssetPointer = Asset.Header;
-                LoadedMaterial->ImageCount = MatResult.ImageCount;
-                LoadedMaterial->AssetStatus = WraithAssetStatus::Loaded;
-
-                // Add
-                CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
-            }
+            // Add
+            CoDAssets::GameAssets->LoadedAssets.push_back(LoadedMaterial);
         });
     }
 
@@ -259,7 +230,7 @@ bool GameModernWarfare5::LoadAssets()
         ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
-            auto SoundResult = CoDAssets::GameInstance->Read<MW5SndAsset>(Asset.Header);
+            auto SoundResult = CoDAssets::GameInstance->Read<MW6SndAsset>(Asset.Header);
             // Mask the name as hashes are 60Bit (Actually 63Bit but maintain with our existing tables)
             SoundResult.Name &= 0xFFFFFFFFFFFFFFF;
             // Validate and load if need be
@@ -293,7 +264,7 @@ bool GameModernWarfare5::LoadAssets()
 }
 
 // A structure to hold an xanim buffer state.
-struct XAnimBufferState
+struct MW6XAnimBufferState
 {
     // The packed per frame information.
     uint32_t* PackedPerFrameInfo;
@@ -308,7 +279,7 @@ struct XAnimBufferState
 };
 
 // Handles calculating the offset within the buffer for the given key index.
-size_t XAnimCalculateBufferOffset(const XAnimBufferState* animState, const size_t index, const size_t count)
+size_t MW6XAnimCalculateBufferOffset(const MW6XAnimBufferState* animState, const size_t index, const size_t count)
 {
     if (count == 0)
         return 0;
@@ -340,7 +311,7 @@ size_t XAnimCalculateBufferOffset(const XAnimBufferState* animState, const size_
 
 // Increments the buffers for the given bone.
 template <typename T>
-void XAnimIncrementBuffers(XAnimBufferState* animState, int tableSize, const size_t elemCount, std::vector<T*>& buffers)
+void MW6XAnimIncrementBuffers(MW6XAnimBufferState* animState, int tableSize, const size_t elemCount, std::vector<T*>& buffers)
 {
     // Check if we are small enough to take it from the initial buffer.
     if (tableSize < 4 || animState->OffsetCount == 1)
@@ -351,14 +322,14 @@ void XAnimIncrementBuffers(XAnimBufferState* animState, int tableSize, const siz
     {
         for (size_t i = 0; i < animState->OffsetCount; i++)
         {
-            buffers[i] += elemCount * XAnimCalculateBufferOffset(animState, animState->PackedPerFrameOffset, tableSize);
+            buffers[i] += elemCount * MW6XAnimCalculateBufferOffset(animState, animState->PackedPerFrameOffset, tableSize);
             animState->PackedPerFrameOffset += tableSize;
         }
     }
 }
 
 // Calculates the buffer and offsets from the packed buffer.
-void XAnimCalculateBufferIndex(XAnimBufferState* animState, const size_t tableSize, const size_t keyFrameIndex)
+void MW6XAnimCalculateBufferIndex(MW6XAnimBufferState* animState, const size_t tableSize, const size_t keyFrameIndex)
 {
     // Check if we are small enough to take it from the initial buffer.
     if (tableSize < 4 || animState->OffsetCount == 1)
@@ -377,7 +348,7 @@ void XAnimCalculateBufferIndex(XAnimBufferState* animState, const size_t tableSi
                 if (((0x80000000 >> ((keyFrameIndex + (i * tableSize) + animState->PackedPerFrameOffset) & 0x1F)) & animState->PackedPerFrameInfo[(keyFrameIndex + (i * tableSize) + animState->PackedPerFrameOffset) >> 5]) != 0)
                 {
                     animState->BufferIndex = i;
-                    animState->BufferOffset = XAnimCalculateBufferOffset(animState, animState->PackedPerFrameOffset + tableSize * animState->BufferIndex, keyFrameIndex);
+                    animState->BufferOffset = MW6XAnimCalculateBufferOffset(animState, animState->PackedPerFrameOffset + tableSize * animState->BufferIndex, keyFrameIndex);
                     return;
                 }
             }
@@ -388,13 +359,13 @@ void XAnimCalculateBufferIndex(XAnimBufferState* animState, const size_t tableSi
     }
 }
 
-std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animation)
+std::unique_ptr<XAnim_t> GameModernWarfare6::ReadXAnim(const CoDAnim_t* Animation)
 {
     // Verify that the program is running
     if (CoDAssets::GameInstance->IsRunning())
     {
         // Read the XAnim structure
-        auto AnimData = CoDAssets::GameInstance->Read<MW5XAnim>(Animation->AssetPointer);
+        auto AnimData = CoDAssets::GameInstance->Read<MW6XAnim>(Animation->AssetPointer);
 
         // No stream info, haven't encountered any yet.
         if (AnimData.DataInfo.StreamInfoPtr == 0)
@@ -467,7 +438,7 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         // Consume notetracks
         for (size_t n = 0; n < AnimData.NotetrackCount; n++)
         {
-            auto noteTrack = CoDAssets::GameInstance->Read<MW5XAnimNotetrack>(AnimData.NotificationsPtr + n * sizeof(MW5XAnimNotetrack));
+            auto noteTrack = CoDAssets::GameInstance->Read<MW6XAnimNotetrack>(AnimData.NotificationsPtr + n * sizeof(MW6XAnimNotetrack));
             Anim->Reader->Notetracks.push_back({ CoDAssets::GameStringHandler(noteTrack.Name), (size_t)(noteTrack.Time * (float)Anim->FrameCount) });
         }
 
@@ -476,7 +447,7 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->Delta2DRotationsPtr = AnimDeltaData.Delta2DRotationsPtr;
         Anim->Delta3DRotationsPtr = AnimDeltaData.Delta3DRotationsPtr;
 
-        // Set types, we use dividebysize for MW5
+        // Set types, we use dividebysize for MW6
         Anim->RotationType = AnimationKeyTypes::DivideBySize;
         Anim->TranslationType = AnimationKeyTypes::MinSizeTable;
 
@@ -491,13 +462,13 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
     return nullptr;
 }
 
-std::unique_ptr<XModel_t> GameModernWarfare5::ReadXModel(const CoDModel_t* Model)
+std::unique_ptr<XModel_t> GameModernWarfare6::ReadXModel(const CoDModel_t* Model)
 {
     // Verify that the program is running
     if (CoDAssets::GameInstance->IsRunning())
     {
         // Read the XModel structure
-        auto ModelData = CoDAssets::GameInstance->Read<MW5XModel>(Model->AssetPointer);
+        auto ModelData = CoDAssets::GameInstance->Read<MW6XModel>(Model->AssetPointer);
 
         // Prepare to read the xmodel (Reserving space for lods)
         auto ModelAsset = std::make_unique<XModel_t>(ModelData.NumLods);
@@ -525,7 +496,7 @@ std::unique_ptr<XModel_t> GameModernWarfare5::ReadXModel(const CoDModel_t* Model
 
         // Bone id info
         ModelAsset->BoneIDsPtr = ModelData.BoneIDsPtr;
-        ModelAsset->BoneIndexSize = 8;
+        ModelAsset->BoneIndexSize = 4;
 
         // Bone parent info
         ModelAsset->BoneParentsPtr = ModelData.ParentListPtr;
@@ -542,7 +513,7 @@ std::unique_ptr<XModel_t> GameModernWarfare5::ReadXModel(const CoDModel_t* Model
         for (uint32_t i = 0; i < ModelData.NumLods; i++)
         {
             // Read the XModel Lod
-            auto ModelLod = CoDAssets::GameInstance->Read<MW5XModelLod>(ModelData.ModelLods + i * sizeof(MW5XModelLod));
+            auto ModelLod = CoDAssets::GameInstance->Read<MW6XModelLod>(ModelData.ModelLods + i * sizeof(MW6XModelLod));
             // Create the lod and grab reference
             ModelAsset->ModelLods.emplace_back(ModelLod.NumSurfs);
             // Grab reference
@@ -566,19 +537,23 @@ std::unique_ptr<XModel_t> GameModernWarfare5::ReadXModel(const CoDModel_t* Model
                 auto& SubmeshReference = LodReference.Submeshes[s];
 
                 // Read the surface data
-                auto SurfaceInfo = CoDAssets::GameInstance->Read<MW5XModelSurface>(XSurfacePtr);
+                auto SurfaceInfo = CoDAssets::GameInstance->Read<MW6XModelSurface>(XSurfacePtr);
 
                 // Apply surface info
-                SubmeshReference.RigidWeightsPtr  = SurfaceInfo.RigidWeightsPtr;
-                SubmeshReference.VertListcount    = SurfaceInfo.VertListCount;
-                SubmeshReference.VertexCount      = SurfaceInfo.VertexCount;
-                SubmeshReference.FaceCount        = SurfaceInfo.FacesCount;
-                SubmeshReference.VertexPtr        = SurfaceInfo.Offsets[0];
-                SubmeshReference.VertexUVsPtr     = SurfaceInfo.Offsets[1];
-                SubmeshReference.VertexNormalsPtr = SurfaceInfo.Offsets[2];
-                SubmeshReference.FacesPtr         = SurfaceInfo.Offsets[3];
-                SubmeshReference.VertexColorPtr   = SurfaceInfo.Offsets[6];
-                SubmeshReference.WeightsPtr       = SurfaceInfo.Offsets[10];
+                SubmeshReference.RigidWeightsPtr              = SurfaceInfo.RigidWeightsPtr;
+                SubmeshReference.VertListcount                = SurfaceInfo.VertListCount;
+                SubmeshReference.VertexCount                  = SurfaceInfo.VertexCount;
+                SubmeshReference.FaceCount                    = SurfaceInfo.FacesCount;
+                SubmeshReference.PackedIndexTableCount        = SurfaceInfo.PackedIndexTableCount;
+                SubmeshReference.VertexPtr                    = SurfaceInfo.Offsets[0];
+                SubmeshReference.VertexUVsPtr                 = SurfaceInfo.Offsets[1];
+                SubmeshReference.VertexNormalsPtr             = SurfaceInfo.Offsets[2];
+                SubmeshReference.FacesPtr                     = SurfaceInfo.Offsets[3];
+                SubmeshReference.VertexColorPtr               = SurfaceInfo.Offsets[6];
+                SubmeshReference.PackedIndexTablePtr          = SurfaceInfo.Offsets[4];
+                SubmeshReference.PackedIndexBufferPtr         = SurfaceInfo.Offsets[5];
+                SubmeshReference.VertexColorPtr               = SurfaceInfo.Offsets[6];
+                SubmeshReference.WeightsPtr                   = SurfaceInfo.Offsets[11];
 
                 // Check for new single scale value.
                 if (SurfaceInfo.NewScale != -1)
@@ -612,7 +587,7 @@ std::unique_ptr<XModel_t> GameModernWarfare5::ReadXModel(const CoDModel_t* Model
                 LodReference.Materials.emplace_back(ReadXMaterial(MaterialHandle));
 
                 // Advance
-                XSurfacePtr += sizeof(MW5XModelSurface);
+                XSurfacePtr += sizeof(MW6XModelSurface);
                 ModelData.MaterialHandlesPtr += sizeof(uint64_t);
             }
         }
@@ -624,16 +599,16 @@ std::unique_ptr<XModel_t> GameModernWarfare5::ReadXModel(const CoDModel_t* Model
     return nullptr;
 }
 
-std::unique_ptr<XImageDDS> GameModernWarfare5::ReadXImage(const CoDImage_t* Image)
+std::unique_ptr<XImageDDS> GameModernWarfare6::ReadXImage(const CoDImage_t* Image)
 {
     // Proxy off
     return LoadXImage(XImage_t(ImageUsageType::DiffuseMap, 0, Image->AssetPointer, Image->AssetName));
 }
 
-std::unique_ptr<XSound> GameModernWarfare5::ReadXSound(const CoDSound_t* Sound)
+std::unique_ptr<XSound> GameModernWarfare6::ReadXSound(const CoDSound_t* Sound)
 {
     // Read the Sound Asset structure
-    auto SoundData = CoDAssets::GameInstance->Read<MW5SndAsset>(Sound->AssetPointer);
+    auto SoundData = CoDAssets::GameInstance->Read<MW6SndAsset>(Sound->AssetPointer);
 
     if (SoundData.StreamKey != 0)
     {
@@ -670,7 +645,7 @@ std::unique_ptr<XSound> GameModernWarfare5::ReadXSound(const CoDSound_t* Sound)
 
 }
 
-void GameModernWarfare5::TranslateRawfile(const CoDRawFile_t * Rawfile, const std::string & ExportPath)
+void GameModernWarfare6::TranslateRawfile(const CoDRawFile_t * Rawfile, const std::string & ExportPath)
 {
     // Build the export path
     std::string ExportFolder = ExportPath;
@@ -686,7 +661,7 @@ void GameModernWarfare5::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
     FileSystems::CreateDirectory(ExportFolder);
 
     // Read Bank
-    auto Bank = CoDAssets::GameInstance->Read<MW5SoundBank>(Rawfile->AssetPointer);
+    auto Bank = CoDAssets::GameInstance->Read<MW6SoundBank>(Rawfile->AssetPointer);
 
     // Always stream, data in memory gets bamboozled like Thomas Cat's death
     // Size read
@@ -708,13 +683,13 @@ void GameModernWarfare5::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
     }
 }
 
-const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
+const XMaterial_t GameModernWarfare6::ReadXMaterial(uint64_t MaterialPointer)
 {
     // Check for SP Files
     if (CoDAssets::GameFlags == SupportedGameFlags::SP)
     {
         // Prepare to parse the material
-        auto MaterialData = CoDAssets::GameInstance->Read<MW5XMaterialSP>(MaterialPointer);
+        auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterialSP>(MaterialPointer);
 
         // Allocate a new material with the given image count
         XMaterial_t Result(MaterialData.ImageCount);
@@ -728,7 +703,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
         for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
         {
             // Read the image info
-            auto ImageInfo = CoDAssets::GameInstance->Read<MW5XMaterialImage>(MaterialData.ImageTablePtr);
+            auto ImageInfo = CoDAssets::GameInstance->Read<MW6XMaterialImage>(MaterialData.ImageTablePtr);
             // Read the image name (End of image - 8)
             auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
 
@@ -755,7 +730,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
     else
     {
         // Prepare to parse the material
-        auto MaterialData = CoDAssets::GameInstance->Read<MW5XMaterial>(MaterialPointer);
+        auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterial>(MaterialPointer);
 
         // Allocate a new material with the given image count
         XMaterial_t Result(MaterialData.ImageCount);
@@ -766,7 +741,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
         for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
         {
             // Read the image info
-            auto ImageInfo = CoDAssets::GameInstance->Read<MW5XMaterialImage>(MaterialData.ImageTablePtr);
+            auto ImageInfo = CoDAssets::GameInstance->Read<MW6XMaterialImage>(MaterialData.ImageTablePtr);
             // Read the image name (End of image - 8)
             auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
 
@@ -792,7 +767,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
     }
 }
 
-void GameModernWarfare5::PrepareVertexWeights(MemoryReader& ComplexReader, std::vector<WeightsData>& Weights, const XModelSubmesh_t & Submesh)
+void GameModernWarfare6::PrepareVertexWeights(MemoryReader& ComplexReader, std::vector<WeightsData>& Weights, const XModelSubmesh_t & Submesh)
 {
     // The index of read weight data
     uint32_t WeightDataIndex = 0;
@@ -801,7 +776,7 @@ void GameModernWarfare5::PrepareVertexWeights(MemoryReader& ComplexReader, std::
     for (uint32_t i = 0; i < Submesh.VertListcount; i++)
     {
         // Simple weights build, rigid, just apply the proper bone id
-        auto RigidInfo = CoDAssets::GameInstance->Read<MW5GfxRigidVerts>(Submesh.RigidWeightsPtr + (i * sizeof(MW5GfxRigidVerts)));
+        auto RigidInfo = CoDAssets::GameInstance->Read<MW6GfxRigidVerts>(Submesh.RigidWeightsPtr + (i * sizeof(MW6GfxRigidVerts)));
         // Apply bone ids properly
         for (uint32_t w = 0; w < RigidInfo.VertexCount; w++)
         {
@@ -855,10 +830,10 @@ void GameModernWarfare5::PrepareVertexWeights(MemoryReader& ComplexReader, std::
     }
 }
 
-std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
+std::unique_ptr<XImageDDS> GameModernWarfare6::LoadXImage(const XImage_t& Image)
 {
     // We must read the image data
-    auto ImageInfo = CoDAssets::GameInstance->Read<MW5GfxImage>(Image.ImagePtr);
+    auto ImageInfo = CoDAssets::GameInstance->Read<MW6GfxImage>(Image.ImagePtr);
     // Buffer
     std::unique_ptr<uint8_t[]> ImageData = nullptr;
     size_t ImageSize = 0;
@@ -877,7 +852,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
             ImageSize,
             ImageInfo.Width,
             ImageInfo.Height,
-            MW5DXGIFormats[ImageInfo.ImageFormat]);
+            MW6DXGIFormats[ImageInfo.ImageFormat]);
 
         // Return it
         return Result;
@@ -888,10 +863,10 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
             return nullptr;
 
         // Read Array of Mip Maps
-        MW5GfxMipArray<32> Mips{};
+        MW6GfxMipArray<32> Mips{};
         size_t MipCount = std::min((size_t)ImageInfo.MipCount, (size_t)32);
 
-        if (CoDAssets::GameInstance->Read((uint8_t*)&Mips.MipMaps, ImageInfo.MipMaps, MipCount * sizeof(MW5GfxMip)) != (MipCount * sizeof(MW5GfxMip)))
+        if (CoDAssets::GameInstance->Read((uint8_t*)&Mips.MipMaps, ImageInfo.MipMaps, MipCount * sizeof(MW6GfxMip)) != (MipCount * sizeof(MW6GfxMip)))
             return nullptr;
 
         // An initial loop to find the fallback to use in case of CDN not being
@@ -908,7 +883,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
         }
 
         // Calculate game specific format to DXGI
-        ImageInfo.ImageFormat = MW5DXGIFormats[ImageInfo.ImageFormat];
+        ImageInfo.ImageFormat = MW6DXGIFormats[ImageInfo.ImageFormat];
 
         // First check the local game CDN cache.
         if (Fallback != HighestIndex && CoDAssets::OnDemandCache != nullptr)
@@ -954,17 +929,17 @@ std::unique_ptr<XImageDDS> GameModernWarfare5::LoadXImage(const XImage_t& Image)
     return nullptr;
 }
 
-void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
+void GameModernWarfare6::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Scale to use
     auto ScaleConstant = (1.0f / 0x1FFFFF) * 2.0f;
     // Check if we want Vertex Colors
     bool ExportColors = (SettingsManager::GetSetting("exportvtxcolor", "true") == "true");
     // Read the mesh information
-    auto MeshInfo = CoDAssets::GameInstance->Read<MW5XModelMesh>(ModelLOD.LODStreamInfoPtr);
+    auto MeshInfo = CoDAssets::GameInstance->Read<MW6XModelMesh>(ModelLOD.LODStreamInfoPtr);
 
     // Read Buffer Info
-    auto BufferInfo = CoDAssets::GameInstance->Read<MW5XModelMeshBufferInfo>(MeshInfo.MeshBufferPointer);
+    auto BufferInfo = CoDAssets::GameInstance->Read<MW6XModelMeshBufferInfo>(MeshInfo.MeshBufferPointer);
 
     // A buffer for the mesh data
     std::unique_ptr<uint8_t[]> MeshDataBuffer = nullptr;
@@ -1002,6 +977,9 @@ void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, cons
         // Set size
         MeshDataBufferSize = ResultSize;
     }
+
+    // Grab our xmodel bones
+    CoDXModelBonesHelper::ReadXModelBones(Model, ModelLOD, ResultModel);
 
     // Continue on success
     if (MeshDataBuffer != nullptr)
@@ -1072,26 +1050,9 @@ void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, cons
                 // Make a new vertex
                 auto& Vertex = Mesh.AddVertex();
 
-                // Read Vertex
-                auto VertexPosition = VertexPosReader.Read<uint64_t>();
-
                 // Read and assign position
-                Vertex.Position = Vector3(
-                    (((((VertexPosition >> 00) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.XOffset,
-                    (((((VertexPosition >> 21) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.YOffset,
-                    (((((VertexPosition >> 42) & 0x1FFFFF) * ScaleConstant) - 1.0f) * Submesh.Scale) + Submesh.ZOffset);
-
-                // Read Tangent/Normal
-                auto QTangent = VertexNormReader.Read<CoDQTangent>();
-
-                // Add normal
-                Vertex.Normal = QTangent.Unpack(nullptr, nullptr);
-
-                // Apply Color (some models don't store colors, so we need to check ptr below)
-                Vertex.Color[0] = 255;
-                Vertex.Color[1] = 255;
-                Vertex.Color[2] = 255;
-                Vertex.Color[3] = 255;
+                Vertex.Position = CoDXModelMeshHelper::Unpack21BitVertex(VertexPosReader.Read<uint64_t>(), Submesh.Scale, { Submesh.XOffset, Submesh.YOffset, Submesh.ZOffset });
+                Vertex.Normal = VertexNormReader.Read<CoDQTangent>().Unpack(nullptr, nullptr);
 
                 // Read and set UVs
                 auto UVU = HalfFloats::ToFloat(VertexUVReader.Read<uint16_t>());
@@ -1099,6 +1060,12 @@ void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, cons
 
                 // Set it
                 Vertex.AddUVLayer(UVU, UVV);
+
+                // Apply Color (some models don't store colors, so we need to check ptr below)
+                Vertex.Color[0] = 255;
+                Vertex.Color[1] = 255;
+                Vertex.Color[2] = 255;
+                Vertex.Color[3] = 255;
 
                 // Assign weights
                 auto& WeightValue = VertexWeights[i];
@@ -1127,23 +1094,26 @@ void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, cons
                 }
             }
 
-            // Iterate over faces
-            for (uint32_t i = 0; i < Submesh.FaceCount; i++)
+            uint32_t x[3]{};
+            uint8_t* table = MeshDataBuffer.get() + Submesh.PackedIndexTablePtr;
+            uint8_t* packed = MeshDataBuffer.get() + Submesh.PackedIndexBufferPtr;
+            uint8_t* indices = MeshDataBuffer.get() + Submesh.FacesPtr;
+
+            for (uint16_t i = 0; i < Submesh.FaceCount; i++)
             {
-                // Read data
-                auto Face = FaceIndiciesReader.Read<MW5GfxStreamFace>();
+                CoDXModelMeshHelper::UnpackFaceIndices(table, Submesh.PackedIndexTableCount, packed, (uint16_t*)indices, i, x);
 
                 // Add the face
-                Mesh.AddFace(Face.Index1, Face.Index2, Face.Index3);
+                Mesh.AddFace(x[0], x[1], x[2]);
             }
         }
     }
 }
 
-void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::unique_ptr<WraithAnim>& ResultAnim)
+void GameModernWarfare6::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::unique_ptr<WraithAnim>& ResultAnim)
 {
     // We're going to need the animation header, we'll be streaming in each data buffer.
-    auto animHeader = CoDAssets::GameInstance->Read<MW5XAnim>(Anim->ReaderInformationPointer);
+    auto animHeader = CoDAssets::GameInstance->Read<MW6XAnim>(Anim->ReaderInformationPointer);
     auto animBuffers = std::vector<std::unique_ptr<uint8_t[]>>();
     auto indicesBuffer = std::make_unique<uint8_t[]>(animHeader.FrameCount >= 0x100 ? (size_t)animHeader.IndexCount * 2 : (size_t)animHeader.IndexCount);
 
@@ -1171,7 +1141,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
 
     for (size_t i = 0; i < animHeader.DataInfo.OffsetCount; i++)
     {
-        auto StreamInfo = CoDAssets::GameInstance->Read<MW5XAnimStreamInfo>(animHeader.DataInfo.StreamInfoPtr + i * 16);
+        auto StreamInfo = CoDAssets::GameInstance->Read<MW6XAnimStreamInfo>(animHeader.DataInfo.StreamInfoPtr + i * 16);
 
         animBuffers.push_back(CoDAssets::GamePackageCache->ExtractPackageObject(StreamInfo.StreamKey, StreamInfo.Size, bufferSize));
 
@@ -1202,7 +1172,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
             randomDataShorts.push_back(nullptr);
     }
 
-    XAnimBufferState state{};
+    MW6XAnimBufferState state{};
 
     state.OffsetCount = animHeader.DataInfo.OffsetCount;
     state.PackedPerFrameInfo = animPackedInfo.get();
@@ -1247,17 +1217,17 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
                 frame = tableSize >= 0x40 ? *indices++ : *dataShort++;
             }
 
-            XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
+            MW6XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
 
             auto randomDataShort = randomDataShorts[state.BufferIndex] + 2 * state.BufferOffset;
 
             float RZ = (float)randomDataShort[0] * 0.000030518509f;
-            float RW = (float)randomDataShort[2] * 0.000030518509f;
+            float RW = (float)randomDataShort[1] * 0.000030518509f;
 
             ResultAnim->AddRotationKey(Anim->Reader->BoneNames[currentBoneIndex], frame, 0, 0, RZ, RW);
         }
 
-        XAnimIncrementBuffers(&state, tableSize + 1, 2, randomDataShorts);
+        MW6XAnimIncrementBuffers(&state, tableSize + 1, 2, randomDataShorts);
         currentBoneIndex++;
     }
 
@@ -1284,7 +1254,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
                 frame = tableSize >= 0x40 ? *indices++ : *dataShort++;
             }
 
-            XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
+            MW6XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
 
             auto randomDataShort = randomDataShorts[state.BufferIndex] + 4 * state.BufferOffset;
 
@@ -1296,7 +1266,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
             ResultAnim->AddRotationKey(Anim->Reader->BoneNames[currentBoneIndex], frame, RX, RY, RZ, RW);
         }
 
-        XAnimIncrementBuffers(&state, tableSize + 1, 4, randomDataShorts);
+        MW6XAnimIncrementBuffers(&state, tableSize + 1, 4, randomDataShorts);
         currentBoneIndex++;
     }
 
@@ -1357,7 +1327,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
                 frame = tableSize >= 0x40 ? *indices++ : *dataShort++;
             }
 
-            XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
+            MW6XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
 
             auto randomDataByte = randomDataBytes[state.BufferIndex] + 3 * state.BufferOffset;
 
@@ -1369,7 +1339,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
             ResultAnim->AddTranslationKey(Anim->Reader->BoneNames[boneIndex], frame, TranslationX, TranslationY, TranslationZ);
         }
 
-        XAnimIncrementBuffers(&state, tableSize + 1, 3, randomDataBytes);
+        MW6XAnimIncrementBuffers(&state, tableSize + 1, 3, randomDataBytes);
     }
 
     currentBoneIndex = 0;
@@ -1403,7 +1373,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
                 frame = tableSize >= 0x40 ? *indices++ : *dataShort++;
             }
 
-            XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
+            MW6XAnimCalculateBufferIndex(&state, (size_t)tableSize + 1, i);
 
             auto randomDataShort = randomDataShorts[state.BufferIndex] + 3 * state.BufferOffset;
 
@@ -1415,7 +1385,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
             ResultAnim->AddTranslationKey(Anim->Reader->BoneNames[boneIndex], frame, TranslationX, TranslationY, TranslationZ);
         }
 
-        XAnimIncrementBuffers(&state, tableSize + 1, 3, randomDataShorts);
+        MW6XAnimIncrementBuffers(&state, tableSize + 1, 3, randomDataShorts);
     }
 
     // Stage 7: Static Translations
@@ -1434,7 +1404,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
     }
 }
 
-std::string GameModernWarfare5::LoadStringEntry(uint64_t Index)
+std::string GameModernWarfare6::LoadStringEntry(uint64_t Index)
 {
     // Read Info
     auto StringHash = CoDAssets::GameInstance->Read<uint64_t>(ps::state->StringsAddress + Index) & 0xFFFFFFFFFFFFFFF;
@@ -1446,7 +1416,7 @@ std::string GameModernWarfare5::LoadStringEntry(uint64_t Index)
     else
         return Strings::Format("xstring_%llx", StringHash);
 }
-void GameModernWarfare5::PerformInitialSetup()
+void GameModernWarfare6::PerformInitialSetup()
 {
     // Prepare to copy the oodle dll
     auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_8_win64.dll");
@@ -1471,6 +1441,6 @@ void GameModernWarfare5::PerformInitialSetup()
     }
 }
 
-void GameModernWarfare5::PerformShutDown()
+void GameModernWarfare6::PerformShutDown()
 {
 }

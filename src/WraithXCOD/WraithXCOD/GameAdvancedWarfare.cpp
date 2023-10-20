@@ -527,7 +527,7 @@ bool GameAdvancedWarfare::LoadAssetsPS()
     if (NeedsAnims)
     {
         auto XAnimPool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 5 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(XAnimPool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(XAnimPool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto AnimResult = CoDAssets::GameInstance->Read<AWXAnim>(Asset.Header);
@@ -555,7 +555,7 @@ bool GameAdvancedWarfare::LoadAssetsPS()
     if (NeedsImages)
     {
         auto XAnimPool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 16 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(XAnimPool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(XAnimPool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto ImageResult = CoDAssets::GameInstance->Read<AWGfxImage>(Asset.Header);
@@ -603,7 +603,7 @@ bool GameAdvancedWarfare::LoadAssetsPS()
     if (NeedsModels)
     {
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto ModelResult = CoDAssets::GameInstance->Read<AWXModel>(Asset.Header);
@@ -632,7 +632,7 @@ bool GameAdvancedWarfare::LoadAssetsPS()
         // A temporary table for duplicates, since we are tracing from alias entries...
         std::set<uint64_t> UniqueEntries;
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 17 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [&UniqueEntries](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [&UniqueEntries](ps::XAsset64& Asset)
         {
             // Read
             auto SoundResult = CoDAssets::GameInstance->Read<AWSoundAlias>(Asset.Header);

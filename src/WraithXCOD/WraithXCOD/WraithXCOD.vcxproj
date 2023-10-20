@@ -113,6 +113,9 @@
     <ClCompile Include="CoDRawImageTranslator.cpp" />
     <ClCompile Include="CoDXAnimReader.cpp" />
     <ClCompile Include="CoDXAnimTranslator.cpp" />
+    <ClCompile Include="CoDXModelBonesHelper.cpp" />
+    <ClCompile Include="CoDXModelHelper.cpp" />
+    <ClCompile Include="CoDXModelMeshHelper.cpp" />
     <ClCompile Include="CoDXModelTranslator.cpp" />
     <ClCompile Include="DBGameAssets.cpp" />
     <ClCompile Include="CoDFileHandle.cpp" />
@@ -131,6 +134,8 @@
     <ClCompile Include="GameModernWarfare3.cpp" />
     <ClCompile Include="GameModernWarfare5.cpp" />
     <ClCompile Include="GameModernWarfare5Structures.cpp" />
+    <ClCompile Include="GameModernWarfare6.cpp" />
+    <ClCompile Include="GameModernWarfare6Structures.cpp" />
     <ClCompile Include="GameModernWarfareRM.cpp" />
     <ClCompile Include="GameQuantumSolace.cpp" />
     <ClCompile Include="GameVanguard.cpp" />
@@ -184,6 +189,9 @@
     <ClInclude Include="CoDXAnimReader.h" />
     <ClInclude Include="CoDXAnimTranslator.h" />
     <ClInclude Include="CoDXConverter.h" />
+    <ClInclude Include="CoDXModelBonesHelper.h" />
+    <ClInclude Include="CoDXModelHelper.h" />
+    <ClInclude Include="CoDXModelMeshHelper.h" />
     <ClInclude Include="CoDXModelTranslator.h" />
     <ClInclude Include="CoDXPoolParser.h" />
     <ClInclude Include="DBGameAssets.h" />
@@ -205,6 +213,8 @@
     <ClInclude Include="GameModernWarfare3.h" />
     <ClInclude Include="GameModernWarfare5.h" />
     <ClInclude Include="GameModernWarfare5Structures.h" />
+    <ClInclude Include="GameModernWarfare6.h" />
+    <ClInclude Include="GameModernWarfare6Structures.h" />
     <ClInclude Include="GameModernWarfareRM.h" />
     <ClInclude Include="GameQuantumSolace.h" />
     <ClInclude Include="GameVanguard.h" />

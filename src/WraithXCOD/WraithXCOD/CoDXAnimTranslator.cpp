@@ -712,6 +712,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::WorldWar2:
         case SupportedGames::ModernWarfare4:
         case SupportedGames::ModernWarfare5:
+        case SupportedGames::ModernWarfare6:
         case SupportedGames::Vanguard:
             // Build 3d rotations for 64bit games
             Delta3DRotations64(Anim, (Animation->FrameCount > 255) ? 2 : 1, Animation);

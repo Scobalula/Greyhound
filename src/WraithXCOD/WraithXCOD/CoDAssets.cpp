@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "spdlog/spdlog.h"
 
 // The class we are implementing
 #include "CoDAssets.h"
@@ -42,6 +43,7 @@
 #include "GameModernWarfare3.h"
 #include "GameModernWarfare4.h"
 #include "GameModernWarfare5.h"
+#include "GameModernWarfare6.h"
 #include "GameGhosts.h"
 #include "GameAdvancedWarfare.h"
 #include "GameModernWarfareRM.h"
@@ -99,6 +101,8 @@ WraithNameIndex CoDAssets::StringCache;
 std::unique_ptr<ProcessReader> CoDAssets::GameInstance = nullptr;
 // Set the default logger pointer
 std::unique_ptr<TextWriter> CoDAssets::XAssetLogWriter = nullptr;
+// The main runtime log
+std::shared_ptr<spdlog::logger> CoDAssets::Log = nullptr;
 
 // Set the default game id
 SupportedGames CoDAssets::GameID = SupportedGames::None;
@@ -453,7 +457,7 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     { "s2_sp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::SP },
     { "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
     // Modern Warfare 4
-    { "Parasyte.CLI.exe", SupportedGames::Parasyte, SupportedGameFlags::SP },
+    { "Cordycep.CLI.exe", SupportedGames::Parasyte, SupportedGameFlags::SP },
     // Modern Warfare 2 Remastered
     { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
     // 007 Quantum Solace
@@ -766,6 +770,20 @@ LoadGameResult CoDAssets::LoadGamePS()
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
             OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "cod.exe")) ? "xpak_cache" : FileSystems::CombinePath("_beta_", "xpak_cache")));
             Success = GameModernWarfare5::LoadAssets();
+            break;
+            // Modern Warfare 3 (2023)
+        case 0x4B4F4D41594D4159:
+            GameModernWarfare6::PerformInitialSetup();
+            GameID = SupportedGames::ModernWarfare6;
+            GameFlags = ps::state->HasFlag("sp") ? SupportedGameFlags::SP : SupportedGameFlags::MP;
+            GameXImageHandler = GameModernWarfare6::LoadXImage;
+            GameStringHandler = GameModernWarfare6::LoadStringEntry;
+            GamePackageCache = std::make_unique<XSUBCacheV2>();
+            OnDemandCache = std::make_unique<XSUBCacheV2>();
+            CDNDownloader = CDNSupport ? std::make_unique<CoDCDNDownloaderV2>() : nullptr;
+            GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
+            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "cod.exe")) ? "xpak_cache" : FileSystems::CombinePath("_beta_", "xpak_cache")));
+            Success = GameModernWarfare6::LoadAssets();
             break;
         }
 
@@ -1237,7 +1255,7 @@ bool CoDAssets::LocateGameInfo()
         break;
     case SupportedGames::Parasyte:
         // Locate IW8 Database
-        auto DBFile = FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "Data\\CurrentHandler.parasyte_state_info");
+        auto DBFile = FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "Data\\CurrentHandler.csi");
         Success = FileSystems::FileExists(DBFile);
         // Validate
         if (Success)
@@ -1280,6 +1298,7 @@ std::string CoDAssets::BuildExportPath(const CoDAsset_t* Asset)
     case SupportedGames::ModernWarfare3: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_3"); break;
     case SupportedGames::ModernWarfare4: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_4"); break;
     case SupportedGames::ModernWarfare5: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_5"); break;
+    case SupportedGames::ModernWarfare6: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_6"); break;
     case SupportedGames::Ghosts: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "ghosts"); break;
     case SupportedGames::AdvancedWarfare: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "advanced_warfare"); break;
     case SupportedGames::ModernWarfareRemastered: ApplicationPath = FileSystems::CombinePath(ApplicationPath, "modern_warfare_rm"); break;
@@ -1345,6 +1364,7 @@ std::unique_ptr<XAnim_t> CoDAssets::LoadGenericAnimAsset(const CoDAnim_t* Animat
     case SupportedGames::ModernWarfare3: return GameModernWarfare3::ReadXAnim(Animation); break;
     case SupportedGames::ModernWarfare4: return GameModernWarfare4::ReadXAnim(Animation); break;
     case SupportedGames::ModernWarfare5: return GameModernWarfare5::ReadXAnim(Animation); break;
+    case SupportedGames::ModernWarfare6: return GameModernWarfare6::ReadXAnim(Animation); break;
     case SupportedGames::Ghosts: return GameGhosts::ReadXAnim(Animation); break;
     case SupportedGames::AdvancedWarfare: return GameAdvancedWarfare::ReadXAnim(Animation); break;
     case SupportedGames::ModernWarfareRemastered: return GameModernWarfareRM::ReadXAnim(Animation); break;
@@ -1436,6 +1456,7 @@ std::unique_ptr<XModel_t> CoDAssets::LoadGenericModelAsset(const CoDModel_t* Mod
     case SupportedGames::ModernWarfare3: return GameModernWarfare3::ReadXModel(Model); break;
     case SupportedGames::ModernWarfare4: return GameModernWarfare4::ReadXModel(Model); break;
     case SupportedGames::ModernWarfare5: return GameModernWarfare5::ReadXModel(Model); break;
+    case SupportedGames::ModernWarfare6: return GameModernWarfare6::ReadXModel(Model); break;
     case SupportedGames::Ghosts: return GameGhosts::ReadXModel(Model); break;
     case SupportedGames::AdvancedWarfare: return GameAdvancedWarfare::ReadXModel(Model); break;
     case SupportedGames::ModernWarfareRemastered: return GameModernWarfareRM::ReadXModel(Model); break;
@@ -1752,7 +1773,8 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
             case SupportedGames::ModernWarfare2Remastered: ImageData = GameModernWarfare2RM::ReadXImage(Image); break;
             case SupportedGames::InfiniteWarfare: ImageData          = GameInfiniteWarfare::ReadXImage(Image); break;
             case SupportedGames::ModernWarfare4: ImageData           = GameModernWarfare4::ReadXImage(Image); break;
-            case SupportedGames::ModernWarfare5: ImageData           = GameModernWarfare5::ReadXImage(Image); break;
+            case SupportedGames::ModernWarfare5: ImageData = GameModernWarfare5::ReadXImage(Image); break;
+            case SupportedGames::ModernWarfare6: ImageData           = GameModernWarfare6::ReadXImage(Image); break;
             case SupportedGames::WorldWar2: ImageData                = GameWorldWar2::ReadXImage(Image); break;
             case SupportedGames::Vanguard: ImageData                 = GameVanguard::ReadXImage(Image); break;
             }
@@ -1983,6 +2005,9 @@ ExportGameResult CoDAssets::ExportMaterialAsset(const CoDMaterial_t* Material, c
         break;
     case SupportedGames::ModernWarfare5:
         XMaterial = GameModernWarfare5::ReadXMaterial(Material->AssetPointer);
+        break;
+    case SupportedGames::ModernWarfare6:
+        XMaterial = GameModernWarfare6::ReadXMaterial(Material->AssetPointer);
         break;
     case SupportedGames::BlackOpsCW:
         XMaterial = GameBlackOpsCW::ReadXMaterial(Material->AssetPointer);
@@ -2436,20 +2461,16 @@ void CoDAssets::ExportSelectedAssets(void* Caller, const std::unique_ptr<std::ve
                 // Export it
                 try
                 {
+                    CoDAssets::Log->info("Exporting: {0}...", Asset->AssetName);
                     Result = CoDAssets::ExportAsset(Asset);
+                    CoDAssets::Log->info("Successfully exported: {0}", Asset->AssetName);
                 }
-#if _DEBUG
                 catch (std::exception& ex)
                 {
                     printf("%s\n", ex.what());
+                    CoDAssets::Log->error(ex.what());
                     // Unknown issue
                 }
-#else
-                catch (...)
-                {
-                    // Unknown issue
-                }
-#endif
 
 
                 // Set the status
