@@ -202,6 +202,12 @@ std::unique_ptr<uint8_t[]> XPAKCache::DecompressPackageObject(uint64_t cacheID, 
                 resultSize += decompressedSize;
                 remaining -= decompressedSize;
                 break;
+            case 0x8:
+                decompressedSize = *(uint32_t*)(dataBlock);
+                decompressedResult = Siren::Decompress((const uint8_t*)(dataBlock + 4), blockSize - 4, result.get() + resultSize, decompressedSize);
+                resultSize += decompressedSize;
+                remaining -= decompressedSize;
+                break;
             case 0x0:
                 std::memcpy(result.get() + resultSize, dataBlock, blockSize);
                 decompressedResult = blockSize;

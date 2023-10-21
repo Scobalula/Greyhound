@@ -1047,8 +1047,9 @@ struct BO4GfxMip
 {
     uint64_t HashID;
 
-    uint8_t Padding[0x1C];
+    uint8_t Padding[0x18];
 
+    uint32_t Size;
     uint16_t Width;
     uint16_t Height;
 };

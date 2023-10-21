@@ -598,7 +598,7 @@ LoadGameResult CoDAssets::LoadGame()
             // TODO: Find a better solution to this, a good trigger for it to occur is relaunching the game, moving to different parts or Blizzard editing the CASC while
             // we have a handle, then try export an image, it'll probably come out black
             CleanupPackageCache();
-            GamePackageCache = std::make_unique<PAKCache>();
+            GamePackageCache = std::make_unique<XPAKCache>();
             // Set the XPAK path
             GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
             // Load as normally
