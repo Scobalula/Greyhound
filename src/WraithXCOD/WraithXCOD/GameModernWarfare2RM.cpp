@@ -1015,7 +1015,7 @@ struct XImageData
 std::unique_ptr<XImageDDS> GameModernWarfare2RM::LoadXImagePS(const XImage_t& Image)
 {
     // Prepare to load an image, we only support PAK images
-    uint32_t ResultSize = 0;
+    size_t ResultSize = 0;
 
     // We must read the image data
     auto ImageInfo = CoDAssets::GameInstance->Read<MWRGfxImage>(Image.ImagePtr);
@@ -1158,7 +1158,7 @@ const XMaterial_t GameModernWarfare2RM::ReadXMaterial(uint64_t MaterialPointer)
 std::unique_ptr<XImageDDS> GameModernWarfare2RM::LoadXImage(const XImage_t& Image)
 {
     // Prepare to load an image, we only support PAK images
-    uint32_t ResultSize = 0;
+    size_t ResultSize = 0;
 
     // We must read the image data
     auto ImageInfo = CoDAssets::GameInstance->Read<MWRGfxImage>(Image.ImagePtr);
@@ -1193,7 +1193,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare2RM::LoadXImage(const XImage_t& Imag
     auto ImagePackageName = CoDAssets::GameInstance->ReadNullTerminatedString(ImageStreamInfo.ImagePAKInfoPtr + 0x18);
 
     // Attempt to extract the package asset
-    auto ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(ImagePackageName + ".pak", ImageStreamInfo.ImageOffset, (ImageStreamInfo.ImageEndOffset - ImageStreamInfo.ImageOffset), ResultSize);
+    auto ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(ImagePackageName + ".pak", ImageStreamInfo.ImageOffset, (uint64_t)(ImageStreamInfo.ImageEndOffset - ImageStreamInfo.ImageOffset), (size_t)ResultSize);
 
     // Check
     if (ImageData != nullptr)

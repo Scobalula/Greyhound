@@ -9,8 +9,6 @@
 class XSUBCache : public CoDPackageCache
 {
 private:
-    // Container
-    Casc::Container Container;
     // Cache Mutex
     std::shared_mutex ReadMutex;
 public:

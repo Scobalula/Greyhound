@@ -8,11 +8,6 @@
 // A class that handles reading, caching and extracting CASC Resources
 class XSUBCacheV2 : public CoDPackageCache
 {
-private:
-    // File System
-    std::unique_ptr<CoDFileSystem> FileSystem;
-    // Cache Mutex
-    std::shared_mutex ReadMutex;
 public:
     // Constructors
     XSUBCacheV2();

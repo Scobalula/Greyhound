@@ -3,6 +3,10 @@
 // The class we are implementing
 #include "CoDPackageCache.h"
 
+#include "FileSystems.h"
+#include "WinFileSystem.h"
+#include "CascFileSystem.h"
+
 CoDPackageCache::CoDPackageCache()
 {
     // Defaults
@@ -48,6 +52,23 @@ void CoDPackageCache::LoadPackageCache(const std::string& BasePath)
 
     // Set that we are loading
     CacheLoading = true;
+
+    // Open the file system, check for build info, if build info exists
+    // we'll use Casc, otherwise use raw directory.
+    if (FileSystems::FileExists(BasePath + "\\.build.info"))
+    {
+        FileSystem = std::make_unique<CascFileSystem>(BasePath);
+    }
+    else
+    {
+        FileSystem = std::make_unique<WinFileSystem>(BasePath);
+    }
+
+    // Verify we've successfully opened it.
+    if (!FileSystem->IsValid())
+    {
+        FileSystem = nullptr;
+    }
 }
 
 bool CoDPackageCache::LoadPackage(const std::string& FilePath)
@@ -71,6 +92,11 @@ void CoDPackageCache::SetLoadedState()
     // Set loading complete
     HasLoaded = true;
     CacheLoading = false;
+}
+
+CoDFileSystem* CoDPackageCache::GetFileSystem()
+{
+    return FileSystem.get();
 }
 
 void CoDPackageCache::LoadPackageCacheAsync(const std::string& BasePath)

@@ -168,9 +168,6 @@
     <ClCompile Include="GameModernWarfare4.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
-    <ClCompile Include="CASCCache.cpp">
-      <Filter>Source Files\Packages</Filter>
-    </ClCompile>
     <ClCompile Include="GameQuantumSolace.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
@@ -400,9 +397,6 @@
     </ClInclude>
     <ClInclude Include="GameModernWarfare4.h">
       <Filter>Header Files\Games</Filter>
-    </ClInclude>
-    <ClInclude Include="CASCCache.h">
-      <Filter>Header Files\Packages</Filter>
     </ClInclude>
     <ClInclude Include="GameQuantumSolace.h">
       <Filter>Header Files\Games</Filter>

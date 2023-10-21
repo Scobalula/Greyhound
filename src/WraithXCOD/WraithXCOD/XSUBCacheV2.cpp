@@ -38,17 +38,6 @@ void XSUBCacheV2::LoadPackageCache(const std::string& BasePath)
     // Call Base function first!
     CoDPackageCache::LoadPackageCache(BasePath);
 
-    // Open the file system, check for build info, if build info exists
-    // we'll use Casc, otherwise use raw directory.
-    if (FileSystems::FileExists(BasePath + "\\.build.info"))
-    {
-        FileSystem = std::make_unique<CascFileSystem>(BasePath);
-    }
-    else
-    {
-        FileSystem = std::make_unique<WinFileSystem>(BasePath);
-    }
-
     // Verify we've successfully opened it.
     if (!FileSystem->IsValid())
     {
@@ -177,9 +166,6 @@ std::unique_ptr<uint8_t[]> XSUBCacheV2::ExtractPackageObject(uint64_t CacheID, i
     // Prepare to extract if found
     if (CacheObjects.find(CacheID) != CacheObjects.end())
     {
-        // Aquire lock
-        std::lock_guard<std::shared_mutex> Gaurd(ReadMutex);
-
         // Take cache data, and extract from the XPAK (Uncompressed size = offset of data segment!)
         auto& CacheInfo = CacheObjects[CacheID];
         // Get the XPAK name

@@ -56,7 +56,6 @@
 // We need the game cache functions
 // TODO: Reorganise how packages are handled, merge into a "reader" class that handles
 // everything rather than duplicated code and seperate code for Load File/Caches
-#include "CASCCache.h"
 #include "IWDCache.h"
 #include "IPAKCache.h"
 #include "PAKCache.h"
@@ -432,7 +431,7 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     // Black Ops 4
     { "blackops4.exe", SupportedGames::BlackOps4, SupportedGameFlags::SP },
     // Black Ops CW
-    { "blackopscoldwar.exe", SupportedGames::BlackOpsCW, SupportedGameFlags::SP },
+//    { "blackopscoldwar.exe", SupportedGames::BlackOpsCW, SupportedGameFlags::SP },
     // Modern Warfare
     { "iw3sp.exe", SupportedGames::ModernWarfare, SupportedGameFlags::SP },
     { "iw3mp.exe", SupportedGames::ModernWarfare, SupportedGameFlags::MP },
@@ -599,7 +598,7 @@ LoadGameResult CoDAssets::LoadGame()
             // TODO: Find a better solution to this, a good trigger for it to occur is relaunching the game, moving to different parts or Blizzard editing the CASC while
             // we have a handle, then try export an image, it'll probably come out black
             CleanupPackageCache();
-            GamePackageCache = std::make_unique<CASCCache>();
+            GamePackageCache = std::make_unique<PAKCache>();
             // Set the XPAK path
             GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
             // Load as normally
@@ -696,11 +695,11 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameFlags         = SupportedGameFlags::None;
             GameXImageHandler = GameModernWarfare4::LoadXImage;
             GameStringHandler = GameModernWarfare4::LoadStringEntry;
-            GamePackageCache  = std::make_unique<CASCCache>();
+            GamePackageCache  = std::make_unique<XPAKCache>();
             OnDemandCache     = std::make_unique<XPAKCache>();
             CDNDownloader     = CDNSupport ? std::make_unique<CoDCDNDownloaderV0>() : nullptr;
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
-            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
+            // OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
             Success = GameModernWarfare4::LoadAssets();
             break;
         // Vanguard
@@ -753,7 +752,7 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameFlags = SupportedGameFlags::None;
             GameXImageHandler = GameModernWarfare2RM::LoadXImagePS;
             GameStringHandler = GameModernWarfare2RM::LoadStringEntry;
-            GamePackageCache = std::make_unique<CASCCache>();
+            GamePackageCache = std::make_unique<PAKCache>();
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
             Success = GameModernWarfare2RM::LoadAssetsPS();
             break;
@@ -1225,7 +1224,7 @@ bool CoDAssets::LocateGameInfo()
         // Set game string handler
         GameStringHandler = GameModernWarfare2RM::LoadStringEntry;
         // Allocate a new PAK Mega Cache
-        GamePackageCache = std::make_unique<CASCCache>();
+        GamePackageCache = std::make_unique<PAKCache>();
         // Set the PAK path
         GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
         break;
@@ -2467,9 +2466,7 @@ void CoDAssets::ExportSelectedAssets(void* Caller, const std::unique_ptr<std::ve
                 }
                 catch (std::exception& ex)
                 {
-                    printf("%s\n", ex.what());
                     CoDAssets::Log->error(ex.what());
-                    // Unknown issue
                 }
 
 

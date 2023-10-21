@@ -6,6 +6,9 @@
 #include <vector>
 #include <unordered_map>
 
+// We need the file system class
+#include "CoDFileSystem.h"
+
 // A structure that represents a package cache object, this is generic and is used in all of the assets
 struct PackageCacheObject
 {
@@ -53,7 +56,7 @@ public:
     // Returns a cache object (nullptr if not found)
     virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(uint64_t CacheID, int32_t Size, uint32_t& ResultSize) { return nullptr; }
     // Returns a cache object (nullptr if not found)
-    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(const std::string& PackageName, uint64_t AssetOffset, uint64_t AssetSize, uint32_t& ResultSize) { return nullptr; }
+    virtual std::unique_ptr<uint8_t[]> ExtractPackageObject(const std::string& PackageName, uint64_t AssetOffset, uint64_t AssetSize, size_t& ResultSize) { return nullptr; }
 
     // Hashes a cache object id if needed
     virtual uint64_t HashPackageID(const std::string& Value) { return 0; }
@@ -63,6 +66,9 @@ public:
 
     // Sets the cache state to loaded
     virtual void SetLoadedState();
+
+    // Gets the current file system
+    virtual CoDFileSystem* GetFileSystem();
 
 protected:
 
@@ -80,7 +86,9 @@ protected:
 
     // A path of packages, used for games that don't require a cache
     std::string PackageFilesPath;
-
+    
+    // The game's file system if applicable.
+    std::unique_ptr<CoDFileSystem> FileSystem;
 private:
 
     // -- Cache read data
