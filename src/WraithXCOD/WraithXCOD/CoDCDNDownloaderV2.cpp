@@ -13,9 +13,9 @@
 #include "WinFileSystem.h"
 
 // We need the XSUB Classes
-#include "VGXSUBCache.h"
 #include "XSUBCache.h"
 #include "XSUBCacheV2.h"
+#include "XSUBCacheV3.h"
 
 // We need web class
 #include "WebClient.h"
@@ -48,7 +48,7 @@ bool CoDCDNDownloaderV2::Initialize(const std::string& gameDirectory)
 	}
 
 	// Enumerate all cdn files.
-	FileSystem->EnumerateFiles("mp23\\*cdn.xpak", [this](const std::string& fileName, const size_t size)
+	FileSystem->EnumerateFiles("*cdn.xpak", [this](const std::string& fileName, const size_t size)
 	{
 		this->LoadCDNXPAK(fileName);
 	});
@@ -107,7 +107,7 @@ std::unique_ptr<uint8_t[]> CoDCDNDownloaderV2::ExtractCDNObject(uint64_t cacheID
 
 	if (cdnBuffer != nullptr)
 	{
-		auto decompressed = VGXSUBCache::DecompressPackageObject(
+		auto decompressed = XSUBCacheV2::DecompressPackageObject(
 			entry.Hash,
 			cdnBuffer.get(),
 			bufferSize,
@@ -141,7 +141,7 @@ std::unique_ptr<uint8_t[]> CoDCDNDownloaderV2::ExtractCDNObject(uint64_t cacheID
 	// Add to the cache
 	Cache.Add(cacheID, result->DataBuffer, result->BufferSize);
 
-	return VGXSUBCache::DecompressPackageObject(
+	return XSUBCacheV2::DecompressPackageObject(
 		entry.Hash,
 		result->DataBuffer,
 		result->BufferSize,

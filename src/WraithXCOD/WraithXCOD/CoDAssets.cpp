@@ -64,7 +64,7 @@
 #include "XPTOCCache.h"
 #include "XSUBCache.h"
 #include "XSUBCacheV2.h"
-#include "VGXSUBCache.h"
+#include "XSUBCacheV3.h"
 #include "VGXPAKCache.h"
 
 // We need the game support functions
@@ -680,7 +680,7 @@ LoadGameResult CoDAssets::LoadGamePS()
         }
 
         // Check for CDN support.
-        bool CDNSupport = SettingsManager::GetSetting("cdn_downloader", "false") == "true";
+        bool CDNSupport = true; // SettingsManager::GetSetting("cdn_downloader", "false") == "true";
 
         // Cleanup
         CleanupPackageCache();
@@ -709,7 +709,7 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameFlags         = SupportedGameFlags::None;
             GameXImageHandler = GameVanguard::LoadXImage;
             GameStringHandler = GameVanguard::LoadStringEntry;
-            GamePackageCache  = std::make_unique<VGXSUBCache>();
+            GamePackageCache  = std::make_unique<XSUBCacheV2>();
             OnDemandCache     = std::make_unique<VGXPAKCache>();
             CDNDownloader     = CDNSupport ? std::make_unique<CoDCDNDownloaderV1>() : nullptr;
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
@@ -763,11 +763,9 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameFlags         = ps::state->HasFlag("sp") ? SupportedGameFlags::SP : SupportedGameFlags::MP;
             GameXImageHandler = GameModernWarfare5::LoadXImage;
             GameStringHandler = GameModernWarfare5::LoadStringEntry;
-            GamePackageCache  = std::make_unique<XSUBCacheV2>();
-            OnDemandCache     = std::make_unique<XSUBCacheV2>();
+            GamePackageCache  = std::make_unique<XSUBCacheV3>();
             CDNDownloader     = CDNSupport ? std::make_unique<CoDCDNDownloaderV2>() : nullptr;
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
-            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "cod.exe")) ? "xpak_cache" : FileSystems::CombinePath("_beta_", "xpak_cache")));
             Success = GameModernWarfare5::LoadAssets();
             break;
             // Modern Warfare 3 (2023)
@@ -777,20 +775,16 @@ LoadGameResult CoDAssets::LoadGamePS()
             GameFlags = ps::state->HasFlag("sp") ? SupportedGameFlags::SP : SupportedGameFlags::MP;
             GameXImageHandler = GameModernWarfare6::LoadXImage;
             GameStringHandler = GameModernWarfare6::LoadStringEntry;
-            GamePackageCache = std::make_unique<XSUBCacheV2>();
-            OnDemandCache = std::make_unique<XSUBCacheV2>();
+            GamePackageCache = std::make_unique<XSUBCacheV3>();
             CDNDownloader = CDNSupport ? std::make_unique<CoDCDNDownloaderV2>() : nullptr;
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
-            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "cod.exe")) ? "xpak_cache" : FileSystems::CombinePath("_beta_", "xpak_cache")));
             Success = GameModernWarfare6::LoadAssets();
             break;
         }
 
         // Check for CDN
         if (CDNDownloader != nullptr)
-        {
             CDNDownloader->Initialize(ps::state->GameDirectory);
-        }
 
         // Done with logger
         XAssetLogWriter = nullptr;
@@ -1778,6 +1772,8 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
             case SupportedGames::Vanguard: ImageData                 = GameVanguard::ReadXImage(Image); break;
             }
         }
+
+        return ExportGameResult::Success;
 
         // Grab the image format type
         auto ImageFormatType = ImageFormat::Standard_PNG;

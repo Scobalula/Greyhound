@@ -31,6 +31,38 @@ struct MW5XModel
     uint8_t NumRootBones;
     uint16_t UnkBoneCount;
 
+    uint8_t Padding3[148];
+
+    uint64_t BoneIDsPtr;
+    uint64_t ParentListPtr;
+    uint64_t RotationsPtr;
+    uint64_t TranslationsPtr;
+    uint64_t PartClassificationPtr;
+    uint64_t BaseMatriciesPtr;
+    uint64_t UnknownPtr;
+    uint64_t UnknownPtr2;
+    uint64_t MaterialHandlesPtr;
+    uint64_t ModelLods;
+
+    uint8_t Padding4[112];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct MW5XModelSP
+{
+    uint64_t Hash;
+    uint64_t NamePtr;
+    uint16_t NumSurfaces;
+    uint8_t NumLods;
+    uint8_t MaxLods;
+
+    uint8_t Padding[12];
+
+    uint8_t NumBones;
+    uint8_t NumRootBones;
+    uint16_t UnkBoneCount;
+
     uint8_t Padding3[0x8C];
 
     uint64_t BoneIDsPtr;
@@ -47,6 +79,7 @@ struct MW5XModel
     uint8_t Padding4[112];
 };
 #pragma pack(pop)
+
 
 #pragma pack(push, 1)
 struct MW5XModelMesh

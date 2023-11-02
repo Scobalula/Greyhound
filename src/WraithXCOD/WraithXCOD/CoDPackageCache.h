@@ -89,6 +89,9 @@ protected:
     
     // The game's file system if applicable.
     std::unique_ptr<CoDFileSystem> FileSystem;
+
+    // The sub-directory within the file system where the files are located.
+    std::string SubDirectory;
 private:
 
     // -- Cache read data

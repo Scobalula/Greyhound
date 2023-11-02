@@ -18,6 +18,7 @@ void CoDXModelBonesHelper::ReadXModelBones(const std::unique_ptr<XModel_t>& Mode
         uint64_t BoneID = 0;
 
         // Read the ID
+        // TODO: Switch this out for a bone ID "type" enum for when we port other games to use this helper
         switch (Model->BoneIndexSize)
         {
         case 4: NewBone.TagName = CoDAssets::GetHashedString("bone", (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(Model->BoneIDsPtr + i * 4)); break;

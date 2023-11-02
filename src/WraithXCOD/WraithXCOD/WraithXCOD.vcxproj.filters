@@ -186,7 +186,7 @@
     <ClCompile Include="GameVanguard.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
-    <ClCompile Include="VGXSUBCache.cpp">
+    <ClCompile Include="XSUBCacheV2.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
     <ClCompile Include="VGXPAKCache.cpp">
@@ -213,7 +213,7 @@
     <ClCompile Include="CascFileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="XSUBCacheV2.cpp">
+    <ClCompile Include="XSUBCacheV3.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
     <ClCompile Include="CoDXAnimReader.cpp">
@@ -416,7 +416,7 @@
     <ClInclude Include="GameVanguard.h">
       <Filter>Header Files\Games</Filter>
     </ClInclude>
-    <ClInclude Include="VGXSUBCache.h">
+    <ClInclude Include="XSUBCacheV2.h">
       <Filter>Header Files\Packages</Filter>
     </ClInclude>
     <ClInclude Include="VGXPAKCache.h">
@@ -443,7 +443,7 @@
     <ClInclude Include="CascFileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XSUBCacheV2.h">
+    <ClInclude Include="XSUBCacheV3.h">
       <Filter>Header Files\Packages</Filter>
     </ClInclude>
     <ClInclude Include="CoDXAnimReader.h">
@@ -501,10 +501,7 @@
     <Image Include="..\..\WraithX\Resources\CheckMarkIcon.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\Resources\GreyhoundPride.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\Resources\GreyhoundEnhanced.ico">
+    <Image Include="..\Resources\Greyhound2023.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

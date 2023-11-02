@@ -20,6 +20,8 @@
 #include "BinaryReader.h"
 #include "Sound.h"
 
+#include "CoDXModelBonesHelper.h"
+
 // We need Opus
 #include "..\..\External\Opus\include\opus.h"
 
@@ -496,129 +498,259 @@ std::unique_ptr<XModel_t> GameModernWarfare5::ReadXModel(const CoDModel_t* Model
     // Verify that the program is running
     if (CoDAssets::GameInstance->IsRunning())
     {
-        // Read the XModel structure
-        auto ModelData = CoDAssets::GameInstance->Read<MW5XModel>(Model->AssetPointer);
-
-        // Prepare to read the xmodel (Reserving space for lods)
-        auto ModelAsset = std::make_unique<XModel_t>(ModelData.NumLods);
-
-        // Copy over default properties
-        ModelAsset->ModelName = Model->AssetName;
-
-        // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
-        if ((ModelData.NumBones + ModelData.UnkBoneCount) > 1 && ModelData.ParentListPtr == 0)
+        // Shitty workaround for now with 2 giant branches, a template function could help here?
+        if (CoDAssets::GameFlags == SupportedGameFlags::SP)
         {
-            ModelAsset->BoneCount = 0;
-            ModelAsset->RootBoneCount = 0;
+            // Read the XModel structure
+            auto ModelData = CoDAssets::GameInstance->Read<MW5XModelSP>(Model->AssetPointer);
+
+            // Prepare to read the xmodel (Reserving space for lods)
+            auto ModelAsset = std::make_unique<XModel_t>(ModelData.NumLods);
+
+            // Copy over default properties
+            ModelAsset->ModelName = Model->AssetName;
+
+            // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
+            if ((ModelData.NumBones + ModelData.UnkBoneCount) > 1 && ModelData.ParentListPtr == 0)
+            {
+                ModelAsset->BoneCount = 0;
+                ModelAsset->RootBoneCount = 0;
+            }
+            else
+            {
+                ModelAsset->BoneCount = ModelData.NumBones + ModelData.UnkBoneCount;
+                ModelAsset->RootBoneCount = ModelData.NumRootBones;
+            }
+
+            // Bone data type
+            ModelAsset->BoneRotationData = BoneDataTypes::DivideBySize;
+
+            // We are streamed
+            ModelAsset->IsModelStreamed = true;
+
+            // Bone id info
+            ModelAsset->BoneIDsPtr = ModelData.BoneIDsPtr;
+            ModelAsset->BoneIndexSize = 8;
+
+            // Bone parent info
+            ModelAsset->BoneParentsPtr = ModelData.ParentListPtr;
+            ModelAsset->BoneParentSize = 2;
+
+            // Local bone pointers
+            ModelAsset->RotationsPtr = ModelData.RotationsPtr;
+            ModelAsset->TranslationsPtr = ModelData.TranslationsPtr;
+
+            // Global matricies
+            ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
+
+            // Prepare to parse lods
+            for (uint32_t i = 0; i < ModelData.NumLods; i++)
+            {
+                // Read the XModel Lod
+                auto ModelLod = CoDAssets::GameInstance->Read<MW5XModelLod>(ModelData.ModelLods + i * sizeof(MW5XModelLod));
+                // Create the lod and grab reference
+                ModelAsset->ModelLods.emplace_back(ModelLod.NumSurfs);
+                // Grab reference
+                auto& LodReference = ModelAsset->ModelLods[i];
+
+                // Set distance (use index, "distance" we see may be bounds? doesn't line up)
+                LodReference.LodDistance = i;
+
+                // Set stream key and info ptr
+                LodReference.LODStreamInfoPtr = ModelLod.MeshPtr;
+
+                // Grab pointer from the lod itself
+                auto XSurfacePtr = ModelLod.SurfsPtr;
+
+                // Load surfaces
+                for (uint32_t s = 0; s < ModelLod.NumSurfs; s++)
+                {
+                    // Create the surface and grab reference
+                    LodReference.Submeshes.emplace_back();
+                    // Grab reference
+                    auto& SubmeshReference = LodReference.Submeshes[s];
+
+                    // Read the surface data
+                    auto SurfaceInfo = CoDAssets::GameInstance->Read<MW5XModelSurface>(XSurfacePtr);
+
+                    // Apply surface info
+                    SubmeshReference.RigidWeightsPtr = SurfaceInfo.RigidWeightsPtr;
+                    SubmeshReference.VertListcount = SurfaceInfo.VertListCount;
+                    SubmeshReference.VertexCount = SurfaceInfo.VertexCount;
+                    SubmeshReference.FaceCount = SurfaceInfo.FacesCount;
+                    SubmeshReference.VertexPtr = SurfaceInfo.Offsets[0];
+                    SubmeshReference.VertexUVsPtr = SurfaceInfo.Offsets[1];
+                    SubmeshReference.VertexNormalsPtr = SurfaceInfo.Offsets[2];
+                    SubmeshReference.FacesPtr = SurfaceInfo.Offsets[3];
+                    SubmeshReference.VertexColorPtr = SurfaceInfo.Offsets[6];
+                    SubmeshReference.WeightsPtr = SurfaceInfo.Offsets[10];
+
+                    // Check for new single scale value.
+                    if (SurfaceInfo.NewScale != -1)
+                    {
+                        SubmeshReference.Scale = SurfaceInfo.NewScale;
+                        SubmeshReference.XOffset = 0;
+                        SubmeshReference.YOffset = 0;
+                        SubmeshReference.ZOffset = 0;
+                    }
+                    else
+                    {
+                        SubmeshReference.Scale = fmaxf(fmaxf(SurfaceInfo.Min, SurfaceInfo.Scale), SurfaceInfo.Max);
+                        SubmeshReference.XOffset = SurfaceInfo.XOffset;
+                        SubmeshReference.YOffset = SurfaceInfo.YOffset;
+                        SubmeshReference.ZOffset = SurfaceInfo.ZOffset;
+                    }
+
+                    // Assign weights
+                    SubmeshReference.WeightCounts[0] = SurfaceInfo.WeightCounts[0];
+                    SubmeshReference.WeightCounts[1] = SurfaceInfo.WeightCounts[1];
+                    SubmeshReference.WeightCounts[2] = SurfaceInfo.WeightCounts[2];
+                    SubmeshReference.WeightCounts[3] = SurfaceInfo.WeightCounts[3];
+                    SubmeshReference.WeightCounts[4] = SurfaceInfo.WeightCounts[4];
+                    SubmeshReference.WeightCounts[5] = SurfaceInfo.WeightCounts[5];
+                    SubmeshReference.WeightCounts[6] = SurfaceInfo.WeightCounts[6];
+                    SubmeshReference.WeightCounts[7] = SurfaceInfo.WeightCounts[7];
+
+                    // Read this submesh's material handle
+                    auto MaterialHandle = CoDAssets::GameInstance->Read<uint64_t>(ModelData.MaterialHandlesPtr);
+                    // Create the material and add it
+                    LodReference.Materials.emplace_back(ReadXMaterial(MaterialHandle));
+
+                    // Advance
+                    XSurfacePtr += sizeof(MW5XModelSurface);
+                    ModelData.MaterialHandlesPtr += sizeof(uint64_t);
+                }
+            }
+
+            // Return it
+            return ModelAsset;
         }
         else
         {
-            ModelAsset->BoneCount = ModelData.NumBones + ModelData.UnkBoneCount;
-            ModelAsset->RootBoneCount = ModelData.NumRootBones;
-        }
+            // Read the XModel structure
+            auto ModelData = CoDAssets::GameInstance->Read<MW5XModel>(Model->AssetPointer);
 
-        // Bone data type
-        ModelAsset->BoneRotationData = BoneDataTypes::DivideBySize;
+            // Prepare to read the xmodel (Reserving space for lods)
+            auto ModelAsset = std::make_unique<XModel_t>(ModelData.NumLods);
 
-        // We are streamed
-        ModelAsset->IsModelStreamed = true;
+            // Copy over default properties
+            ModelAsset->ModelName = Model->AssetName;
 
-        // Bone id info
-        ModelAsset->BoneIDsPtr = ModelData.BoneIDsPtr;
-        ModelAsset->BoneIndexSize = 8;
-
-        // Bone parent info
-        ModelAsset->BoneParentsPtr = ModelData.ParentListPtr;
-        ModelAsset->BoneParentSize = 2;
-
-        // Local bone pointers
-        ModelAsset->RotationsPtr = ModelData.RotationsPtr;
-        ModelAsset->TranslationsPtr = ModelData.TranslationsPtr;
-
-        // Global matricies
-        ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
-
-        // Prepare to parse lods
-        for (uint32_t i = 0; i < ModelData.NumLods; i++)
-        {
-            // Read the XModel Lod
-            auto ModelLod = CoDAssets::GameInstance->Read<MW5XModelLod>(ModelData.ModelLods + i * sizeof(MW5XModelLod));
-            // Create the lod and grab reference
-            ModelAsset->ModelLods.emplace_back(ModelLod.NumSurfs);
-            // Grab reference
-            auto& LodReference = ModelAsset->ModelLods[i];
-
-            // Set distance (use index, "distance" we see may be bounds? doesn't line up)
-            LodReference.LodDistance = i;
-
-            // Set stream key and info ptr
-            LodReference.LODStreamInfoPtr = ModelLod.MeshPtr;
-
-            // Grab pointer from the lod itself
-            auto XSurfacePtr = ModelLod.SurfsPtr;
-
-            // Load surfaces
-            for (uint32_t s = 0; s < ModelLod.NumSurfs; s++)
+            // Bone counts (check counts, since there's some weird models that we don't want, they have thousands of bones with no info)
+            if ((ModelData.NumBones + ModelData.UnkBoneCount) > 1 && ModelData.ParentListPtr == 0)
             {
-                // Create the surface and grab reference
-                LodReference.Submeshes.emplace_back();
-                // Grab reference
-                auto& SubmeshReference = LodReference.Submeshes[s];
-
-                // Read the surface data
-                auto SurfaceInfo = CoDAssets::GameInstance->Read<MW5XModelSurface>(XSurfacePtr);
-
-                // Apply surface info
-                SubmeshReference.RigidWeightsPtr  = SurfaceInfo.RigidWeightsPtr;
-                SubmeshReference.VertListcount    = SurfaceInfo.VertListCount;
-                SubmeshReference.VertexCount      = SurfaceInfo.VertexCount;
-                SubmeshReference.FaceCount        = SurfaceInfo.FacesCount;
-                SubmeshReference.VertexPtr        = SurfaceInfo.Offsets[0];
-                SubmeshReference.VertexUVsPtr     = SurfaceInfo.Offsets[1];
-                SubmeshReference.VertexNormalsPtr = SurfaceInfo.Offsets[2];
-                SubmeshReference.FacesPtr         = SurfaceInfo.Offsets[3];
-                SubmeshReference.VertexColorPtr   = SurfaceInfo.Offsets[6];
-                SubmeshReference.WeightsPtr       = SurfaceInfo.Offsets[10];
-
-                // Check for new single scale value.
-                if (SurfaceInfo.NewScale != -1)
-                {
-                    SubmeshReference.Scale = SurfaceInfo.NewScale;
-                    SubmeshReference.XOffset = 0;
-                    SubmeshReference.YOffset = 0;
-                    SubmeshReference.ZOffset = 0;
-                }
-                else
-                {
-                    SubmeshReference.Scale = fmaxf(fmaxf(SurfaceInfo.Min, SurfaceInfo.Scale), SurfaceInfo.Max);
-                    SubmeshReference.XOffset = SurfaceInfo.XOffset;
-                    SubmeshReference.YOffset = SurfaceInfo.YOffset;
-                    SubmeshReference.ZOffset = SurfaceInfo.ZOffset;
-                }
-
-                // Assign weights
-                SubmeshReference.WeightCounts[0] = SurfaceInfo.WeightCounts[0];
-                SubmeshReference.WeightCounts[1] = SurfaceInfo.WeightCounts[1];
-                SubmeshReference.WeightCounts[2] = SurfaceInfo.WeightCounts[2];
-                SubmeshReference.WeightCounts[3] = SurfaceInfo.WeightCounts[3];
-                SubmeshReference.WeightCounts[4] = SurfaceInfo.WeightCounts[4];
-                SubmeshReference.WeightCounts[5] = SurfaceInfo.WeightCounts[5];
-                SubmeshReference.WeightCounts[6] = SurfaceInfo.WeightCounts[6];
-                SubmeshReference.WeightCounts[7] = SurfaceInfo.WeightCounts[7];
-
-                // Read this submesh's material handle
-                auto MaterialHandle = CoDAssets::GameInstance->Read<uint64_t>(ModelData.MaterialHandlesPtr);
-                // Create the material and add it
-                LodReference.Materials.emplace_back(ReadXMaterial(MaterialHandle));
-
-                // Advance
-                XSurfacePtr += sizeof(MW5XModelSurface);
-                ModelData.MaterialHandlesPtr += sizeof(uint64_t);
+                ModelAsset->BoneCount = 0;
+                ModelAsset->RootBoneCount = 0;
             }
-        }
+            else
+            {
+                ModelAsset->BoneCount = ModelData.NumBones + ModelData.UnkBoneCount;
+                ModelAsset->RootBoneCount = ModelData.NumRootBones;
+            }
 
-        // Return it
-        return ModelAsset;
+            // Bone data type
+            ModelAsset->BoneRotationData = BoneDataTypes::DivideBySize;
+
+            // We are streamed
+            ModelAsset->IsModelStreamed = true;
+
+            // Bone id info
+            ModelAsset->BoneIDsPtr = ModelData.BoneIDsPtr;
+            ModelAsset->BoneIndexSize = 4;
+
+            // Bone parent info
+            ModelAsset->BoneParentsPtr = ModelData.ParentListPtr;
+            ModelAsset->BoneParentSize = 2;
+
+            // Local bone pointers
+            ModelAsset->RotationsPtr = ModelData.RotationsPtr;
+            ModelAsset->TranslationsPtr = ModelData.TranslationsPtr;
+
+            // Global matricies
+            ModelAsset->BaseMatriciesPtr = ModelData.BaseMatriciesPtr;
+
+            // Prepare to parse lods
+            for (uint32_t i = 0; i < ModelData.NumLods; i++)
+            {
+                // Read the XModel Lod
+                auto ModelLod = CoDAssets::GameInstance->Read<MW5XModelLod>(ModelData.ModelLods + i * sizeof(MW5XModelLod));
+                // Create the lod and grab reference
+                ModelAsset->ModelLods.emplace_back(ModelLod.NumSurfs);
+                // Grab reference
+                auto& LodReference = ModelAsset->ModelLods[i];
+
+                // Set distance (use index, "distance" we see may be bounds? doesn't line up)
+                LodReference.LodDistance = i;
+
+                // Set stream key and info ptr
+                LodReference.LODStreamInfoPtr = ModelLod.MeshPtr;
+
+                // Grab pointer from the lod itself
+                auto XSurfacePtr = ModelLod.SurfsPtr;
+
+                // Load surfaces
+                for (uint32_t s = 0; s < ModelLod.NumSurfs; s++)
+                {
+                    // Create the surface and grab reference
+                    LodReference.Submeshes.emplace_back();
+                    // Grab reference
+                    auto& SubmeshReference = LodReference.Submeshes[s];
+
+                    // Read the surface data
+                    auto SurfaceInfo = CoDAssets::GameInstance->Read<MW5XModelSurface>(XSurfacePtr);
+
+                    // Apply surface info
+                    SubmeshReference.RigidWeightsPtr = SurfaceInfo.RigidWeightsPtr;
+                    SubmeshReference.VertListcount = SurfaceInfo.VertListCount;
+                    SubmeshReference.VertexCount = SurfaceInfo.VertexCount;
+                    SubmeshReference.FaceCount = SurfaceInfo.FacesCount;
+                    SubmeshReference.VertexPtr = SurfaceInfo.Offsets[0];
+                    SubmeshReference.VertexUVsPtr = SurfaceInfo.Offsets[1];
+                    SubmeshReference.VertexNormalsPtr = SurfaceInfo.Offsets[2];
+                    SubmeshReference.FacesPtr = SurfaceInfo.Offsets[3];
+                    SubmeshReference.VertexColorPtr = SurfaceInfo.Offsets[6];
+                    SubmeshReference.WeightsPtr = SurfaceInfo.Offsets[10];
+
+                    // Check for new single scale value.
+                    if (SurfaceInfo.NewScale != -1)
+                    {
+                        SubmeshReference.Scale = SurfaceInfo.NewScale;
+                        SubmeshReference.XOffset = 0;
+                        SubmeshReference.YOffset = 0;
+                        SubmeshReference.ZOffset = 0;
+                    }
+                    else
+                    {
+                        SubmeshReference.Scale = fmaxf(fmaxf(SurfaceInfo.Min, SurfaceInfo.Scale), SurfaceInfo.Max);
+                        SubmeshReference.XOffset = SurfaceInfo.XOffset;
+                        SubmeshReference.YOffset = SurfaceInfo.YOffset;
+                        SubmeshReference.ZOffset = SurfaceInfo.ZOffset;
+                    }
+
+                    // Assign weights
+                    SubmeshReference.WeightCounts[0] = SurfaceInfo.WeightCounts[0];
+                    SubmeshReference.WeightCounts[1] = SurfaceInfo.WeightCounts[1];
+                    SubmeshReference.WeightCounts[2] = SurfaceInfo.WeightCounts[2];
+                    SubmeshReference.WeightCounts[3] = SurfaceInfo.WeightCounts[3];
+                    SubmeshReference.WeightCounts[4] = SurfaceInfo.WeightCounts[4];
+                    SubmeshReference.WeightCounts[5] = SurfaceInfo.WeightCounts[5];
+                    SubmeshReference.WeightCounts[6] = SurfaceInfo.WeightCounts[6];
+                    SubmeshReference.WeightCounts[7] = SurfaceInfo.WeightCounts[7];
+
+                    // Read this submesh's material handle
+                    auto MaterialHandle = CoDAssets::GameInstance->Read<uint64_t>(ModelData.MaterialHandlesPtr);
+                    // Create the material and add it
+                    LodReference.Materials.emplace_back(ReadXMaterial(MaterialHandle));
+
+                    // Advance
+                    XSurfacePtr += sizeof(MW5XModelSurface);
+                    ModelData.MaterialHandlesPtr += sizeof(uint64_t);
+                }
+            }
+
+            // Return it
+            return ModelAsset;
+        }
     }
     // Not running
     return nullptr;
@@ -1002,6 +1134,9 @@ void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, cons
         // Set size
         MeshDataBufferSize = ResultSize;
     }
+
+    // Grab our xmodel bones
+    CoDXModelBonesHelper::ReadXModelBones(Model, ModelLOD, ResultModel);
 
     // Continue on success
     if (MeshDataBuffer != nullptr)
@@ -1436,15 +1571,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
 
 std::string GameModernWarfare5::LoadStringEntry(uint64_t Index)
 {
-    // Read Info
-    auto StringHash = CoDAssets::GameInstance->Read<uint64_t>(ps::state->StringsAddress + Index) & 0xFFFFFFFFFFFFFFF;
-    // Attempt to locate string
-    auto StringEntry = CoDAssets::StringCache.NameDatabase.find(StringHash);
-    // Not Encrypted
-    if (StringEntry != CoDAssets::StringCache.NameDatabase.end())
-        return StringEntry->second;
-    else
-        return Strings::Format("xstring_%llx", StringHash);
+    return CoDAssets::GameInstance->ReadNullTerminatedString(ps::state->StringsAddress + Index);
 }
 void GameModernWarfare5::PerformInitialSetup()
 {

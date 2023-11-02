@@ -685,49 +685,49 @@ void GameModernWarfare6::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
 
 const XMaterial_t GameModernWarfare6::ReadXMaterial(uint64_t MaterialPointer)
 {
-    // Check for SP Files
-    if (CoDAssets::GameFlags == SupportedGameFlags::SP)
-    {
-        // Prepare to parse the material
-        auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterialSP>(MaterialPointer);
+    //// Check for SP Files
+    //if (CoDAssets::GameFlags == SupportedGameFlags::SP)
+    //{
+    //    // Prepare to parse the material
+    //    auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterialSP>(MaterialPointer);
 
-        // Allocate a new material with the given image count
-        XMaterial_t Result(MaterialData.ImageCount);
-        // Clean the name, then apply it
-        if (MaterialData.NamePtr > 0)
-            Result.MaterialName = Strings::Replace(FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr)), "*", "");
-        else
-            Result.MaterialName = CoDAssets::GetHashedName("xmaterial", MaterialData.Hash);
+    //    // Allocate a new material with the given image count
+    //    XMaterial_t Result(MaterialData.ImageCount);
+    //    // Clean the name, then apply it
+    //    if (MaterialData.NamePtr > 0)
+    //        Result.MaterialName = Strings::Replace(FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr)), "*", "");
+    //    else
+    //        Result.MaterialName = CoDAssets::GetHashedName("xmaterial", MaterialData.Hash);
 
-        // Iterate over material images, assign proper references if available
-        for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
-        {
-            // Read the image info
-            auto ImageInfo = CoDAssets::GameInstance->Read<MW6XMaterialImage>(MaterialData.ImageTablePtr);
-            // Read the image name (End of image - 8)
-            auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
+    //    // Iterate over material images, assign proper references if available
+    //    for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
+    //    {
+    //        // Read the image info
+    //        auto ImageInfo = CoDAssets::GameInstance->Read<MW6XMaterialImage>(MaterialData.ImageTablePtr);
+    //        // Read the image name (End of image - 8)
+    //        auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
 
-            // Default type
-            auto DefaultUsage = ImageUsageType::Unknown;
-            // Check 
-            switch (ImageInfo.Type)
-            {
-            case 0:
-                DefaultUsage = ImageUsageType::DiffuseMap;
-                break;
-            }
+    //        // Default type
+    //        auto DefaultUsage = ImageUsageType::Unknown;
+    //        // Check 
+    //        switch (ImageInfo.Type)
+    //        {
+    //        case 0:
+    //            DefaultUsage = ImageUsageType::DiffuseMap;
+    //            break;
+    //        }
 
-            // Assign the new image
-            Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
+    //        // Assign the new image
+    //        Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
 
-            // Advance
-            MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
-        }
+    //        // Advance
+    //        MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
+    //    }
 
-        // Return it
-        return Result;
-    }
-    else
+    //    // Return it
+    //    return Result;
+    //}
+    //else
     {
         // Prepare to parse the material
         auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterial>(MaterialPointer);
@@ -1406,16 +1406,9 @@ void GameModernWarfare6::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
 
 std::string GameModernWarfare6::LoadStringEntry(uint64_t Index)
 {
-    // Read Info
-    auto StringHash = CoDAssets::GameInstance->Read<uint64_t>(ps::state->StringsAddress + Index) & 0xFFFFFFFFFFFFFFF;
-    // Attempt to locate string
-    auto StringEntry = CoDAssets::StringCache.NameDatabase.find(StringHash);
-    // Not Encrypted
-    if (StringEntry != CoDAssets::StringCache.NameDatabase.end())
-        return StringEntry->second;
-    else
-        return Strings::Format("xstring_%llx", StringHash);
+    return CoDAssets::GameInstance->ReadNullTerminatedString(ps::state->StringsAddress + Index);
 }
+
 void GameModernWarfare6::PerformInitialSetup()
 {
     // Prepare to copy the oodle dll

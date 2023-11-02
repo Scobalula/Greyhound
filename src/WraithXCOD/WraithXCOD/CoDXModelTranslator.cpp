@@ -49,7 +49,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
     ModelResult->LodDistance = Model->ModelLods[LodIndex].LodDistance;
     ModelResult->LodMaxDistance = Model->ModelLods[LodIndex].LodMaxDistance;
 
-    if (CoDAssets::GameID != SupportedGames::ModernWarfare6)
+    if (CoDAssets::GameID != SupportedGames::ModernWarfare6 && CoDAssets::GameID != SupportedGames::ModernWarfare5)
     {
         // Bone matrix size
         uintptr_t ReadDataSize = 0;

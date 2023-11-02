@@ -1482,7 +1482,7 @@ void GameBlackOps4::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_pt
         // Result size
         uint32_t ResultSize = 0;
         // We must read from the cache
-        MeshDataBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(ModelLOD.LODStreamKey, ResultSize);
+        MeshDataBuffer = CoDAssets::GamePackageCache->ExtractPackageObject(ModelLOD.LODStreamKey, MeshInfo.XModelMeshBufferSize, ResultSize);
         // Set size
         MeshDataBufferSize = ResultSize;
     }

@@ -89,7 +89,6 @@ bool XPAKCache::LoadPackage(const std::string& FilePath)
             NewObject.CompressedSize = Entry.Size & 0xFFFFFFFFFFFFFF; // 0x80 in last 8 bits in some entries in new XPAKs
             NewObject.UncompressedSize = 0;
             NewObject.PackageFileIndex = PackageIndex;
-
             // Append to database
             CacheObjects.insert(std::make_pair(Entry.Key, NewObject));
         }
@@ -117,6 +116,9 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
         // Open File
         auto Reader = CoDFileHandle(FileSystem->OpenFile(XPAKFileName, "r"), FileSystem.get());
 
+        if (!Reader.IsValid())
+            return nullptr;
+
 #if _DEBUG
         printf("XPAKCache::ExtractPackageObject(): Streaming Object: 0x%llx from File: %s\n", CacheID, XPAKFileName.c_str());
 #endif // _DEBUG
@@ -135,13 +137,12 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
 
 
         auto payload = Reader.Read(CacheInfo.CompressedSize);
-
-        auto OutputBuffer = DecompressPackageObject(CacheID, payload.get(), CacheInfo.CompressedSize, Size, ResultSizeSizeT);
+        auto outputBuffer = DecompressPackageObject(CacheID, payload.get(), CacheInfo.CompressedSize, Size, ResultSizeSizeT);
 
         // TODO: Switch to size_t in package class
         ResultSize = (uint32_t)ResultSizeSizeT;
         // Return the safe buffer
-        return OutputBuffer;
+        return outputBuffer;
     }
 
     // Set
@@ -219,7 +220,7 @@ std::unique_ptr<uint8_t[]> XPAKCache::DecompressPackageObject(uint64_t cacheID, 
                 break;
             }
 
-            // Pad for MW
+            // TODO: Don't like depending on game for this, maybe use XPAK version and pass in flag?
             if (CoDAssets::GameID == SupportedGames::ModernWarfare4)
                 reader.Advance(((blockSize + 3) & 0xFFFFFFFC) - blockSize);
         }

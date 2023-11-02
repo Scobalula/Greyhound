@@ -1341,15 +1341,7 @@ void GameVanguard::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XMod
 
 std::string GameVanguard::LoadStringEntry(uint64_t Index)
 {
-    // Read Info
-    auto StringHash = CoDAssets::GameInstance->Read<uint64_t>(ps::state->StringsAddress + Index) & 0xFFFFFFFFFFFFFFF;
-    // Attempt to locate string
-    auto StringEntry = StringCache.NameDatabase.find(StringHash);
-    // Not Encrypted
-    if (StringEntry != StringCache.NameDatabase.end())
-        return StringEntry->second;
-    else
-        return Strings::Format("xstring_%llx", StringHash);
+    return CoDAssets::GameInstance->ReadNullTerminatedString(ps::state->StringsAddress + Index);
 }
 void GameVanguard::PerformInitialSetup()
 {

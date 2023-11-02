@@ -92,6 +92,12 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
     if (Animation->ReaderFunction != nullptr)
     {
         Animation->ReaderFunction(Animation, Anim);
+
+        // Copy notetracks
+        for (auto& notetrack : Animation->Reader->Notetracks)
+        {
+            Anim->AddNoteTrack(notetrack.first, (uint32_t)notetrack.second);
+        }
     }
     else
     {

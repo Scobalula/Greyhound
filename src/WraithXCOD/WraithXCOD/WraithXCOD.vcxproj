@@ -159,13 +159,13 @@
     <ClCompile Include="Siren.cpp" />
     <ClCompile Include="SoundSettings.cpp" />
     <ClCompile Include="VGXPAKCache.cpp" />
-    <ClCompile Include="VGXSUBCache.cpp" />
+    <ClCompile Include="XSUBCacheV2.cpp" />
     <ClCompile Include="WinFileSystem.cpp" />
     <ClCompile Include="XPAKCache.cpp" />
     <ClCompile Include="XPAKSupport.cpp" />
     <ClCompile Include="XPTOCCache.cpp" />
     <ClCompile Include="XSUBCache.cpp" />
-    <ClCompile Include="XSUBCacheV2.cpp" />
+    <ClCompile Include="XSUBCacheV3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutWindow.h" />
@@ -237,21 +237,20 @@
     <ClInclude Include="Siren.h" />
     <ClInclude Include="SoundSettings.h" />
     <ClInclude Include="VGXPAKCache.h" />
-    <ClInclude Include="VGXSUBCache.h" />
+    <ClInclude Include="XSUBCacheV2.h" />
     <ClInclude Include="WinFileSystem.h" />
     <ClInclude Include="XPAKCache.h" />
     <ClInclude Include="XPAKSupport.h" />
     <ClInclude Include="XPTOCCache.h" />
     <ClInclude Include="XSUBCache.h" />
-    <ClInclude Include="XSUBCacheV2.h" />
+    <ClInclude Include="XSUBCacheV3.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WraithXCOD.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\WraithX\Resources\CheckMarkIcon.ico" />
-    <Image Include="..\Resources\GreyhoundEnhanced.ico" />
-    <Image Include="..\Resources\GreyhoundPride.ico" />
+    <Image Include="..\Resources\Greyhound2023.ico" />
     <Image Include="..\Resources\SettingHover.png" />
     <Image Include="..\Resources\SettingNormal.png" />
     <Image Include="..\Resources\SettingSelect.png" />
