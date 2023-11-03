@@ -391,11 +391,11 @@ std::unique_ptr<XAnim_t> GameModernWarfare6::ReadXAnim(const CoDAnim_t* Animatio
 
         // Check for additive animations
         // No point, breaks it in SETools, wait for Cast to implement full Additive support
-        //if (AnimData.AssetType == 0x6)
-        //{
-        //    // This is a additive animation
-        //    Anim->AdditiveAnimation = true;
-        //}
+        if (AnimData.AssetType == 0x6)
+        {
+            // This is a additive animation
+            Anim->AdditiveAnimation = true;
+        }
         // Check for looping
         Anim->LoopingAnimation = false /*(AnimData.Flags & 1)*/;
 

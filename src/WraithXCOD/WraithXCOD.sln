@@ -13,7 +13,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opus", "..\External\Opus\wi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "..\External\DirectXTex\DirectXTex\DirectXTex_Desktop_2019_Win10.vcxproj", "{371B9FA9-4C90-4AC6-A123-ACED756D6C77}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CascLib", "..\External\CascLib-2.1\CascLib_vs19.vcxproj", "{78424708-1F6E-4D4B-920C-FB6D26847055}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CascLib", "..\External\CascLib\CascLib.vcxproj", "{78424708-1F6E-4D4B-920C-FB6D26847055}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -174,9 +174,6 @@
     <ClCompile Include="GameModernWarfare2RM.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
-    <ClCompile Include="Casc.cpp">
-      <Filter>Source Files\Helpers</Filter>
-    </ClCompile>
     <ClCompile Include="GameBlackOpsCW.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
@@ -403,9 +400,6 @@
     </ClInclude>
     <ClInclude Include="GameModernWarfare2RM.h">
       <Filter>Header Files\Games</Filter>
-    </ClInclude>
-    <ClInclude Include="Casc.h">
-      <Filter>Header Files\Helpers</Filter>
     </ClInclude>
     <ClInclude Include="GameBlackOpsCW.h">
       <Filter>Header Files\Games</Filter>

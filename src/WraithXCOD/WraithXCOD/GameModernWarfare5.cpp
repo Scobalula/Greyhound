@@ -186,6 +186,12 @@ bool GameModernWarfare5::LoadAssets()
 
             // Make and add
             auto LoadedAnim = new CoDAnim_t();
+
+            if (AnimResult.AssetType == 6)
+            {
+                DebugBreak();
+            }
+
             // Set
             LoadedAnim->AssetName = AnimName;
             LoadedAnim->AssetPointer = Asset.Header;

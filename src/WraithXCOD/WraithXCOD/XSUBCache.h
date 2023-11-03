@@ -2,7 +2,6 @@
 // We need the package cache
 #include "CoDAssets.h"
 #include "CoDPackageCache.h"
-#include "Casc.h"
 #include <shared_mutex>
 
 // A class that handles reading, caching and extracting CASC Resources

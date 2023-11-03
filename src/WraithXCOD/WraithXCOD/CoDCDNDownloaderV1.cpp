@@ -15,6 +15,7 @@
 // We need the XSUB Classes
 #include "XSUBCacheV2.h"
 #include "XSUBCache.h"
+#include "Strings.h"
 
 // We need web class
 #include "WebClient.h"

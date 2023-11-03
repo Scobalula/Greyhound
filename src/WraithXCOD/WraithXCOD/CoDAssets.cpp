@@ -1027,14 +1027,14 @@ std::unique_ptr<WraithModel> CoDAssets::GetModelForPreview(const CoDModel_t* Mod
 
 std::string CoDAssets::GetHashedName(const std::string& type, const uint64_t hash)
 {
-    auto found = AssetNameCache.NameDatabase.find(hash);
+    auto found = AssetNameCache.NameDatabase.find(hash & 0xFFFFFFFFFFFFFFF);
 
     if (found != AssetNameCache.NameDatabase.end())
     {
         return found->second;
     }
 
-    return Strings::Format("%s_%llx", type.c_str(), hash);
+    return Strings::Format("%s_%llx", type.c_str(), hash & 0xFFFFFFFFFFFFFFF);
 }
 
 std::string CoDAssets::GetHashedString(const std::string& type, const uint64_t hash)

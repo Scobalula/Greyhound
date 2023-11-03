@@ -16,6 +16,7 @@
 #include "XSUBCache.h"
 #include "XSUBCacheV2.h"
 #include "XSUBCacheV3.h"
+#include "Strings.h"
 
 // We need web class
 #include "WebClient.h"

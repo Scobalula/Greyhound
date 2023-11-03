@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{8c2c7f40-054b-442c-bad0-6466385e8593}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\common">
+      <UniqueIdentifier>{88455a65-7979-4029-8f47-d7d367bebb8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\jenkins">
+      <UniqueIdentifier>{5ebc9177-f685-43f1-bcc6-ecd8ac9798fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\zlib">
+      <UniqueIdentifier>{0e806296-938d-4872-afed-291e27a246e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{ced3408f-6c90-4d4a-abf2-2704bd636c7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hashes">
+      <UniqueIdentifier>{c800c12f-4e09-44b6-899a-c58c7ca15b97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\overwatch">
+      <UniqueIdentifier>{1aabe925-fbec-4b52-99ff-523b2bdd36af}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\CascDecompress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascDecrypt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascDumpData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascFiles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascFindFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascOpenFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascOpenStorage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascReadFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascRootFile_Diablo3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascRootFile_MNDX.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascRootFile_WoW.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DllMain.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Common.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Directory.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Csv.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\FileStream.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\ListFile.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\RootHandler.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\jenkins\lookup3.c">
+      <Filter>Source Files\jenkins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zlib\adler32.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zlib\crc32.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zlib\inffast.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zlib\inflate.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zlib\inftrees.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zlib\zutil.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascRootFile_Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\FileTree.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascRootFile_OW.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascRootFile_TVFS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascRootFile_Install.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CascIndexFiles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hashes\md5.cpp">
+      <Filter>Source Files\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zlib\trees.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Mime.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Sockets.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hashes\sha1.cpp">
+      <Filter>Source Files\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\overwatch\cmf.cpp">
+      <Filter>Source Files\overwatch</Filter>
+    </ClCompile>
+    <ClCompile Include="src\overwatch\aes.cpp">
+      <Filter>Source Files\overwatch</Filter>
+    </ClCompile>
+    <ClCompile Include="src\overwatch\apm.cpp">
+      <Filter>Source Files\overwatch</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\common\Common.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Directory.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Csv.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileStream.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\ListFile.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Map.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\RootHandler.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CascCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CascLib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CascPort.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Array.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\FileTree.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hashes\md5.h">
+      <Filter>Source Files\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CascStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zlib\deflate.h">
+      <Filter>Source Files\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Mime.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Sockets.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Path.h">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hashes\sha1.h">
+      <Filter>Source Files\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\overwatch\aes.h">
+      <Filter>Source Files\overwatch</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\DllMain.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
