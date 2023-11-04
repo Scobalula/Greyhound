@@ -1875,6 +1875,9 @@ ExportGameResult CoDAssets::ExportSoundAsset(const CoDSound_t* Sound, const std:
             else
                 SoundData = GameModernWarfare5::ReadXSound(Sound);
             break;
+        case SupportedGames::ModernWarfare6:
+            SoundData = GameModernWarfare6::ReadXSound(Sound);
+            break;
         case SupportedGames::Vanguard:
             if (Sound->IsFileEntry)
                 SoundData = SABSupport::LoadOpusSound(Sound);

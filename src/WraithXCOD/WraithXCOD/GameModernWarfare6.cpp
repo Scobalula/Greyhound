@@ -226,7 +226,7 @@ bool GameModernWarfare6::LoadAssets()
 
     if (NeedsSounds)
     {
-        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 197 * sizeof(ps::XAssetPool64));
+        auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 0xc1 * sizeof(ps::XAssetPool64));
         ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
@@ -382,30 +382,12 @@ std::unique_ptr<XAnim_t> GameModernWarfare6::ReadXAnim(const CoDAnim_t* Animatio
         Anim->FrameCount = AnimData.FrameCount;
         Anim->FrameRate = AnimData.Framerate;
 
-        // Check for viewmodel animations
-        //if ((_strnicmp(Animation->AssetName.c_str(), "viewmodel_", 10) == 0) || (_strnicmp(Animation->AssetName.c_str(), "vm_", 3) == 0))
-        //{
-        //    // This is a viewmodel animation
-        //    Anim->ViewModelAnimation = true;
-        //}
-
-        // Check for additive animations
-        // No point, breaks it in SETools, wait for Cast to implement full Additive support
-        if (AnimData.AssetType == 0x6)
-        {
-            // This is a additive animation
-            Anim->AdditiveAnimation = true;
-        }
         // Check for looping
-        Anim->LoopingAnimation = false /*(AnimData.Flags & 1)*/;
+        Anim->LoopingAnimation = (AnimData.Padding2[4] & 1) != 0;
+        Anim->AdditiveAnimation = AnimData.AssetType == 0x6;
 
         // Read the delta data
         auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(AnimData.DeltaPartsPtr);
-
-        std::unique_ptr<uint8_t[]> AnimBuffer = nullptr;
-        size_t AnimBufferSize = 0;
-        size_t AnimIndicesSize = 0;
-        size_t AnimBufferOffset = 0;
 
         // Bone ID index size
         Anim->BoneIndexSize = 4;
