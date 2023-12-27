@@ -130,7 +130,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
         GetCurrentProcess(),
         GetCurrentProcessId(),
         hFile,
-        MiniDumpNormal,
+        MiniDumpWithFullMemory,
         &mei,
         NULL,
         NULL);

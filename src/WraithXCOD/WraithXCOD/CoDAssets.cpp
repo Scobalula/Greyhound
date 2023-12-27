@@ -1766,7 +1766,7 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
             case SupportedGames::ModernWarfare2Remastered: ImageData = GameModernWarfare2RM::ReadXImage(Image); break;
             case SupportedGames::InfiniteWarfare: ImageData          = GameInfiniteWarfare::ReadXImage(Image); break;
             case SupportedGames::ModernWarfare4: ImageData           = GameModernWarfare4::ReadXImage(Image); break;
-            case SupportedGames::ModernWarfare5: ImageData = GameModernWarfare5::ReadXImage(Image); break;
+            case SupportedGames::ModernWarfare5: ImageData           = GameModernWarfare5::ReadXImage(Image); break;
             case SupportedGames::ModernWarfare6: ImageData           = GameModernWarfare6::ReadXImage(Image); break;
             case SupportedGames::WorldWar2: ImageData                = GameWorldWar2::ReadXImage(Image); break;
             case SupportedGames::Vanguard: ImageData                 = GameVanguard::ReadXImage(Image); break;

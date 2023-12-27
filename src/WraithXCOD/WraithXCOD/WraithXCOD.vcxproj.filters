@@ -37,6 +37,12 @@
     <Filter Include="Source Files\Helpers">
       <UniqueIdentifier>{bfb8855c-8003-454b-b481-475a7d7f186e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\CDNDownloaders">
+      <UniqueIdentifier>{1807d4b8-9287-4705-bd22-96e163435f4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CDNDownloaders">
+      <UniqueIdentifier>{59deb4e3-2469-4236-a8c3-142a394a2be6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -216,22 +222,10 @@
     <ClCompile Include="CoDXAnimReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CoDCDNDownloader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CoDCDNDownloaderV1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CoDCDNDownloaderV2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CoDCDNCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CoDQTangent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CoDCDNDownloaderV0.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GameModernWarfare6Structures.cpp">
@@ -247,6 +241,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CoDXModelMeshHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV2.cpp">
+      <Filter>Source Files\CDNDownloaders</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV1.cpp">
+      <Filter>Source Files\CDNDownloaders</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV0.cpp">
+      <Filter>Source Files\CDNDownloaders</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -446,19 +452,10 @@
     <ClInclude Include="CoDCDNDownloader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CoDCDNDownloaderV1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CoDCDNDownloaderV2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CoDCDNCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CoDQTangent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CoDCDNDownloaderV0.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameModernWarfare6Structures.h">
@@ -475,6 +472,15 @@
     </ClInclude>
     <ClInclude Include="CoDXModelMeshHelper.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV0.h">
+      <Filter>Header Files\CDNDownloaders</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV1.h">
+      <Filter>Header Files\CDNDownloaders</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV2.h">
+      <Filter>Header Files\CDNDownloaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

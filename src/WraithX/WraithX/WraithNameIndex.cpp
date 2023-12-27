@@ -135,7 +135,7 @@ void WraithNameIndex::LoadIndex(const std::string& LoadIndex)
                     for (uint32_t i = 0; i < EntryCount; i++)
                     {
                         // Read key and name
-                        auto Key = MemReader.Read<uint64_t>();
+                        auto Key = MemReader.Read<uint64_t>() & 0xFFFFFFFFFFFFFFF;
                         auto Value = MemReader.ReadNullTerminatedString();
 
                         // Add the entry
