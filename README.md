@@ -4,13 +4,11 @@ Greyhound is an asset extractor various titles running on the IW Engine (primari
 
 For detailed information such as game support, settings, FAQs, etc. please refer to the wiki: [Wiki](https://scobalula.github.io/Greyhound/) Work is being done to populate the wiki with information and tutorials so stay tuned!
 
-For more support you can hop into our Discord: [https://discord.gg/RyqyThu](https://discord.gg/RyqyThu)
-
 ## Ricochet Info
 
-Ricochet means we can no longer export from in-game, Parasyte is now required that works with Greyhound to allow exporting from newer titles:
+For titles using Ricochet, Cordycep must be used to extract assets, see below for a link to Cordycep:
 
-[https://wiki.codmods.com/docs/parasyte/index](https://wiki.codmods.com/docs/parasyte/index)
+[https://github.com/Scobalula/Cordycep](https://github.com/Scobalula/Cordycep)
 
 ## Requirements
 
@@ -20,6 +18,7 @@ Ricochet means we can no longer export from in-game, Parasyte is now required th
 
 The following tools/plugins are required/recommended for some assets/games:
 
+* [Cast](https://github.com/dtzxporter/Cast) by DTZxPorter (.cast) (Autodesk Maya/Blender)
 * [SETools](https://github.com/dtzxporter/SETools) by DTZxPorter (.seanim & .semodel) (Autodesk Maya)
 * [io_anim_seanim](https://github.com/SE2Dev/io_anim_seanim) by SE2Dev (.seanim) (Blender)
 * [io_model_semodel](https://github.com/dtzxporter/io_model_semodel) by DTZxPorter (.semodel) (Blender)
@@ -28,7 +27,6 @@ The following tools/plugins are required/recommended for some assets/games:
 * [DarkIris](https://aviacreations.com/modme/index.php?view=topic&tid=831) by DTZxPorter (Texture Utils) (Paint .NET)
 
 ## Links:
-* Discord Server: [https://discord.gg/RyqyThu](https://discord.gg/RyqyThu)
 * Github Repo: [https://github.com/Scobalula/Greyhound](https://github.com/Scobalula/Greyhound)
 * Change Log: [https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md](https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md)
 * Latest Release: [ttps://github.com/Scobalula/Greyhound/releases](https://github.com/Scobalula/Greyhound/releases)
@@ -43,10 +41,6 @@ Greyhound is distributed with an automatic updater that will check for updates e
 
 ## Credits/Contributors
 
-* Scobalula - Developer/Maintainer/Research
-* Blakintosh - MWR Material Support
-* Eric Maynard - Help on BOCW from ModelGetter, ZM Hashes for BOCW Base
-* DTZxPorter - Original Developer of the entire Wraith Project, Game Research
-* ID-Daemon - Game Research
+Greyhound was originally made by DTZxPorter and ID Daemon, forked and maintained since 2018 by [Scobalula](https://github.com/Scobalula), and now maintained by [dest1yo](https://github.com/dest1yo).
 
-**If you use Greyhound in any of your projects, it would be highly appreciated if you credit the people/parties listed in the Credits list.**
+Please also see [Contributors](https://github.com/Scobalula/Greyhound/graphs/contributors) for a list of people who have also contributed code to the repo.
