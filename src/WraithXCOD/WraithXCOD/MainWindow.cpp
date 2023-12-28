@@ -232,14 +232,14 @@ const uint64_t FNVPrime = 0x100000001B3;
 const uint64_t FNVOffset = 0xCBF29CE484222325;
 
 // Generates a 64bit FNV Hash for the given string
-uint64_t FNVHash(std::string data)
+uint64_t FNVHash(std::string data, const uint64_t fnvPrime, const uint64_t fnvOffset)
 {
-    uint64_t Result = FNVOffset;
+    uint64_t Result = fnvOffset;
 
     for (uint32_t i = 0; i < data.length(); i++)
     {
         Result ^= data[i];
-        Result *= FNVPrime;
+        Result *= fnvPrime;
     }
 
     return Result & 0xFFFFFFFFFFFFFFF;
@@ -1190,11 +1190,37 @@ void MainWindow::OnSearch()
                 {
                     // Convert to hex string
                     std::stringstream HashValue;
-                    HashValue << std::hex << FNVHash(MapFind.Value) << std::dec;
+                    HashValue << std::hex << FNVHash(MapFind.Value, FNVPrime, FNVOffset) << std::dec;
 
                     // If we match, add, then stop
                     Result = AssetName.find(HashValue.str());
                     
+                    // Check match type
+                    if (Result == std::string::npos && MapFind.Negate)
+                    {
+                        AssetNameMatch = true;
+                        break;
+                    }
+                    if (Result == std::string::npos && !MapFind.Negate)
+                    {
+                        AssetNameMatch = false;
+                    }
+                    else
+                    {
+                        AssetNameMatch = true;
+                        break;
+                    }
+                }
+                // Second pass for Bo4, hash
+                else if (CoDAssets::GameID == SupportedGames::ModernWarfare5 || CoDAssets::GameID == SupportedGames::ModernWarfare6)
+                {
+                    // Convert to hex string
+                    std::stringstream HashValue;
+                    HashValue << std::hex << FNVHash(MapFind.Value, 0x100000001B3, 0x47F5817A5EF961BA) << std::dec;
+
+                    // If we match, add, then stop
+                    Result = AssetName.find(HashValue.str());
+
                     // Check match type
                     if (Result == std::string::npos && MapFind.Negate)
                     {

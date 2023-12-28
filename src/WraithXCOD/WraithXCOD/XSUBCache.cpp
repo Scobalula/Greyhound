@@ -13,6 +13,9 @@
 #include "MemoryReader.h"
 #include "Siren.h"
 
+// We need the file system classes.
+#include "CoDFileHandle.h"
+
 #pragma pack(push, 1)
 struct BOCWXSubHeader
 {
@@ -56,8 +59,6 @@ XSUBCache::~XSUBCache()
 {
     // Clean up if need be
     Siren::Shutdown();
-    // Close Handle
-    Container.Close();
 }
 
 void XSUBCache::LoadPackageCache(const std::string& BasePath)
@@ -65,30 +66,18 @@ void XSUBCache::LoadPackageCache(const std::string& BasePath)
     // Call Base function first!
     CoDPackageCache::LoadPackageCache(BasePath);
 
-    try
+    // Grab files
+    FileSystem->EnumerateFiles("*.xsub", [this](const std::string& name, const size_t size)
     {
-        // Open Storage
-        Container.Open(BasePath);
-
-        for (auto& File : Container.GetFileEntries())
+        try
         {
-            // We only want XPAKs
-            if (FileSystems::GetExtension(File.first) == ".xsub" && File.second.Exists)
-            {
-                try
-                {
-                    this->LoadPackage(File.first);
-                }
-                catch (...)
-                {
-
-                }
-            }
+            this->LoadPackage(name);
         }
-    }
-    catch (...)
-    {
-    }
+        catch (...)
+        {
+
+        }
+    });
 
     // We've finished loading, set status
     this->SetLoadedState();
@@ -107,7 +96,8 @@ bool XSUBCache::LoadPackage(const std::string& FilePath)
     auto PackageIndex = (uint32_t)PackageFilePaths.size();
 
     // Open CASC File
-    auto Reader = Container.OpenFile(FilePath);
+    // TODO: Implement read, seek, etc. right in this handle class.
+    auto Reader = CoDFileHandle(FileSystem->OpenFile(FilePath, "r"), FileSystem.get());
 
     // Read the header
     auto Header = Reader.Read<BOCWXSubHeader>();
@@ -118,16 +108,16 @@ bool XSUBCache::LoadPackage(const std::string& FilePath)
 
 
     // Verify the magic and offset
-    if (Header.Magic == 0x4950414b && Header.HashOffset < Reader.GetLength())
+    if (Header.Magic == 0x4950414b && Header.HashOffset < Reader.Size())
     {
         // Jump to hash offset
-        Reader.SetPosition(Header.HashOffset);
+        Reader.Seek(Header.HashOffset, SEEK_SET);
         // Hash result size
         uint64_t HashResult = 0;
         // Read Buffer
-        auto Buffer = Reader.Read(Header.HashCount * sizeof(BOCWXSubHashEntry), HashResult);
+        auto Buffer = Reader.Read(Header.HashCount * sizeof(BOCWXSubHashEntry));
         // Read the hash data into a buffer
-        auto HashData = MemoryReader((int8_t*)Buffer.release(), HashResult);
+        auto HashData = MemoryReader((int8_t*)Buffer.release(), Header.HashCount * sizeof(BOCWXSubHashEntry));
 
         // Loop and setup entries
         for (int64_t i = 0; i < Header.HashCount; i++)
@@ -179,14 +169,12 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObjectRaw(uint64_t CacheID, 
         // Get the XPAK name
         auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
         // Open CASC File
-        auto Reader = Container.OpenFile(XPAKFileName);
-        // A buffer for data read
-        uint64_t DataRead = 0;
+        auto Reader = CoDFileHandle(FileSystem->OpenFile(XPAKFileName, "r"), FileSystem.get());
         // Hop to the beginning offset
-        Reader.SetPosition(CacheInfo.Offset);
+        Reader.Seek(CacheInfo.Offset, SEEK_SET);
 
         // Allocate just the raw size of the buffer, that's all we're returning
-        auto ResultBuffer = Reader.Read(CacheInfo.CompressedSize, DataRead);
+        auto ResultBuffer = Reader.Read(CacheInfo.CompressedSize);
 
         // Set result size
         ResultSize = (uint32_t)CacheInfo.CompressedSize;
@@ -213,14 +201,14 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uin
         // Get the XPAK name
         auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
         // Open CASC File
-        auto Reader = Container.OpenFile(XPAKFileName);
+        auto Reader = CoDFileHandle(FileSystem->OpenFile(XPAKFileName, "r"), FileSystem.get());
 #if _DEBUG
         printf("XSUBCache::ExtractPackageObject(): Streaming Object: 0x%llx from CASC File: %s\n", CacheID, XPAKFileName.c_str());
 #endif // _DEBUG
 
 
         // Hop to the beginning offset
-        Reader.SetPosition(CacheInfo.Offset);
+        Reader.Seek(CacheInfo.Offset, SEEK_SET);
 
         // A buffer for data read
         uint64_t DataRead = 0;
@@ -247,7 +235,7 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uin
             uint32_t Commands[256];
             Reader.Read((uint8_t*)&Commands, 0, Count <= 30 ? 120 : Count * 4);
 #if _DEBUG
-            std::cout << "XSUBCache::LoadPackage(): Block Begin " << Reader.GetPosition() << ".\n";
+            std::cout << "XSUBCache::LoadPackage(): Block Begin " << Reader.Tell() << ".\n";
             std::cout << "XSUBCache::LoadPackage(): Block Count " << Count * 4 << ".\n";
 #endif
 
@@ -259,15 +247,13 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uin
                 uint32_t CompressedFlag = (Commands[i] >> 24);
 
                 // Get current position
-                uint64_t CurrentPosition = Reader.GetPosition();
+                uint64_t CurrentPosition = Reader.Tell();
 
                 // Check the block type (3 = compressed (lz4), 8 = compressed (oodle), 0 = raw data, anything else = skip over!)
                 if (CompressedFlag == 0x3)
                 {
-                    // Read result
-                    uint64_t ReadSize = 0;
                     // Read the block
-                    auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    auto DataBlock = Reader.Read(BlockSize);
 
                     // Check if we read data
                     if (DataBlock != nullptr)
@@ -281,10 +267,8 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uin
                 }
                 else if (CompressedFlag == 0x8 || CompressedFlag == 0x9)
                 {
-                    // Read result
-                    uint64_t ReadSize = 0;
                     // Read the block
-                    auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    auto DataBlock = Reader.Read(BlockSize);
 
                     // Check if we read data
                     if (DataBlock != nullptr)
@@ -305,10 +289,8 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uin
                 }
                 else if (CompressedFlag == 0x6)
                 {
-                    // Read result
-                    uint64_t ReadSize = 0;
                     // Read the block
-                    auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    auto DataBlock = Reader.Read(BlockSize);
                     // Check if we're at the end of the block/less than the max block size, if so, use that
                     uint64_t RawBlockSize = DecompressedSize < 262112 ? DecompressedSize : 262112;
                     // Subtract from our total size
@@ -325,10 +307,8 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uin
                 }
                 else if (CompressedFlag == 0x0)
                 {
-                    // Read result
-                    uint64_t ReadSize = 0;
                     // Read the block
-                    auto DataBlock = Reader.Read(BlockSize, ReadSize);
+                    auto DataBlock = Reader.Read(BlockSize);
                     // Subtract from our total size
                     DecompressedSize -= BlockSize;
 
@@ -350,7 +330,7 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uin
                 else
                 {
                     // As far as we care, any other flag value is padding (0xCF is one of them)
-                    Reader.Advance(BlockSize);
+                    Reader.Seek(BlockSize, SEEK_CUR);
                 }
 
                 // We must append the block size and pad it properly (If it's the last block)
@@ -375,11 +355,11 @@ std::unique_ptr<uint8_t[]> XSUBCache::ExtractPackageObject(uint64_t CacheID, uin
                 DataRead += TotalBlockSize;
 
                 // Jump to next segment
-                Reader.SetPosition(NextSegmentOffset);
+                Reader.Seek(NextSegmentOffset, SEEK_SET);
             }
 
 #if _DEBUG
-            std::cout << "XSUBCache::LoadPackage(): Block End " << Reader.GetPosition() << ".\n";
+            std::cout << "XSUBCache::LoadPackage(): Block End " << Reader.Tell() << ".\n";
             std::cout << "XSUBCache::LoadPackage(): Block Count " << Count * 4 << ".\n";
 #endif
 

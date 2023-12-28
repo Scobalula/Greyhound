@@ -133,8 +133,22 @@ XModelSubmesh_t::XModelSubmesh_t()
     RigidWeightsPtr = 0;
     VertexCount = 0;
     FaceCount = 0;
+    VertexPtr = 0;
+    WeightsPtr = 0;
     FacesPtr = 0;
     VertexPtr = 0;
+    VertexNormalsPtr = 0;
+    VertexUVsPtr = 0;
+    VertexColorPtr = 0;
+    PackedIndexTablePtr = 0;
+    PackedIndexBufferPtr = 0;
+    BlendShapesPtr = 0;
+    PackedIndexTableCount = 0;
+    Scale = 0;
+    XOffset = 0;
+    YOffset = 0;
+    ZOffset = 0;
+
     // Clear
     std::memset(&WeightCounts, 0, sizeof(WeightCounts));
     // Set

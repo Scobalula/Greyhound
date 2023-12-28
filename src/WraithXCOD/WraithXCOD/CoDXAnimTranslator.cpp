@@ -92,6 +92,12 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
     if (Animation->ReaderFunction != nullptr)
     {
         Animation->ReaderFunction(Animation, Anim);
+
+        // Copy notetracks
+        for (auto& notetrack : Animation->Reader->Notetracks)
+        {
+            Anim->AddNoteTrack(notetrack.first, (uint32_t)notetrack.second);
+        }
     }
     else
     {
@@ -712,6 +718,7 @@ std::unique_ptr<WraithAnim> CoDXAnimTranslator::TranslateXAnim(const std::unique
         case SupportedGames::WorldWar2:
         case SupportedGames::ModernWarfare4:
         case SupportedGames::ModernWarfare5:
+        case SupportedGames::ModernWarfare6:
         case SupportedGames::Vanguard:
             // Build 3d rotations for 64bit games
             Delta3DRotations64(Anim, (Animation->FrameCount > 255) ? 2 : 1, Animation);

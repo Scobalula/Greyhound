@@ -299,7 +299,7 @@ void Cast::ExportCastAnim(const WraithAnim& Anim, const std::string& FileName, b
 		case WraithAnimationType::Additive:
 			Curve->SetProperty("m", "additive"); break;
 		default:
-			Curve->SetProperty("m", "relative"); break;
+			Curve->SetProperty("m", "absolute"); break; // TODO
 		}
 
 		uint32_t LargestFrame = 0;

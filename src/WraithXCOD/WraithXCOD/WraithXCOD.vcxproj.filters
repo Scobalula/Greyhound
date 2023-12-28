@@ -37,6 +37,12 @@
     <Filter Include="Source Files\Helpers">
       <UniqueIdentifier>{bfb8855c-8003-454b-b481-475a7d7f186e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\CDNDownloaders">
+      <UniqueIdentifier>{1807d4b8-9287-4705-bd22-96e163435f4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CDNDownloaders">
+      <UniqueIdentifier>{59deb4e3-2469-4236-a8c3-142a394a2be6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -168,17 +174,11 @@
     <ClCompile Include="GameModernWarfare4.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
-    <ClCompile Include="CASCCache.cpp">
-      <Filter>Source Files\Packages</Filter>
-    </ClCompile>
     <ClCompile Include="GameQuantumSolace.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
     <ClCompile Include="GameModernWarfare2RM.cpp">
       <Filter>Source Files\Games</Filter>
-    </ClCompile>
-    <ClCompile Include="Casc.cpp">
-      <Filter>Source Files\Helpers</Filter>
     </ClCompile>
     <ClCompile Include="GameBlackOpsCW.cpp">
       <Filter>Source Files\Games</Filter>
@@ -189,7 +189,7 @@
     <ClCompile Include="GameVanguard.cpp">
       <Filter>Source Files\Games</Filter>
     </ClCompile>
-    <ClCompile Include="VGXSUBCache.cpp">
+    <ClCompile Include="XSUBCacheV2.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
     <ClCompile Include="VGXPAKCache.cpp">
@@ -216,19 +216,10 @@
     <ClCompile Include="CascFileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="XSUBCacheV2.cpp">
+    <ClCompile Include="XSUBCacheV3.cpp">
       <Filter>Source Files\Packages</Filter>
     </ClCompile>
     <ClCompile Include="CoDXAnimReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CoDCDNDownloader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CoDCDNDownloaderV1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CoDCDNDownloaderV2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CoDCDNCache.cpp">
@@ -237,7 +228,31 @@
     <ClCompile Include="CoDQTangent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GameModernWarfare6Structures.cpp">
+      <Filter>Source Files\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModernWarfare6.cpp">
+      <Filter>Source Files\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDXModelHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDXModelBonesHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDXModelMeshHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV2.cpp">
+      <Filter>Source Files\CDNDownloaders</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloaderV1.cpp">
+      <Filter>Source Files\CDNDownloaders</Filter>
+    </ClCompile>
     <ClCompile Include="CoDCDNDownloaderV0.cpp">
+      <Filter>Source Files\CDNDownloaders</Filter>
+    </ClCompile>
+    <ClCompile Include="CoDCDNDownloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -386,17 +401,11 @@
     <ClInclude Include="GameModernWarfare4.h">
       <Filter>Header Files\Games</Filter>
     </ClInclude>
-    <ClInclude Include="CASCCache.h">
-      <Filter>Header Files\Packages</Filter>
-    </ClInclude>
     <ClInclude Include="GameQuantumSolace.h">
       <Filter>Header Files\Games</Filter>
     </ClInclude>
     <ClInclude Include="GameModernWarfare2RM.h">
       <Filter>Header Files\Games</Filter>
-    </ClInclude>
-    <ClInclude Include="Casc.h">
-      <Filter>Header Files\Helpers</Filter>
     </ClInclude>
     <ClInclude Include="GameBlackOpsCW.h">
       <Filter>Header Files\Games</Filter>
@@ -407,7 +416,7 @@
     <ClInclude Include="GameVanguard.h">
       <Filter>Header Files\Games</Filter>
     </ClInclude>
-    <ClInclude Include="VGXSUBCache.h">
+    <ClInclude Include="XSUBCacheV2.h">
       <Filter>Header Files\Packages</Filter>
     </ClInclude>
     <ClInclude Include="VGXPAKCache.h">
@@ -434,7 +443,7 @@
     <ClInclude Include="CascFileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XSUBCacheV2.h">
+    <ClInclude Include="XSUBCacheV3.h">
       <Filter>Header Files\Packages</Filter>
     </ClInclude>
     <ClInclude Include="CoDXAnimReader.h">
@@ -443,20 +452,35 @@
     <ClInclude Include="CoDCDNDownloader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CoDCDNDownloaderV1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CoDCDNDownloaderV2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CoDCDNCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CoDQTangent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CoDCDNDownloaderV0.h">
+    <ClInclude Include="GameModernWarfare6Structures.h">
+      <Filter>Header Files\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="GameModernWarfare6.h">
+      <Filter>Header Files\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXModelHelper.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXModelBonesHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDXModelMeshHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV0.h">
+      <Filter>Header Files\CDNDownloaders</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV1.h">
+      <Filter>Header Files\CDNDownloaders</Filter>
+    </ClInclude>
+    <ClInclude Include="CoDCDNDownloaderV2.h">
+      <Filter>Header Files\CDNDownloaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -477,10 +501,7 @@
     <Image Include="..\..\WraithX\Resources\CheckMarkIcon.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\Resources\GreyhoundPride.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\Resources\GreyhoundEnhanced.ico">
+    <Image Include="..\Resources\Greyhound2023.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

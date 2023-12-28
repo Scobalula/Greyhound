@@ -3,6 +3,9 @@
 #include <memory>
 #include <chrono>
 #include <map>
+#include <spdlog/async.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 // Wraith application and api (Must be included before additional includes)
 #include "WraithApp.h"
@@ -127,7 +130,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
         GetCurrentProcess(),
         GetCurrentProcessId(),
         hFile,
-        MiniDumpNormal,
+        MiniDumpWithFullMemory,
         &mei,
         NULL,
         NULL);
@@ -148,6 +151,10 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     // Hook theme callbacks
     WraithTheme::OnLoadIconResource = LoadIconResource;
     WraithTheme::OnLoadImageResource = LoadImageResource;
+
+    // Create Logger
+    CoDAssets::Log = spdlog::basic_logger_mt<spdlog::async_factory>("HoundLogger", FileSystems::CombinePath(FileSystems::GetApplicationPath(), "TheHoundsLog.txt"));
+    spdlog::flush_every(std::chrono::seconds(3));
 
     // Start the instance (We must provide the main window title, never include versions from now on)
     // auto CanContinue = Instance::BeginSingleInstance("Greyhound");

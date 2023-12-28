@@ -220,6 +220,8 @@ struct XModelSubmesh_t
     uint32_t VertexCount;
     // Count of faces
     uint32_t FaceCount;
+    // Count of packed index tables
+    uint32_t PackedIndexTableCount;
 
     // Pointer to faces
     uint64_t FacesPtr;
@@ -231,6 +233,10 @@ struct XModelSubmesh_t
     uint64_t VertexUVsPtr;
     // Pointer to vertex colors
     uint64_t VertexColorPtr;
+    // Pointer to packed index table
+    uint64_t PackedIndexTablePtr;
+    // Pointer to packed index buffer
+    uint64_t PackedIndexBufferPtr;
 
     // A list of weights
     uint16_t WeightCounts[8];

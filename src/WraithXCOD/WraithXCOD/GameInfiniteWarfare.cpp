@@ -374,7 +374,7 @@ bool GameInfiniteWarfare::LoadAssetsPS()
     if (NeedsModels)
     {
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 8 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto ModelResult = CoDAssets::GameInstance->Read<IWXModel>(Asset.Header);
@@ -401,7 +401,7 @@ bool GameInfiniteWarfare::LoadAssetsPS()
     if (NeedsImages)
     {
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 18 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto ImageResult = CoDAssets::GameInstance->Read<IWGfxImage>(Asset.Header);
@@ -454,7 +454,7 @@ bool GameInfiniteWarfare::LoadAssetsPS()
     if (NeedsAnims)
     {
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 6 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto AnimResult = CoDAssets::GameInstance->Read<IWXAnim>(Asset.Header);

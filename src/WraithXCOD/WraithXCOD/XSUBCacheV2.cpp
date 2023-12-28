@@ -5,12 +5,6 @@
 // We need the game files structs
 #include "DBGameFiles.h"
 
-// We need the file system classes.
-#include "CoDFileSystem.h"
-#include "WinFileSystem.h"
-#include "CascFileSystem.h"
-#include "CoDFileHandle.h"
-
 // We need the following classes
 #include "FileSystems.h"
 #include "Strings.h"
@@ -18,6 +12,8 @@
 #include "BinaryReader.h"
 #include "MemoryReader.h"
 #include "Siren.h"
+
+#include "CoDFileHandle.h"
 
 XSUBCacheV2::XSUBCacheV2()
 {
@@ -29,25 +25,12 @@ XSUBCacheV2::~XSUBCacheV2()
 {
     // Clean up if need be
     Siren::Shutdown();
-    // Close Handle
-    FileSystem = nullptr;
 }
 
 void XSUBCacheV2::LoadPackageCache(const std::string& BasePath)
 {
     // Call Base function first!
     CoDPackageCache::LoadPackageCache(BasePath);
-
-    // Open the file system, check for build info, if build info exists
-    // we'll use Casc, otherwise use raw directory.
-    if (FileSystems::FileExists(BasePath + "\\.build.info"))
-    {
-        FileSystem = std::make_unique<CascFileSystem>(BasePath);
-    }
-    else
-    {
-        FileSystem = std::make_unique<WinFileSystem>(BasePath);
-    }
 
     // Verify we've successfully opened it.
     if (!FileSystem->IsValid())
@@ -68,19 +51,8 @@ void XSUBCacheV2::LoadPackageCache(const std::string& BasePath)
 
             }
         });
-        // Secon pass, catch xpak.
-        FileSystem->EnumerateFiles("*.xpak", [this](const std::string& name, const size_t size)
-        {
-            try
-            {
-                this->LoadPackage(name);
-            }
-            catch (...)
-            {
-
-            }
-        });
     }
+
 
     // We've finished loading, set status
     this->SetLoadedState();
@@ -98,55 +70,38 @@ bool XSUBCacheV2::LoadPackage(const std::string& FilePath)
     // Add to package files
     auto PackageIndex = (uint32_t)PackageFilePaths.size();
 
-    // Open CASC File
-    // TODO: Implement read, seek, etc. right in this handle class.
-    auto Handle = CoDFileHandle(FileSystem->OpenFile(FilePath, "r"), FileSystem.get());
+    auto Reader = CoDFileHandle(FileSystem->OpenFile(FilePath, "r"), FileSystem.get());
 
     // Read the header
-    auto Header = FileSystem->Read<XSUBHeaderV2>(Handle.GetHandle());
-    // The final file location
-    std::string FinalPath = FilePath;
+    auto Header = Reader.Read<VGXSUBHeader>();
+
     // Check if we have data (Type 3 is data, others are just metadata and refs)
-    if (Header.Type == 1)
-    {
-        // Append data file, type 1 files contain a seperate file for the actual 
-        // data as they are built on demand by the game.
-        FinalPath += "data";
-    }
-    else if (Header.Type != 3)
-    {
-        return false;
-    }
+    if (Header.Type != 3)
+        return true;
+
 
     // Verify the magic and offset
-    if (Header.Magic == 0x4950414b && Header.HashOffset < FileSystem->Size(Handle.GetHandle()))
+    if (Header.Magic == 0x4950414b && Header.HashOffset < Reader.Size())
     {
         // Jump to hash offset
-        FileSystem->Seek(Handle.GetHandle(), Header.HashOffset, SEEK_SET);
+        Reader.Seek(Header.HashOffset, SEEK_SET);
         // Read Buffer
-        auto Buffer = FileSystem->Read(Handle.GetHandle(), Header.HashCount * sizeof(XSUBHashEntryV2));
-
-        // Verify result
-        if (Buffer == nullptr)
-        {
-            return false;
-        }
-
+        auto Buffer = Reader.Read(Header.HashCount * sizeof(VGXSUBHashEntry));
         // Read the hash data into a buffer
-        auto HashData = MemoryReader((int8_t*)Buffer.release(), Header.HashCount * sizeof(XSUBHashEntryV2));
+        auto HashData = MemoryReader((int8_t*)Buffer.release(), Header.HashCount * sizeof(VGXSUBHashEntry));
 
         // Loop and setup entries
         for (int64_t i = 0; i < Header.HashCount; i++)
         {
             // Read it
-            auto Entry = HashData.Read<XSUBHashEntryV2>();
+            auto Entry = HashData.Read<VGXSUBHashEntry>();
 
             // Prepare a cache entry
             PackageCacheObject NewObject{};
             // Set data
-            NewObject.Offset           = (Entry.PackedInfo >> 32) << 7;
-            NewObject.CompressedSize   = (Entry.PackedInfo >> 1) & 0x3FFFFFFF;
-            NewObject.UncompressedSize = 0;
+            NewObject.Offset = (Entry.PackedInfo >> 32) << 7;
+            NewObject.CompressedSize = (Entry.PackedInfo >> 1) & 0x3FFFFFFF;
+            NewObject.UncompressedSize = (Entry.PackedInfo >> 1) & 0xFFFFFFFF;
             NewObject.PackageFileIndex = PackageIndex;
 
             // Append to database
@@ -154,7 +109,7 @@ bool XSUBCacheV2::LoadPackage(const std::string& FilePath)
         }
 
         // Append the file path
-        PackageFilePaths.push_back(FinalPath);
+        PackageFilePaths.push_back(FilePath);
 
 #ifdef _DEBUG
         std::cout << "XSUBCacheV2::LoadPackage(): Added " << FilePath << " to cache.\n";
@@ -177,20 +132,16 @@ std::unique_ptr<uint8_t[]> XSUBCacheV2::ExtractPackageObject(uint64_t CacheID, i
     // Prepare to extract if found
     if (CacheObjects.find(CacheID) != CacheObjects.end())
     {
-        // Aquire lock
-        std::lock_guard<std::shared_mutex> Gaurd(ReadMutex);
-
         // Take cache data, and extract from the XPAK (Uncompressed size = offset of data segment!)
         auto& CacheInfo = CacheObjects[CacheID];
         // Get the XPAK name
         auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
-        // Open CASC File
-        // TODO: Implement read, seek, etc. right in this handle class.
-        auto Handle = CoDFileHandle(FileSystem->OpenFile(XPAKFileName, "r"), FileSystem.get());
+        auto Reader = CoDFileHandle(FileSystem->OpenFile(XPAKFileName, "r"), FileSystem.get());
+
 
         auto ReadUsage = 0.0;
 #if _DEBUG
-        printf("XSUBCache::ExtractPackageObject(): Streaming Object: 0x%llx from CASC File: %s\n", CacheID, XPAKFileName.c_str());
+        // printf("XSUBCache::ExtractPackageObject(): Streaming Object: 0x%llx from CASC File: %s\n", CacheID, XPAKFileName.c_str());
 #endif // _DEBUG
 
         // A buffer for total size
@@ -202,44 +153,42 @@ std::unique_ptr<uint8_t[]> XSUBCacheV2::ExtractPackageObject(uint64_t CacheID, i
         // Block Info
         auto BlockPosition = CacheInfo.Offset;
         auto BlockEnd = CacheInfo.Offset + CacheInfo.CompressedSize;
-        XSUBBlockV2 Blocks[256];
+        VGXSUBBlock Blocks[256];
 
         // Hop to the beginning offset
-        FileSystem->Seek(Handle.GetHandle(), BlockPosition + 2, SEEK_SET);
+        Reader.Seek(BlockPosition + 2, SEEK_SET);
 
         // Raw block, hacky check, probably will be info
         // within Gfx Mips and other data
-        if (FileSystem->Read<uint64_t>(Handle.GetHandle()) != CacheID)
+        if (Reader.Read<uint64_t>() != CacheID)
         {
             // Hop to the beginning offset
-            FileSystem->Seek(Handle.GetHandle(), BlockPosition, SEEK_SET);
+            Reader.Seek(BlockPosition, SEEK_SET);
             // Read
-            ResultSize = (uint32_t)FileSystem->Read(Handle.GetHandle(), (uint8_t*)ResultBuffer.get(), 0, CacheInfo.CompressedSize);
+            Reader.Read((uint8_t*)ResultBuffer.get(), 0, CacheInfo.CompressedSize);
             // Set size
             TotalDataSize = CacheInfo.CompressedSize;
             // Done
             return ResultBuffer;
         }
 
-        while ((uint64_t)FileSystem->Tell(Handle.GetHandle()) < BlockEnd)
+        while ((uint64_t)Reader.Tell() < BlockEnd)
         {
             // Hop to the beginning offset, skip header
-            FileSystem->Seek(Handle.GetHandle(), BlockPosition + 22, SEEK_SET);
+            Reader.Seek(BlockPosition + 22, SEEK_SET);
 
             // Read blocks
-            auto BlockCount = (uint32_t)FileSystem->Read<uint8_t>(Handle.GetHandle());
+            auto BlockCount = (uint32_t)Reader.Read<uint8_t>();
             std::memset(Blocks, 0, sizeof(Blocks));
-            FileSystem->Read(Handle.GetHandle(), (uint8_t*)&Blocks, 0, BlockCount * sizeof(XSUBBlockV2));
+            Reader.Read((uint8_t*)&Blocks, 0, BlockCount * sizeof(VGXSUBBlock));
 
             // Loop for block count
             for (uint32_t i = 0; i < BlockCount; i++)
             {
                 // Hop to the beginning offset, skip header
-                FileSystem->Seek(Handle.GetHandle(), BlockPosition + Blocks[i].BlockOffset, SEEK_SET);
-                // Read result
-                uint64_t ReadSize = 0;
+                Reader.Seek(BlockPosition + Blocks[i].BlockOffset, SEEK_SET);
                 // Read the block
-                auto DataBlock = FileSystem->Read(Handle.GetHandle(), Blocks[i].CompressedSize);
+                auto DataBlock = Reader.Read(Blocks[i].CompressedSize);
 
                 switch (Blocks[i].Compression)
                 {
@@ -266,14 +215,14 @@ std::unique_ptr<uint8_t[]> XSUBCacheV2::ExtractPackageObject(uint64_t CacheID, i
                     break;
                 default:
                     // As far as we care, any other flag value is padding (0xCF is one of them)
-                    FileSystem->Seek(Handle.GetHandle(), Blocks[i].CompressedSize, SEEK_CUR);
+                    Reader.Seek(Blocks[i].CompressedSize, SEEK_CUR);
                     // Done
                     break;
                 }
             }
 
             // Set next block
-            BlockPosition = ((FileSystem->Tell(Handle.GetHandle()) + 0x7F) & 0xFFFFFFFFFFFFF80);
+            BlockPosition = ((Reader.Tell() + 0x7F) & 0xFFFFFFFFFFFFF80);
         }
 
         // Return the safe buffer
@@ -286,4 +235,93 @@ std::unique_ptr<uint8_t[]> XSUBCacheV2::ExtractPackageObject(uint64_t CacheID, i
 
     // Failed to find data
     return nullptr;
+}
+
+std::unique_ptr<uint8_t[]> XSUBCacheV2::DecompressPackageObject(uint64_t cacheID, uint8_t* buffer, size_t bufferSize, size_t decompressedSize, size_t& resultSize)
+{
+    resultSize = 0;
+
+    // We don't accept unknown sizes in xsub, caller must know how much memory is needed.
+    if (decompressedSize == 0)
+    {
+        return nullptr;
+    }
+
+    // Our final big blob of data to return, this will be the entire decompressed buffer.
+    auto result = std::make_unique<uint8_t[]>(decompressedSize);
+    auto reader = MemoryReader((int8_t*)buffer, bufferSize, true);
+
+    size_t blockPosition = 0;
+    VGXSUBBlock Blocks[256];
+
+    while (reader.GetPosition() < reader.GetLength())
+    {
+        blockPosition = reader.GetPosition();
+
+        // Verify block magic.
+        if (reader.Read<uint16_t>() != 0xF01D)
+        {
+            resultSize = 0;
+            return nullptr;
+        }
+        // Verify our hash matches.
+        if (reader.Read<uint64_t>() != cacheID)
+        {
+            resultSize = 0;
+            return nullptr;
+        }
+
+        // Skip unknown values, seem to be offsets/sizes/indices?
+        reader.Advance(12);
+
+        auto BlockCount = (size_t)reader.Read<uint8_t>();
+
+        // If we have 0 blocks, we're possibly EOF, either way it shouldn't happen
+        // and we shouldn't continue after it has occured.
+        if (BlockCount == 0)
+        {
+            break;
+        }
+
+        std::memset(Blocks, 0, sizeof(Blocks));
+        reader.Read(BlockCount * sizeof(VGXSUBBlock), (int8_t*)&Blocks);
+
+        // Loop for block count
+        for (uint32_t i = 0; i < BlockCount; i++)
+        {
+            reader.SetPosition(blockPosition + Blocks[i].BlockOffset);
+            
+            auto dataBlock = reader.GetCurrentStream(Blocks[i].CompressedSize);
+
+            // If we hit EOF on this, we can't verify this stream is valid or something is wrong.
+            if (dataBlock == nullptr)
+            {
+                resultSize = 0;
+                return nullptr;
+            }
+
+            switch (Blocks[i].Compression)
+            {
+            case 0x3:
+                Compression::DecompressLZ4Block((const int8_t*)dataBlock, (int8_t*)result.get() + Blocks[i].DecompressedOffset, Blocks[i].CompressedSize, Blocks[i].DecompressedSize);
+                resultSize += Blocks[i].DecompressedSize;
+                break;
+            case 0x6:
+                Siren::Decompress((const uint8_t*)dataBlock, Blocks[i].CompressedSize, result.get() + Blocks[i].DecompressedOffset, Blocks[i].DecompressedSize);
+                resultSize += Blocks[i].DecompressedSize;
+                break;
+            case 0x0:
+                std::memcpy(result.get() + Blocks[i].DecompressedOffset, dataBlock, Blocks[i].CompressedSize);
+                resultSize += Blocks[i].DecompressedSize;
+                break;
+            default:
+                reader.Advance(Blocks[i].CompressedSize);
+                break;
+            }
+        }
+
+        reader.SetPosition((reader.GetPosition() + 0x7F) & 0xFFFFFFFFFFFFF80);
+    }
+
+    return result;
 }

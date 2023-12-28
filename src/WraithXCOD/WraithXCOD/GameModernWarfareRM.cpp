@@ -571,7 +571,7 @@ bool GameModernWarfareRM::LoadAssetsPS()
     if (NeedsAnims)
     {
         auto XAnimPool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 5 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(XAnimPool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(XAnimPool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto AnimResult = CoDAssets::GameInstance->Read<MWRXAnim>(Asset.Header);
@@ -599,7 +599,7 @@ bool GameModernWarfareRM::LoadAssetsPS()
     if (NeedsImages)
     {
         auto XAnimPool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 16 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(XAnimPool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(XAnimPool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto ImageResult = CoDAssets::GameInstance->Read<MWRGfxImage>(Asset.Header);
@@ -647,7 +647,7 @@ bool GameModernWarfareRM::LoadAssetsPS()
     if (NeedsMaterials)
     {
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 8 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto MaterialResult = CoDAssets::GameInstance->Read<MWRXMaterial>(Asset.Header);
@@ -671,7 +671,7 @@ bool GameModernWarfareRM::LoadAssetsPS()
     if (NeedsModels)
     {
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto ModelResult = CoDAssets::GameInstance->Read<MWRXModel>(Asset.Header);
@@ -699,7 +699,7 @@ bool GameModernWarfareRM::LoadAssetsPS()
         // A temporary table for duplicates, since we are tracing from alias entries...
         std::set<uint64_t> UniqueEntries;
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 17 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [&UniqueEntries](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [&UniqueEntries](ps::XAsset64& Asset)
         {
             // Read
             auto SoundResult = CoDAssets::GameInstance->Read<MWRSoundAlias>(Asset.Header);

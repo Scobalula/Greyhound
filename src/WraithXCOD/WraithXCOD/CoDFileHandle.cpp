@@ -54,7 +54,7 @@ CoDFileHandle::~CoDFileHandle()
 
 size_t CoDFileHandle::Size()
 {
-    return size_t();
+    return FileSystem->Size(Handle);
 }
 
 void CoDFileHandle::Close()

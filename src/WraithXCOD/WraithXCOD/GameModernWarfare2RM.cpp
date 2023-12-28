@@ -592,7 +592,7 @@ bool GameModernWarfare2RM::LoadAssetsPS()
     if (NeedsAnims)
     {
         auto XAnimPool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 5 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(XAnimPool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(XAnimPool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto AnimResult = CoDAssets::GameInstance->Read<MWRXAnim>(Asset.Header);
@@ -620,7 +620,7 @@ bool GameModernWarfare2RM::LoadAssetsPS()
     if (NeedsModels)
     {
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 7 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto ModelResult = CoDAssets::GameInstance->Read<MW2RXModel>(Asset.Header);
@@ -643,7 +643,7 @@ bool GameModernWarfare2RM::LoadAssetsPS()
     if (NeedsImages)
     {
         auto XAnimPool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 16 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(XAnimPool.FirstXAsset, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(XAnimPool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
             auto ImageResult = CoDAssets::GameInstance->Read<MWRGfxImage>(Asset.Header);
@@ -690,7 +690,7 @@ bool GameModernWarfare2RM::LoadAssetsPS()
         // A temporary table for duplicates, since we are tracing from alias entries...
         std::set<uint64_t> UniqueEntries;
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 17 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.FirstXAsset, CoDAssets::ParasyteRequest, [&UniqueEntries](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [&UniqueEntries](ps::XAsset64& Asset)
         {
             // Read
             auto SoundResult = CoDAssets::GameInstance->Read<MWRSoundAlias>(Asset.Header);
@@ -1015,7 +1015,7 @@ struct XImageData
 std::unique_ptr<XImageDDS> GameModernWarfare2RM::LoadXImagePS(const XImage_t& Image)
 {
     // Prepare to load an image, we only support PAK images
-    uint32_t ResultSize = 0;
+    size_t ResultSize = 0;
 
     // We must read the image data
     auto ImageInfo = CoDAssets::GameInstance->Read<MWRGfxImage>(Image.ImagePtr);
@@ -1158,7 +1158,7 @@ const XMaterial_t GameModernWarfare2RM::ReadXMaterial(uint64_t MaterialPointer)
 std::unique_ptr<XImageDDS> GameModernWarfare2RM::LoadXImage(const XImage_t& Image)
 {
     // Prepare to load an image, we only support PAK images
-    uint32_t ResultSize = 0;
+    size_t ResultSize = 0;
 
     // We must read the image data
     auto ImageInfo = CoDAssets::GameInstance->Read<MWRGfxImage>(Image.ImagePtr);
@@ -1193,7 +1193,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare2RM::LoadXImage(const XImage_t& Imag
     auto ImagePackageName = CoDAssets::GameInstance->ReadNullTerminatedString(ImageStreamInfo.ImagePAKInfoPtr + 0x18);
 
     // Attempt to extract the package asset
-    auto ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(ImagePackageName + ".pak", ImageStreamInfo.ImageOffset, (ImageStreamInfo.ImageEndOffset - ImageStreamInfo.ImageOffset), ResultSize);
+    auto ImageData = CoDAssets::GamePackageCache->ExtractPackageObject(ImagePackageName + ".pak", ImageStreamInfo.ImageOffset, (uint64_t)(ImageStreamInfo.ImageEndOffset - ImageStreamInfo.ImageOffset), (size_t)ResultSize);
 
     // Check
     if (ImageData != nullptr)

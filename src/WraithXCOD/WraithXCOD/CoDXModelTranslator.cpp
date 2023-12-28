@@ -16,6 +16,7 @@
 #include "GameWorldWar2.h"
 #include "GameModernWarfare4.h"
 #include "GameModernWarfare5.h"
+#include "GameModernWarfare6.h"
 #include "GameVanguard.h"
 
 // Include generic structures
@@ -34,21 +35,6 @@ struct QSGfxVertexBuffer
     uint32_t Normal;
 };
 
-class SomeClass
-{
-public:
-    uint8_t* Buf;
-    size_t A;
-    size_t B;
-
-    SomeClass(uint8_t* buf, size_t a, size_t b)
-    {
-        Buf = buf;
-        A = a;
-        B = b;
-    }
-};
-
 std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::unique_ptr<XModel_t>& Model, uint32_t LodIndex, bool JustBones)
 {
     // Check if we want Vertex Colors
@@ -63,180 +49,183 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
     ModelResult->LodDistance = Model->ModelLods[LodIndex].LodDistance;
     ModelResult->LodMaxDistance = Model->ModelLods[LodIndex].LodMaxDistance;
 
-    // Bone matrix size
-    uintptr_t ReadDataSize = 0;
-    // Calculated matricies size
-    auto GlobalMatrixLength = (sizeof(DObjAnimMat) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount)));
-    auto LocalTranslationLength = (sizeof(Vector3) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
-    auto LocalRotationLength = (sizeof(QuatData) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
-    // Read global matrix data
-    auto GlobalMatrixData = MemoryReader(CoDAssets::GameInstance->Read(Model->BaseMatriciesPtr, GlobalMatrixLength, ReadDataSize), GlobalMatrixLength);
-    auto LocalTranslationData = MemoryReader(CoDAssets::GameInstance->Read(Model->TranslationsPtr, LocalTranslationLength, ReadDataSize), LocalTranslationLength);
-    auto LocalRotationData = MemoryReader(CoDAssets::GameInstance->Read(Model->RotationsPtr, LocalRotationLength, ReadDataSize), LocalRotationLength);
-    // Whether or not use bone was ticked
-    bool NeedsLocalPositions = true;
-
-    // Grab the bone ids pointer
-    auto BoneIDs = Model->BoneIDsPtr;
-    // Grab the bone parent pointer
-    auto BoneParents = Model->BoneParentsPtr;
-
-    // Prepare the model for bones
-    ModelResult->PrepareBones(Model->BoneCount + Model->CosmeticBoneCount);
-
-    // Iterate and build bones
-    for (uint32_t i = 0; i < (Model->BoneCount + Model->CosmeticBoneCount); i++)
+    if (CoDAssets::GameID != SupportedGames::ModernWarfare6 && CoDAssets::GameID != SupportedGames::ModernWarfare5)
     {
-        // Read the ID
-        uint64_t BoneID = 0;
+        // Bone matrix size
+        uintptr_t ReadDataSize = 0;
+        // Calculated matricies size
+        auto GlobalMatrixLength = (sizeof(DObjAnimMat) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount)));
+        auto LocalTranslationLength = (sizeof(Vector3) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
+        auto LocalRotationLength = (sizeof(QuatData) * (((uint64_t)Model->BoneCount + Model->CosmeticBoneCount) - Model->RootBoneCount));
+        // Read global matrix data
+        auto GlobalMatrixData = MemoryReader(CoDAssets::GameInstance->Read(Model->BaseMatriciesPtr, GlobalMatrixLength, ReadDataSize), GlobalMatrixLength);
+        auto LocalTranslationData = MemoryReader(CoDAssets::GameInstance->Read(Model->TranslationsPtr, LocalTranslationLength, ReadDataSize), LocalTranslationLength);
+        auto LocalRotationData = MemoryReader(CoDAssets::GameInstance->Read(Model->RotationsPtr, LocalRotationLength, ReadDataSize), LocalRotationLength);
+        // Whether or not use bone was ticked
+        bool NeedsLocalPositions = true;
 
-        // Check size
-        switch (Model->BoneIndexSize)
+        // Grab the bone ids pointer
+        auto BoneIDs = Model->BoneIDsPtr;
+        // Grab the bone parent pointer
+        auto BoneParents = Model->BoneParentsPtr;
+
+        // Prepare the model for bones
+        ModelResult->PrepareBones(Model->BoneCount + Model->CosmeticBoneCount);
+
+        // Iterate and build bones
+        for (uint32_t i = 0; i < (Model->BoneCount + Model->CosmeticBoneCount); i++)
         {
-        case 2: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint16_t>(BoneIDs); break;
-        case 4: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(BoneIDs); break;
-        case 8: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(BoneIDs + 4); break;
-        }
+            // Read the ID
+            uint64_t BoneID = 0;
 
-        // Add the new bone
-        auto& NewBone = ModelResult->AddBone();
-
-        // Set the new bones name (Determine if we need something else)
-        std::string BoneName;
-
-        switch (Model->BoneIndexSize)
-        {
-        case 2:
-        case 4:
-            BoneName = CoDAssets::GameStringHandler(BoneID);
-            break;
-        case 8:
-            BoneName = CoDAssets::GetHashedString("bone", BoneID);
-            break;
-        }
-
-        // Check for an invalid tag name
-        if (BoneName == "")
-        {
-            // Make a new bone name
-            if (i == 0)
+            // Check size
+            switch (Model->BoneIndexSize)
             {
-                NewBone.TagName = "tag_origin";
+            case 2: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint16_t>(BoneIDs); break;
+            case 4: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(BoneIDs); break;
+            case 8: BoneID = (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(BoneIDs + 4); break;
+            }
+
+            // Add the new bone
+            auto& NewBone = ModelResult->AddBone();
+
+            // Set the new bones name (Determine if we need something else)
+            std::string BoneName;
+
+            switch (Model->BoneIndexSize)
+            {
+            case 2:
+            case 4:
+                BoneName = CoDAssets::GameStringHandler(BoneID);
+                break;
+            case 8:
+                BoneName = CoDAssets::GetHashedString("bone", BoneID);
+                break;
+            }
+
+            // Check for an invalid tag name
+            if (BoneName == "")
+            {
+                // Make a new bone name
+                if (i == 0)
+                {
+                    NewBone.TagName = "tag_origin";
+                }
+                else
+                {
+                    NewBone.TagName = Strings::Format("no_tag_%d", i);
+                }
             }
             else
             {
-                NewBone.TagName = Strings::Format("no_tag_%d", i);
-            }
-        }
-        else
-        {
-            // Set as read
-            NewBone.TagName = BoneName;
-        }
-        
-        // Read the parent ID (Default as a root bone)
-        int32_t BoneParent = -1;
-
-        // Check if we have parent ids yet
-        if (i >= Model->RootBoneCount)
-        {
-            // We have a parent id to read
-            switch (Model->BoneParentSize)
-            {
-            case 1: BoneParent = CoDAssets::GameInstance->Read<uint8_t>(BoneParents); break;
-            case 2: BoneParent = CoDAssets::GameInstance->Read<uint16_t>(BoneParents); break;
-            case 4: BoneParent = CoDAssets::GameInstance->Read<uint32_t>(BoneParents); break;
+                // Set as read
+                NewBone.TagName = BoneName;
             }
 
-            // Check if we're cosmetic bones
-            if (i < Model->BoneCount)
+            // Read the parent ID (Default as a root bone)
+            int32_t BoneParent = -1;
+
+            // Check if we have parent ids yet
+            if (i >= Model->RootBoneCount)
             {
-                // Subtract position
-                BoneParent = (i - BoneParent);
+                // We have a parent id to read
+                switch (Model->BoneParentSize)
+                {
+                case 1: BoneParent = CoDAssets::GameInstance->Read<uint8_t>(BoneParents); break;
+                case 2: BoneParent = CoDAssets::GameInstance->Read<uint16_t>(BoneParents); break;
+                case 4: BoneParent = CoDAssets::GameInstance->Read<uint32_t>(BoneParents); break;
+                }
+
+                // Check if we're cosmetic bones
+                if (i < Model->BoneCount)
+                {
+                    // Subtract position
+                    BoneParent = (i - BoneParent);
+                }
+                else
+                {
+                    // Absolute position
+                    BoneParent = BoneParent;
+                    NewBone.IsCosmetic = true;
+                }
+
+                // Advance
+                BoneParents += Model->BoneParentSize;
             }
             else
             {
-                // Absolute position
-                BoneParent = BoneParent;
-                NewBone.IsCosmetic = true;
+                // Take i and subtract 1
+                BoneParent = (i - 1);
+            }
+
+            // Set bone parent
+            NewBone.BoneParent = BoneParent;
+
+            // Read global data
+            auto GlobalData = GlobalMatrixData.Read<DObjAnimMat>();
+
+            // Assign global position
+            NewBone.GlobalPosition = GlobalData.Translation;
+            NewBone.GlobalRotation = GlobalData.Rotation;
+
+            // Check if we aren't a root bone
+            if (i > (Model->RootBoneCount - 1))
+            {
+                // We have local translations and rotations
+                NewBone.LocalPosition = LocalTranslationData.Read<Vector3>();
+
+                // Check if it was not zero
+                if (NewBone.LocalPosition != Vector3(0, 0, 0))
+                {
+                    // We don't need them
+                    NeedsLocalPositions = false;
+                }
+
+                // Read rotation data
+                auto RotationData = LocalRotationData.Read<QuatData>();
+                // Build rotation value
+                if (Model->BoneRotationData == BoneDataTypes::DivideBySize)
+                {
+                    // Set
+                    NewBone.LocalRotation = Quaternion((float)RotationData.RotationX / 32768.0f, (float)RotationData.RotationY / 32768.0f, (float)RotationData.RotationZ / 32768.0f, (float)RotationData.RotationW / 32768.0f);
+                }
+                else if (Model->BoneRotationData == BoneDataTypes::HalfFloat)
+                {
+                    // Set
+                    NewBone.LocalRotation = Quaternion(HalfFloats::ToFloat((uint16_t)RotationData.RotationX), HalfFloats::ToFloat((uint16_t)RotationData.RotationY), HalfFloats::ToFloat((uint16_t)RotationData.RotationZ), HalfFloats::ToFloat((uint16_t)RotationData.RotationW));
+                }
+                else if (Model->BoneRotationData == BoneDataTypes::QuatPackingA)
+                {
+                    // Set
+                    NewBone.LocalRotation = VectorPacking::QuatPackingA(*(uint64_t*)&RotationData);
+                }
             }
 
             // Advance
-            BoneParents += Model->BoneParentSize;
+            BoneIDs += Model->BoneIndexSize;
         }
-        else
+
+        // Chean up bone data
+        GlobalMatrixData.Close();
+        LocalTranslationData.Close();
+        LocalRotationData.Close();
+
+        // If we're a viewmodel (!UseBones) && we have at least > 1 bone, we need to generate local positions from the globals
+        if (NeedsLocalPositions && Model->BoneCount > 1)
         {
-            // Take i and subtract 1
-            BoneParent = (i - 1);
+            // Generate
+            ModelResult->GenerateLocalPositions(true, false);
         }
 
-        // Set bone parent
-        NewBone.BoneParent = BoneParent;
-
-        // Read global data
-        auto GlobalData = GlobalMatrixData.Read<DObjAnimMat>();
-
-        // Assign global position
-        NewBone.GlobalPosition = GlobalData.Translation;
-        NewBone.GlobalRotation = GlobalData.Rotation;
-
-        // Check if we aren't a root bone
-        if (i > (Model->RootBoneCount - 1))
+        // Check if we didn't parse any bones, if we didn't, we need can "inject" tag_origin (this is mostly for MW which has weird models
+        // that are rare with thousands of bones)
+        if (Model->BoneCount == 0)
         {
-            // We have local translations and rotations
-            NewBone.LocalPosition = LocalTranslationData.Read<Vector3>();
-
-            // Check if it was not zero
-            if (NewBone.LocalPosition != Vector3(0, 0, 0))
-            {
-                // We don't need them
-                NeedsLocalPositions = false;
-            }
-            
-            // Read rotation data
-            auto RotationData = LocalRotationData.Read<QuatData>();
-            // Build rotation value
-            if (Model->BoneRotationData == BoneDataTypes::DivideBySize)
-            {
-                // Set
-                NewBone.LocalRotation = Quaternion((float)RotationData.RotationX / 32768.0f, (float)RotationData.RotationY / 32768.0f, (float)RotationData.RotationZ / 32768.0f, (float)RotationData.RotationW / 32768.0f);
-            }
-            else if (Model->BoneRotationData == BoneDataTypes::HalfFloat)
-            {
-                // Set
-                NewBone.LocalRotation = Quaternion(HalfFloats::ToFloat((uint16_t)RotationData.RotationX), HalfFloats::ToFloat((uint16_t)RotationData.RotationY), HalfFloats::ToFloat((uint16_t)RotationData.RotationZ), HalfFloats::ToFloat((uint16_t)RotationData.RotationW));
-            }
-            else if (Model->BoneRotationData == BoneDataTypes::QuatPackingA)
-            {
-                // Set
-                NewBone.LocalRotation = VectorPacking::QuatPackingA(*(uint64_t*)&RotationData);
-            }
+            // Add the new bone
+            auto& NewBone = ModelResult->AddBone();
+            NewBone.TagName = "tag_origin";
+            NewBone.BoneParent = -1;
         }
-
-        // Advance
-        BoneIDs += Model->BoneIndexSize;
-    }
-
-    // Chean up bone data
-    GlobalMatrixData.Close();
-    LocalTranslationData.Close();
-    LocalRotationData.Close();
-
-    // If we're a viewmodel (!UseBones) && we have at least > 1 bone, we need to generate local positions from the globals
-    if (NeedsLocalPositions && Model->BoneCount > 1)
-    {
-        // Generate
-        ModelResult->GenerateLocalPositions(true, false);
-    }
-
-    // Check if we didn't parse any bones, if we didn't, we need can "inject" tag_origin (this is mostly for MW which has weird models
-    // that are rare with thousands of bones)
-    if (Model->BoneCount == 0)
-    {
-        // Add the new bone
-        auto& NewBone = ModelResult->AddBone();
-        NewBone.TagName = "tag_origin";
-        NewBone.BoneParent = -1;
     }
 
     // Check if we just wanted the bones of the model (Used for hitbox logic)
@@ -307,6 +296,7 @@ std::unique_ptr<WraithModel> CoDXModelTranslator::TranslateXModel(const std::uni
         case SupportedGames::WorldWar2:             GameWorldWar2::LoadXModel(Model, LodReference, ModelResult); break;
         case SupportedGames::ModernWarfare4:        GameModernWarfare4::LoadXModel(LodReference, ModelResult); break;
         case SupportedGames::ModernWarfare5:        GameModernWarfare5::LoadXModel(Model, LodReference, ModelResult); break;
+        case SupportedGames::ModernWarfare6:        GameModernWarfare6::LoadXModel(Model, LodReference, ModelResult); break;
         case SupportedGames::Vanguard:              GameVanguard::LoadXModel(Model, LodReference, ModelResult); break;
         }
     }

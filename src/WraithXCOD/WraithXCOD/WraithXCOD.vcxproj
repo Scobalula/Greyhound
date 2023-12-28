@@ -50,7 +50,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\External\CascLib-2.1\src;..\..\External\DirectXShaderCompiler\include;..\..\External\DirectXTex\DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\External\CascLib\src;..\..\External\DirectXShaderCompiler\include;..\..\External\DirectXTex\DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
@@ -67,7 +67,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\External\CascLib-2.1\src;..\..\External\DirectXShaderCompiler\include;..\..\External\DirectXTex\DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\WraithX\WraithX;..\..\External\CascLib\src;..\..\External\DirectXShaderCompiler\include;..\..\External\DirectXTex\DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
@@ -96,8 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AnimSettings.cpp" />
-    <ClCompile Include="Casc.cpp" />
-    <ClCompile Include="CASCCache.cpp" />
     <ClCompile Include="CascFileSystem.cpp" />
     <ClCompile Include="CoDAssets.cpp" />
     <ClCompile Include="CoDAssetType.cpp" />
@@ -113,6 +111,9 @@
     <ClCompile Include="CoDRawImageTranslator.cpp" />
     <ClCompile Include="CoDXAnimReader.cpp" />
     <ClCompile Include="CoDXAnimTranslator.cpp" />
+    <ClCompile Include="CoDXModelBonesHelper.cpp" />
+    <ClCompile Include="CoDXModelHelper.cpp" />
+    <ClCompile Include="CoDXModelMeshHelper.cpp" />
     <ClCompile Include="CoDXModelTranslator.cpp" />
     <ClCompile Include="DBGameAssets.cpp" />
     <ClCompile Include="CoDFileHandle.cpp" />
@@ -131,6 +132,8 @@
     <ClCompile Include="GameModernWarfare3.cpp" />
     <ClCompile Include="GameModernWarfare5.cpp" />
     <ClCompile Include="GameModernWarfare5Structures.cpp" />
+    <ClCompile Include="GameModernWarfare6.cpp" />
+    <ClCompile Include="GameModernWarfare6Structures.cpp" />
     <ClCompile Include="GameModernWarfareRM.cpp" />
     <ClCompile Include="GameQuantumSolace.cpp" />
     <ClCompile Include="GameVanguard.cpp" />
@@ -155,19 +158,17 @@
     <ClCompile Include="Siren.cpp" />
     <ClCompile Include="SoundSettings.cpp" />
     <ClCompile Include="VGXPAKCache.cpp" />
-    <ClCompile Include="VGXSUBCache.cpp" />
+    <ClCompile Include="XSUBCacheV2.cpp" />
     <ClCompile Include="WinFileSystem.cpp" />
     <ClCompile Include="XPAKCache.cpp" />
     <ClCompile Include="XPAKSupport.cpp" />
     <ClCompile Include="XPTOCCache.cpp" />
     <ClCompile Include="XSUBCache.cpp" />
-    <ClCompile Include="XSUBCacheV2.cpp" />
+    <ClCompile Include="XSUBCacheV3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutWindow.h" />
     <ClInclude Include="AnimSettings.h" />
-    <ClInclude Include="Casc.h" />
-    <ClInclude Include="CASCCache.h" />
     <ClInclude Include="CascFileSystem.h" />
     <ClInclude Include="CoDAssets.h" />
     <ClInclude Include="CoDAssetType.h" />
@@ -184,6 +185,9 @@
     <ClInclude Include="CoDXAnimReader.h" />
     <ClInclude Include="CoDXAnimTranslator.h" />
     <ClInclude Include="CoDXConverter.h" />
+    <ClInclude Include="CoDXModelBonesHelper.h" />
+    <ClInclude Include="CoDXModelHelper.h" />
+    <ClInclude Include="CoDXModelMeshHelper.h" />
     <ClInclude Include="CoDXModelTranslator.h" />
     <ClInclude Include="CoDXPoolParser.h" />
     <ClInclude Include="DBGameAssets.h" />
@@ -205,6 +209,8 @@
     <ClInclude Include="GameModernWarfare3.h" />
     <ClInclude Include="GameModernWarfare5.h" />
     <ClInclude Include="GameModernWarfare5Structures.h" />
+    <ClInclude Include="GameModernWarfare6.h" />
+    <ClInclude Include="GameModernWarfare6Structures.h" />
     <ClInclude Include="GameModernWarfareRM.h" />
     <ClInclude Include="GameQuantumSolace.h" />
     <ClInclude Include="GameVanguard.h" />
@@ -229,21 +235,20 @@
     <ClInclude Include="Siren.h" />
     <ClInclude Include="SoundSettings.h" />
     <ClInclude Include="VGXPAKCache.h" />
-    <ClInclude Include="VGXSUBCache.h" />
+    <ClInclude Include="XSUBCacheV2.h" />
     <ClInclude Include="WinFileSystem.h" />
     <ClInclude Include="XPAKCache.h" />
     <ClInclude Include="XPAKSupport.h" />
     <ClInclude Include="XPTOCCache.h" />
     <ClInclude Include="XSUBCache.h" />
-    <ClInclude Include="XSUBCacheV2.h" />
+    <ClInclude Include="XSUBCacheV3.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WraithXCOD.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\WraithX\Resources\CheckMarkIcon.ico" />
-    <Image Include="..\Resources\GreyhoundEnhanced.ico" />
-    <Image Include="..\Resources\GreyhoundPride.ico" />
+    <Image Include="..\Resources\Greyhound2023.ico" />
     <Image Include="..\Resources\SettingHover.png" />
     <Image Include="..\Resources\SettingNormal.png" />
     <Image Include="..\Resources\SettingSelect.png" />
