@@ -41,6 +41,6 @@ Greyhound is distributed with an automatic updater that will check for updates e
 
 ## Credits/Contributors
 
-Greyhound was originally made by DTZxPorter and ID Daemon, forked and maintained since 2018 by [Scobalula](https://github.com/Scobalula), and now maintained by [dest1yo](https://github.com/dest1yo).
+Greyhound was originally made by DTZxPorter and ID Daemon as Wraith Archon, forked and maintained since 2018 by [Scobalula](https://github.com/Scobalula), and now maintained by [dest1yo](https://github.com/dest1yo).
 
 Please also see [Contributors](https://github.com/Scobalula/Greyhound/graphs/contributors) for a list of people who have also contributed code to the repo.
