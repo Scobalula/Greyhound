@@ -209,6 +209,8 @@ bool GameModernWarfare5::LoadAssets()
             {
                 // Read
                 auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterialSP>(Asset.Header);
+                // Mask the name as hashes are 60Bit (Actually 63Bit but maintain with our existing tables)
+                MatResult.Hash &= 0xFFFFFFFFFFFFFFF;
 
                 std::string MaterialName;
 
@@ -236,6 +238,8 @@ bool GameModernWarfare5::LoadAssets()
             {
                 // Read
                 auto MatResult = CoDAssets::GameInstance->Read<MW5XMaterial>(Asset.Header);
+                // Mask the name as hashes are 60Bit (Actually 63Bit but maintain with our existing tables)
+                MatResult.Hash &= 0xFFFFFFFFFFFFFFF;
                 // Validate and load if need be
                 auto MaterialName = CoDAssets::GetHashedName("xmaterial", MatResult.Hash);
 
@@ -848,6 +852,8 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
     {
         // Prepare to parse the material
         auto MaterialData = CoDAssets::GameInstance->Read<MW5XMaterialSP>(MaterialPointer);
+        // Mask the name as hashes are 60Bit (Actually 63Bit but maintain with our existing tables)
+        MaterialData.Hash &= 0xFFFFFFFFFFFFFFF;
 
         // Allocate a new material with the given image count
         XMaterial_t Result(MaterialData.ImageCount);
@@ -863,7 +869,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
             // Read the image info
             auto ImageInfo = CoDAssets::GameInstance->Read<MW5XMaterialImage>(MaterialData.ImageTablePtr);
             // Read the image name (End of image - 8)
-            auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
+            auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr) & 0xFFFFFFFFFFFFFFF);
 
             // Default type
             auto DefaultUsage = ImageUsageType::Unknown;
@@ -889,6 +895,8 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
     {
         // Prepare to parse the material
         auto MaterialData = CoDAssets::GameInstance->Read<MW5XMaterial>(MaterialPointer);
+        // Mask the name as hashes are 60Bit (Actually 63Bit but maintain with our existing tables)
+        MaterialData.Hash &= 0xFFFFFFFFFFFFFFF;
 
         // Allocate a new material with the given image count
         XMaterial_t Result(MaterialData.ImageCount);
@@ -901,7 +909,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
             // Read the image info
             auto ImageInfo = CoDAssets::GameInstance->Read<MW5XMaterialImage>(MaterialData.ImageTablePtr);
             // Read the image name (End of image - 8)
-            auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
+            auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr) & 0xFFFFFFFFFFFFFFF);
 
             // Default type
             auto DefaultUsage = ImageUsageType::Unknown;
@@ -1583,6 +1591,8 @@ void GameModernWarfare5::PerformInitialSetup()
     CoDAssets::StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_string.wni"));
     CoDAssets::StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_bones.wni"));
     CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xsounds_unverified.wni"));
+    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv_ximages.wni"));
+    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv_xmaterials.wni"));
 
     // Copy if not exists
     if (!FileSystems::FileExists(OurPath))

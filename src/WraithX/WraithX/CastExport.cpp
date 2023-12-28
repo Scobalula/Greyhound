@@ -166,17 +166,17 @@ void Cast::ExportCastModel(const WraithModel& Model, const std::string& FileName
 			switch (FaceIndexType)
 			{
 			case CastPropertyId::Byte:
-				FaceIndices->Write((uint8_t)Face.Index1);
+				FaceIndices->Write((uint8_t)Face.Index3);
 				FaceIndices->Write((uint8_t)Face.Index2);
-				FaceIndices->Write((uint8_t)Face.Index3); break;
+				FaceIndices->Write((uint8_t)Face.Index1); break;
 			case CastPropertyId::Short:
-				FaceIndices->Write((uint16_t)Face.Index1);
+				FaceIndices->Write((uint16_t)Face.Index3);
 				FaceIndices->Write((uint16_t)Face.Index2);
-				FaceIndices->Write((uint16_t)Face.Index3); break;
+				FaceIndices->Write((uint16_t)Face.Index1); break;
 			case CastPropertyId::Integer32:
-				FaceIndices->Write((uint32_t)Face.Index1);
+				FaceIndices->Write((uint32_t)Face.Index3);
 				FaceIndices->Write((uint32_t)Face.Index2);
-				FaceIndices->Write((uint32_t)Face.Index3); break;
+				FaceIndices->Write((uint32_t)Face.Index1); break;
 			}
 		}
 

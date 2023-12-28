@@ -508,4 +508,7 @@
   <ItemGroup>
     <None Include="cpp.hint" />
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="WraithXCOD.manifest" />
+  </ItemGroup>
 </Project>
