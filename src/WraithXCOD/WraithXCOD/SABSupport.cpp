@@ -145,7 +145,10 @@ bool SABSupport::ParseSAB(const std::string& FilePath)
             }
             else
             {
-                SABNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_sab.wni"));
+                // TODO: Need to verify
+                // https://github.com/Scobalula/Greyhound/pull/49/commits
+                // SABNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\bo4_sab.wni"));
+                SABNames.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xsounds.wni"));
 
                 // Loop and read
                 for (uint32_t i = 0; i < Header.EntriesCount; i++)

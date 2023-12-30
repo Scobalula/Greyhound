@@ -22,9 +22,6 @@
 
 #include "CoDXModelBonesHelper.h"
 
-// We need Opus
-#include "..\..\External\Opus\include\opus.h"
-
 #include "SABSupport.h"
 
 // We need the QTangent
@@ -38,7 +35,7 @@ struct MW5GfxRigidVerts
     uint16_t VertexCount;
     uint16_t FacesCount;
     uint16_t FacesIndex;
-    uint32_t Marv;
+    uint32_t Unk123;
 };
 
 #pragma pack(push, 1)
@@ -436,7 +433,7 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->LoopingAnimation = false /*(AnimData.Flags & 1)*/;
 
         // Read the delta data
-        auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(AnimData.DeltaPartsPtr);
+        const auto AnimDeltaData = CoDAssets::GameInstance->Read<MW5XAnimDeltaParts>(AnimData.DeltaPartsPtr);
 
         std::unique_ptr<uint8_t[]> AnimBuffer = nullptr;
         size_t AnimBufferSize = 0;
@@ -885,7 +882,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
             Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
 
             // Advance
-            MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
+            MaterialData.ImageTablePtr += sizeof(MW5XMaterialImage);
         }
 
         // Return it
@@ -925,7 +922,7 @@ const XMaterial_t GameModernWarfare5::ReadXMaterial(uint64_t MaterialPointer)
             Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
 
             // Advance
-            MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
+            MaterialData.ImageTablePtr += sizeof(MW5XMaterialImage);
         }
 
         // Return it
@@ -1154,9 +1151,9 @@ void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, cons
         auto MeshReader = MemoryReader((int8_t*)MeshDataBuffer.get(), MeshDataBufferSize, true);
 
         // The total weighted verticies
-        uint32_t TotalReadWeights = 0;
+        // uint32_t TotalReadWeights = 0;
         // The maximum weight index
-        uint32_t MaximumWeightIndex = ResultModel->BoneCount() - 1;
+        // uint32_t MaximumWeightIndex = ResultModel->BoneCount() - 1;
 
         // Prepare it for submeshes
         ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());
@@ -1582,25 +1579,35 @@ std::string GameModernWarfare5::LoadStringEntry(uint64_t Index)
 {
     return CoDAssets::GameInstance->ReadNullTerminatedString(ps::state->StringsAddress + Index);
 }
+
 void GameModernWarfare5::PerformInitialSetup()
 {
     // Prepare to copy the oodle dll
-    auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_8_win64.dll");
+    const auto OurPath = FileSystems::CombinePath(FileSystems::GetApplicationPath(), "oo2core_8_win64.dll");
 
     // Load Caches
     CoDAssets::StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_string.wni"));
     CoDAssets::StringCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_bones.wni"));
     CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xsounds_unverified.wni"));
-    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv_ximages.wni"));
-    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv_xmaterials.wni"));
+
+    // CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv_ximages.wni"));
+    // CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv_xmaterials.wni"));
+
+    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xsounds_MW2022_Weapon.wni"));
+
+    // For hashes testing
+    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "pkg_test\\fnv1a_ximages.wni"));
+    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "pkg_test\\fnv1a_xmaterials.wni"));
+    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "pkg_test\\fnv1a_xsounds.wni"));
 
     // Copy if not exists
     if (!FileSystems::FileExists(OurPath))
     {
-        // Check for Battlenet
-        if (FileSystems::FileExists(FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_8_win64.dll")))
+        // Check for Battle.net
+        const auto SteamDLL = FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_8_win64.dll");
+        if (FileSystems::FileExists(SteamDLL))
         {
-            FileSystems::CopyFile(FileSystems::CombinePath(ps::state->GameDirectory, "oo2core_8_win64.dll"), OurPath);
+            FileSystems::CopyFile(SteamDLL, OurPath);
         }
         else
         {

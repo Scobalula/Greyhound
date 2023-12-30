@@ -3793,6 +3793,68 @@ struct VGXModelMesh
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct VGXModelMeshBufferInfo // Same as the MW4
+{
+    uint64_t BufferPtr; // 0 if the model is not loaded, otherwise a pointer, even if streamed
+    uint32_t BufferSize;
+    uint32_t Streamed;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct VGXAnim // Same as the MW4
+{
+    uint64_t NamePtr;
+
+    uint64_t BoneIDsPtr;
+    uint64_t DataBytePtr;
+    uint64_t DataShortPtr;
+    uint64_t DataIntPtr;
+    uint64_t RandomDataShortPtr;
+    uint64_t RandomDataBytePtr;
+    uint64_t RandomDataIntPtr;
+    uint64_t LongIndiciesPtr;
+    uint64_t NotificationsPtr;
+    uint8_t PaddingNew[0x8];
+    uint64_t DeltaPartsPtr;
+    uint8_t Padding[0xC];
+
+    float Framerate;
+
+    uint8_t Padding2[14];
+
+    uint16_t NumFrames;
+    uint8_t Flags;
+
+    uint8_t NoneRotatedBoneCount;
+    uint8_t TwoDRotatedBoneCount;
+    uint8_t NormalRotatedBoneCount;
+    uint8_t TwoDStaticRotatedBoneCount;
+    uint8_t NormalStaticRotatedBoneCount;
+    uint8_t NormalTranslatedBoneCount;
+    uint8_t PreciseTranslatedBoneCount;
+    uint8_t StaticTranslatedBoneCount;
+    uint8_t NoneTranslatedBoneCount;
+    uint8_t TotalBoneCount;
+
+    uint8_t NotificationCount;
+
+    uint8_t AssetType;
+
+    uint8_t Padding3[27];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct VGXAnimDeltaParts // Same as the MW4
+{
+    uint64_t DeltaTranslationsPtr;
+    uint64_t Delta2DRotationsPtr;
+    uint64_t Delta3DRotationsPtr;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct VGXMaterial
 {
     uint64_t NamePtr;
@@ -3802,6 +3864,15 @@ struct VGXMaterial
     uint64_t TechsetPtr;
     uint64_t ImageTablePtr;
     uint8_t Padding3[64];
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct VGXMaterialImage // Same as the MW4
+{
+    uint32_t Type;
+    uint8_t Padding[4];
+    uint64_t ImagePtr;
 };
 #pragma pack(pop)
 

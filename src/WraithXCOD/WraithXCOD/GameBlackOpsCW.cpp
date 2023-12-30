@@ -18,13 +18,12 @@
 #include "Sound.h"
 
 // We need Opus
-#include "..\..\External\Opus\include\opus.h"
+#include "../../External/Opus/include/opus.h"
 
 // We need DirectXShaderCompiler for reflection
 #include <wrl/client.h>
 #include <d3d12.h>
 #include <d3d12shader.h>
-#include "dxc/Support/dxcapi.use.h"
 #include "dxc/Support/dxcapi.use.h"
 #include "dxc/DxilContainer/DxilContainer.h"
 
@@ -41,9 +40,11 @@ WraithNameIndex GameBlackOpsCW::StringCache = WraithNameIndex();
 // -- Initialize built-in game offsets databases
 
 // Black Ops CW SP
-std::array<DBGameInfo, 1> GameBlackOpsCW::SinglePlayerOffsets =
+std::array<DBGameInfo, 3> GameBlackOpsCW::SinglePlayerOffsets =
 {{
-    { 0x10CFDE80, 0x0, 0xC97EAB0, 0x0 }
+    { 0x11AD99D0, 0x0, 0xE275BF0, 0x0 }, // Latest offset 2023/12/10 Steam
+    { 0x11E50670, 0x0, 0xE5EC920, 0x0 }, // Latest offset 2023/12/10 Battle.net
+    { 0x10CFDE80, 0x0, 0xC97EAB0, 0x0 }, // Old offset
 }};
 
 // -- Finished with databases
@@ -148,123 +149,123 @@ bool GameBlackOpsCW::LoadOffsets()
     // ----------------------------------------------------
 
     // Attempt to load the game offsets
-    if (CoDAssets::GameInstance != nullptr)
+    if (CoDAssets::GameInstance == nullptr)
+        return false;
+        
+    // We need the base address of the BO4 Module for ASLR + Heuristics
+    auto BaseAddress = CoDAssets::GameInstance->GetMainModuleAddress();
+
+    // Check built-in offsets via game exe mode (SP)
+    for (auto& GameOffsets : SinglePlayerOffsets)
     {
-        // We need the base address of the BO4 Module for ASLR + Heuristics
-        auto BaseAddress = CoDAssets::GameInstance->GetMainModuleAddress();
+        // Read required offsets (XANIM, XMODEL, XIMAGE, RAWFILE RELATED...)
+        auto AnimPoolData       = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 5));
+        auto ModelPoolData      = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 6));
+        auto ImagePoolData      = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 0x10));
+        auto MaterialPoolData   = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 10));
+        auto SoundAssetPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 19));
 
-        // Check built-in offsets via game exe mode (SP)
-        for (auto& GameOffsets : SinglePlayerOffsets)
+        // Apply game offset info
+        CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
+        CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
+        CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
+        CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
+        CoDAssets::GameOffsetInfos.emplace_back(SoundAssetPoolData.PoolPtr);
+
+        // Verify via first xmodel asset, right now, we're using a hash
+        auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
+        // Check
+        if (FirstXModelHash == 0x04647533e968c910)
         {
-            // Read required offsets (XANIM, XMODEL, XIMAGE, RAWFILE RELATED...)
-            auto AnimPoolData       = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 5));
-            auto ModelPoolData      = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 6));
-            auto ImagePoolData      = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 0x10));
-            auto MaterialPoolData   = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 10));
-            auto SoundAssetPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(BaseAddress + GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 19));
-
-            // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundAssetPoolData.PoolPtr);
-
-            // Verify via first xmodel asset, right now, we're using a hash
-            auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
-            // Check
-            if (FirstXModelHash == 0x04647533e968c910)
+            // Validate sizes
+            if (AnimPoolData.AssetSize == sizeof(BOCWXAnim) &&
+                ModelPoolData.AssetSize == sizeof(BOCWXModel) &&
+                ImagePoolData.AssetSize == sizeof(BOCWGfxImage))
             {
-                // Validate sizes
-                if (
-                    AnimPoolData.AssetSize == sizeof(BOCWXAnim) &&
-                    ModelPoolData.AssetSize == sizeof(BOCWXModel) &&
-                    ImagePoolData.AssetSize == sizeof(BOCWGfxImage))
-                {
-                    // Verify string table, otherwise we are all set
-                    CoDAssets::GameOffsetInfos.emplace_back(BaseAddress + GameOffsets.StringTable);
-                    // Read and apply sizes
-                    CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
-                    CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
-                    CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-                    CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
-                    CoDAssets::GamePoolSizes.emplace_back(SoundAssetPoolData.PoolSize);
-                    // Return success
-                    return true;
-                }
+                // Verify string table, otherwise we are all set
+                CoDAssets::GameOffsetInfos.emplace_back(BaseAddress + GameOffsets.StringTable);
+                // Read and apply sizes
+                CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(SoundAssetPoolData.PoolSize);
+                // Return success
+                return true;
             }
-            // Reset
-            CoDAssets::GameOffsetInfos.clear();
         }
+        // Reset
+        CoDAssets::GameOffsetInfos.clear();
+    }
 
-        // Attempt to locate via heuristic searching
-        auto DBAssetsScan = CoDAssets::GameInstance->Scan("40 53 48 83 EC ?? 0F B6 ?? 48 8D 05 ?? ?? ?? ?? 48 C1 E2 05");
-        auto StringTableScan = CoDAssets::GameInstance->Scan("48 8B 53 ?? 48 85 D2 74 ?? 48 8B 03 48 89 02");
+    // Attempt to locate via heuristic searching
+    auto DBAssetsScan = CoDAssets::GameInstance->Scan("40 53 48 83 EC ?? 0F B6 ?? 48 8D 05 ?? ?? ?? ?? 48 C1 E2 05");
+    auto StringTableScan = CoDAssets::GameInstance->Scan("48 8B 53 ?? 48 85 D2 74 ?? 48 8B 03 48 89 02");
 
-        // Check that we had hits
-        if (DBAssetsScan > 0 && StringTableScan > 0)
-        {
-            // Load info and verify
-            auto GameOffsets = DBGameInfo(
-                // Resolve pool info from LEA
-                CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0xC) + (DBAssetsScan + 0x10),
-                // We don't use size offsets
-                0,
-                // Resolve strings from LEA
-                CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x12) + (StringTableScan + 0x16),
-                // We don't use package offsets
-                0
-            );
+    // Check that we had hits
+    if (DBAssetsScan > 0 && StringTableScan > 0)
+    {
+        // Load info and verify
+        auto GameOffsets = DBGameInfo(
+            // Resolve pool info from LEA
+            CoDAssets::GameInstance->Read<uint32_t>(DBAssetsScan + 0xC) + (DBAssetsScan + 0x10),
+            // We don't use size offsets
+            0,
+            // Resolve strings from LEA
+            CoDAssets::GameInstance->Read<uint32_t>(StringTableScan + 0x12) + (StringTableScan + 0x16),
+            // We don't use package offsets
+            0
+        );
 
-            // In debug, print the info for easy additions later!
+        // In debug, print the info for easy additions later!
 #if _DEBUG
-            // Format the output
-            printf("Heuristic: { 0x%llX, 0x0, 0x%llX, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
+        // Format the output
+        printf("Heuristic: { 0x%llX, 0x0, 0x%llX, 0x0 }\n", (GameOffsets.DBAssetPools - BaseAddress), (GameOffsets.StringTable - BaseAddress));
 #endif
 
 
-            // Read required offsets (XANIM, XMODEL, XIMAGE)
-            auto AnimPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 5));
-            auto ModelPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 6));
-            auto ImagePoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 0x10));
-            auto MaterialPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 10));
-            auto SoundAssetPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 19));
+        // Read required offsets (XANIM, XMODEL, XIMAGE)
+        auto AnimPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 5));
+        auto ModelPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 6));
+        auto ImagePoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 0x10));
+        auto MaterialPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 10));
+        auto SoundAssetPoolData = CoDAssets::GameInstance->Read<BOCWXAssetPoolData>(GameOffsets.DBAssetPools + (sizeof(BOCWXAssetPoolData) * 19));
 
-            // Apply game offset info
-            CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
-            CoDAssets::GameOffsetInfos.emplace_back(SoundAssetPoolData.PoolPtr);
+        // Apply game offset info
+        CoDAssets::GameOffsetInfos.emplace_back(AnimPoolData.PoolPtr);
+        CoDAssets::GameOffsetInfos.emplace_back(ModelPoolData.PoolPtr);
+        CoDAssets::GameOffsetInfos.emplace_back(ImagePoolData.PoolPtr);
+        CoDAssets::GameOffsetInfos.emplace_back(MaterialPoolData.PoolPtr);
+        CoDAssets::GameOffsetInfos.emplace_back(SoundAssetPoolData.PoolPtr);
 
-            // Verify via first xmodel asset, right now, we're using a hash
-            auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
+        // Verify via first xmodel asset, right now, we're using a hash
+        auto FirstXModelHash = CoDAssets::GameInstance->Read<uint64_t>(CoDAssets::GameOffsetInfos[1]);
 
-            // Check
-            if (FirstXModelHash == 0x04647533e968c910)
+        // Check
+        if (FirstXModelHash == 0x04647533e968c910)
+        {
+            // Validate sizes
+            if (
+                AnimPoolData.AssetSize  == sizeof(BOCWXAnim) && 
+                ModelPoolData.AssetSize == sizeof(BOCWXModel) && 
+                ImagePoolData.AssetSize == sizeof(BOCWGfxImage))
             {
-                // Validate sizes
-                if (
-                    AnimPoolData.AssetSize  == sizeof(BOCWXAnim) && 
-                    ModelPoolData.AssetSize == sizeof(BOCWXModel) && 
-                    ImagePoolData.AssetSize == sizeof(BOCWGfxImage))
-                {
-                    // Verify string table, otherwise we are all set
-                    CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
+                // Verify string table, otherwise we are all set
+                CoDAssets::GameOffsetInfos.emplace_back(GameOffsets.StringTable);
 
-                    // Read and apply sizes
-                    CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
-                    CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
-                    CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
-                    CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
-                    CoDAssets::GamePoolSizes.emplace_back(SoundAssetPoolData.PoolSize);
+                // Read and apply sizes
+                CoDAssets::GamePoolSizes.emplace_back(AnimPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(ModelPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(ImagePoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(MaterialPoolData.PoolSize);
+                CoDAssets::GamePoolSizes.emplace_back(SoundAssetPoolData.PoolSize);
 
-                    // Return success
-                    return true;
-                }
+                // Return success
+                return true;
             }
         }
     }
+
 
     // Failed
     return false;
@@ -1323,7 +1324,7 @@ void GameBlackOpsCW::LoadXModel(const XModelLod_t& ModelLOD, const std::unique_p
         // Make a reader to begin reading the mesh (Don't close)
         auto MeshReader = MemoryReader((int8_t*)MeshDataBuffer.get(), MeshDataBufferSize, true);
         // The total weighted verticies
-        uint32_t TotalReadWeights = 0;
+        // uint32_t TotalReadWeights = 0;
         // Prepare it for submeshes
         ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());
 

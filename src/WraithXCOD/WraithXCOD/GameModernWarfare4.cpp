@@ -690,7 +690,7 @@ const XMaterial_t GameModernWarfare4::ReadXMaterial(uint64_t MaterialPointer)
         Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
 
         // Advance
-        MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
+        MaterialData.ImageTablePtr += sizeof(MW4XMaterialImage);
     }
 
     // Return it
@@ -1002,9 +1002,9 @@ void GameModernWarfare4::LoadXModel(const XModelLod_t& ModelLOD, const std::uniq
         auto MeshReader = MemoryReader((int8_t*)MeshDataBuffer.get(), MeshDataBufferSize, true);
 
         // The total weighted verticies
-        uint32_t TotalReadWeights = 0;
+        // uint32_t TotalReadWeights = 0;
         // The maximum weight index
-        uint32_t MaximumWeightIndex = ResultModel->BoneCount() - 1;
+        // uint32_t MaximumWeightIndex = ResultModel->BoneCount() - 1;
 
         // Prepare it for submeshes
         ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());

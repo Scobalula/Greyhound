@@ -198,7 +198,7 @@ bool GameVanguard::LoadAssets()
         ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
         {
             // Read
-            auto AnimResult = CoDAssets::GameInstance->Read<MW4XAnim>(Asset.Header);
+            auto AnimResult = CoDAssets::GameInstance->Read<VGXAnim>(Asset.Header);
             // Validate and load if need be
             auto AnimName = CoDAssets::GameInstance->ReadNullTerminatedString(AnimResult.NamePtr);
 
@@ -333,7 +333,6 @@ bool GameVanguard::LoadAssets()
                         LoadedSound->FullPath = FileSystems::GetDirectoryName(LoadedSound->AssetName);
                     }
 
-
                     // Log it
                     CoDAssets::LogXAsset("Sound", FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
 
@@ -385,9 +384,9 @@ bool GameVanguard::LoadAssets()
                         LoadedSound->FullPath = FileSystems::GetDirectoryName(LoadedSound->AssetName);
                     }
 
-
                     // Log it
-                    CoDAssets::LogXAsset("Sound", NameResult->second);
+                    // https://github.com/Scobalula/Greyhound/pull/51/commits
+                    CoDAssets::LogXAsset("Sound", FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
 
 #if _DEBUG
                     Writer.WriteLineFmt("%llx,%s", Entry.Key, FileSystems::CombinePath(LoadedSound->FullPath, LoadedSound->AssetName));
@@ -469,7 +468,7 @@ std::unique_ptr<XAnim_t> GameVanguard::ReadXAnim(const CoDAnim_t* Animation)
         auto Anim = std::make_unique<XAnim_t>();
 
         // Read the XAnim structure
-        auto AnimData = CoDAssets::GameInstance->Read<MW4XAnim>(Animation->AssetPointer);
+        auto AnimData = CoDAssets::GameInstance->Read<VGXAnim>(Animation->AssetPointer);
 
         // Copy over default properties
         Anim->AnimationName = Animation->AssetName;
@@ -495,7 +494,7 @@ std::unique_ptr<XAnim_t> GameVanguard::ReadXAnim(const CoDAnim_t* Animation)
         Anim->LoopingAnimation = (AnimData.Flags & 1);
 
         // Read the delta data
-        auto AnimDeltaData = CoDAssets::GameInstance->Read<MW4XAnimDeltaParts>(*(uint64_t*)&AnimData.PaddingNew[0]);
+        auto AnimDeltaData = CoDAssets::GameInstance->Read<VGXAnimDeltaParts>(*(uint64_t*)&AnimData.PaddingNew[0]);
 
         // Copy over pointers
         Anim->BoneIDsPtr = AnimData.BoneIDsPtr;
@@ -811,7 +810,7 @@ const XMaterial_t GameVanguard::ReadXMaterial(uint64_t MaterialPointer)
     for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
     {
         // Read the image info
-        auto ImageInfo = CoDAssets::GameInstance->Read<MW4XMaterialImage>(MaterialData.ImageTablePtr);
+        auto ImageInfo = CoDAssets::GameInstance->Read<VGXMaterialImage>(MaterialData.ImageTablePtr);
         // Read the image name (End of image - 8)
         auto ImageName = CoDAssets::GameInstance->ReadNullTerminatedString(CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
 
@@ -829,7 +828,7 @@ const XMaterial_t GameVanguard::ReadXMaterial(uint64_t MaterialPointer)
         Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
 
         // Advance
-        MaterialData.ImageTablePtr += sizeof(IWXMaterialImage);
+        MaterialData.ImageTablePtr += sizeof(VGXMaterialImage);
     }
 
     // Return it
@@ -1117,7 +1116,7 @@ void GameVanguard::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XMod
     // Read the mesh information
     auto MeshInfo = CoDAssets::GameInstance->Read<VGXModelMesh>(ModelLOD.LODStreamInfoPtr);
     // Read Buffer Info
-    auto BufferInfo = CoDAssets::GameInstance->Read<MW4XModelMeshBufferInfo>(MeshInfo.MeshBufferPointer);
+    auto BufferInfo = CoDAssets::GameInstance->Read<VGXModelMeshBufferInfo>(MeshInfo.MeshBufferPointer);
 
     // A buffer for the mesh data
     std::unique_ptr<uint8_t[]> MeshDataBuffer = nullptr;
@@ -1161,9 +1160,9 @@ void GameVanguard::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XMod
     if (MeshDataBuffer != nullptr)
     {
         // The total weighted verticies
-        uint32_t TotalReadWeights = 0;
+        // uint32_t TotalReadWeights = 0;
         // The maximum weight index
-        uint32_t MaximumWeightIndex = ResultModel->BoneCount() - 1;
+        // uint32_t MaximumWeightIndex = ResultModel->BoneCount() - 1;
 
         // Prepare it for submeshes
         ResultModel->PrepareSubmeshes((uint32_t)ModelLOD.Submeshes.size());

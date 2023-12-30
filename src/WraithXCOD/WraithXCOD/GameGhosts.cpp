@@ -167,10 +167,8 @@ bool GameGhosts::LoadAssets()
         // Store original offset
         auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[0];
 
-        // Store the placeholder anim
-        GhostsXAnim PlaceholderAnim;
-        // Clear it out
-        std::memset(&PlaceholderAnim, 0, sizeof(PlaceholderAnim));
+        // Store the placeholder anim (Zero Initialization)
+        GhostsXAnim PlaceholderAnim = {};
 
         // Loop and read
         for (uint32_t i = 0; i < AnimationCount; i++)
@@ -248,10 +246,8 @@ bool GameGhosts::LoadAssets()
             // Store original offset
             auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[1 + i];
 
-            // Store the placeholder model
-            GhostsXModel PlaceholderModel;
-            // Clear it out
-            std::memset(&PlaceholderModel, 0, sizeof(PlaceholderModel));
+            // Store the placeholder model (Zero Initialization)
+            GhostsXModel PlaceholderModel = {};
 
             // Loop and read
             for (uint32_t i = 0; i < ModelCount; i++)

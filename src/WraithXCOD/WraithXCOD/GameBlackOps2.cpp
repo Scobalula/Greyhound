@@ -136,10 +136,8 @@ bool GameBlackOps2::LoadAssets()
         // Store original offset
         auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[0];
 
-        // Store the placeholder anim
-        BO2XAnim PlaceholderAnim;
-        // Clear it out
-        std::memset(&PlaceholderAnim, 0, sizeof(PlaceholderAnim));
+        // Store the placeholder anim (Zero Initialization)
+        BO2XAnim PlaceholderAnim = {};
 
         // Loop and read
         for (uint32_t i = 0; i < AnimationCount; i++)
@@ -204,10 +202,8 @@ bool GameBlackOps2::LoadAssets()
         // Store original offset
         auto MinimumPoolOffset = CoDAssets::GameOffsetInfos[1];
 
-        // Store the placeholder model
-        BO2XModel PlaceholderModel;
-        // Clear it out
-        std::memset(&PlaceholderModel, 0, sizeof(PlaceholderModel));
+        // Store the placeholder model (Zero Initialization)
+        BO2XModel PlaceholderModel = {};
 
         // Loop and read
         for (uint32_t i = 0; i < ModelCount; i++)
