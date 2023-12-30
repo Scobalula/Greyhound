@@ -80,7 +80,6 @@ struct MW5XModelSP
 };
 #pragma pack(pop)
 
-
 #pragma pack(push, 1)
 struct MW5XModelMesh
 {
@@ -183,7 +182,6 @@ struct MW5GfxMipArray
         return Size;
     }
 };
-
 
 #pragma pack(push, 1)
 struct MW5XAnimStreamInfo

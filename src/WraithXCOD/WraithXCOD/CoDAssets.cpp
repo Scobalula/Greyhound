@@ -431,7 +431,7 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     // Black Ops 4
     { "blackops4.exe", SupportedGames::BlackOps4, SupportedGameFlags::SP },
     // Black Ops CW
-//    { "blackopscoldwar.exe", SupportedGames::BlackOpsCW, SupportedGameFlags::SP },
+    { "blackopscoldwar.exe", SupportedGames::BlackOpsCW, SupportedGameFlags::SP },
     // Modern Warfare
     { "iw3sp.exe", SupportedGames::ModernWarfare, SupportedGameFlags::SP },
     { "iw3mp.exe", SupportedGames::ModernWarfare, SupportedGameFlags::MP },
@@ -455,7 +455,7 @@ const std::vector<CoDGameProcess> CoDAssets::GameProcessInfo =
     // World War II
     { "s2_sp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::SP },
     { "s2_mp64_ship.exe", SupportedGames::WorldWar2, SupportedGameFlags::MP },
-    // Modern Warfare 4
+    // Cordycep
     { "Cordycep.CLI.exe", SupportedGames::Parasyte, SupportedGameFlags::SP },
     // Modern Warfare 2 Remastered
     { "mw2cr.exe", SupportedGames::ModernWarfare2Remastered, SupportedGameFlags::SP },
@@ -680,7 +680,7 @@ LoadGameResult CoDAssets::LoadGamePS()
         }
 
         // Check for CDN support.
-        bool CDNSupport = true; // SettingsManager::GetSetting("cdn_downloader", "false") == "true";
+        const bool CDNSupport = SettingsManager::GetSetting("cdn_downloader", "false") == "true";
 
         // Cleanup
         CleanupPackageCache();
@@ -699,7 +699,7 @@ LoadGameResult CoDAssets::LoadGamePS()
             OnDemandCache     = std::make_unique<XPAKCache>();
             CDNDownloader     = CDNSupport ? std::make_unique<CoDCDNDownloaderV0>() : nullptr;
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
-            // OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
+            OnDemandCache->LoadPackageCacheAsync(FileSystems::CombinePath(ps::state->GameDirectory, "xpak_cache"));
             Success = GameModernWarfare4::LoadAssets();
             break;
         // Vanguard
@@ -768,7 +768,7 @@ LoadGameResult CoDAssets::LoadGamePS()
             GamePackageCache->LoadPackageCacheAsync(ps::state->GameDirectory);
             Success = GameModernWarfare5::LoadAssets();
             break;
-            // Modern Warfare 3 (2023)
+        // Modern Warfare 3 (2023)
         case 0x4B4F4D41594D4159:
             GameModernWarfare6::PerformInitialSetup();
             GameID = SupportedGames::ModernWarfare6;
@@ -1247,8 +1247,8 @@ bool CoDAssets::LocateGameInfo()
         GamePackageCache->LoadPackageCacheAsync(FileSystems::GetDirectoryName(GameInstance->GetProcessPath()));
         break;
     case SupportedGames::Parasyte:
-        // Locate IW8 Database
-        auto DBFile = FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "Data\\CurrentHandler.csi");
+        // Locate Parasyte Current Handler Database
+        const auto DBFile = FileSystems::CombinePath(FileSystems::GetDirectoryName(CoDAssets::GameInstance->GetProcessPath()), "Data\\CurrentHandler.csi");
         Success = FileSystems::FileExists(DBFile);
         // Validate
         if (Success)
@@ -1261,7 +1261,7 @@ bool CoDAssets::LocateGameInfo()
     }
 
     // Validate the results, every game should have at least 1 offset and 1 size, and success must be true
-    if (Success && (GameOffsetInfos.size() > 0 && GamePoolSizes.size() > 0))
+    if (Success && !GameOffsetInfos.empty() && !GamePoolSizes.empty())
     {
         // We succeeded
         return true;
@@ -1772,8 +1772,6 @@ ExportGameResult CoDAssets::ExportImageAsset(const CoDImage_t* Image, const std:
             case SupportedGames::Vanguard: ImageData                 = GameVanguard::ReadXImage(Image); break;
             }
         }
-
-        return ExportGameResult::Success;
 
         // Grab the image format type
         auto ImageFormatType = ImageFormat::Standard_PNG;

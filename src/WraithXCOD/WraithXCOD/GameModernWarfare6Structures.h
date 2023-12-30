@@ -80,7 +80,7 @@ struct MW6XModelSurface
     uint16_t PackedIndexTableCount;
     uint8_t PaddingFuck[12];
     uint8_t VertListCount;
-    uint8_t MarvVC[5];
+    uint8_t Unk123[5];
     uint32_t VertexCount;
     uint32_t FacesCount;
     uint32_t UnkValue;

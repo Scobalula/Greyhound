@@ -60,7 +60,7 @@ bool XPAKCache::LoadPackage(const std::string& FilePath)
 
     // Read the header
     auto Header = Reader.Read<BO3XPakHeader>();
-    
+
     // If MW4 we need to skip the new bytes
     if (Header.Version == 0xD)
     {
@@ -134,7 +134,6 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
         uint64_t DecompressedSize = Size == -1 ? CacheInfo.UncompressedSize : Size;
         // Output Size
         size_t ResultSizeSizeT = 0;
-
 
         auto payload = Reader.Read(CacheInfo.CompressedSize);
         auto outputBuffer = DecompressPackageObject(CacheID, payload.get(), CacheInfo.CompressedSize, Size, ResultSizeSizeT);

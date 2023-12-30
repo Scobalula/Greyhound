@@ -229,10 +229,8 @@ bool GameBlackOps3::LoadAssets()
     // Check if we need assets
     if (NeedsAnims)
     {
-        // Store the placeholder anim
-        BO3XAnim PlaceholderAnim;
-        // Clear it out
-        std::memset(&PlaceholderAnim, 0, sizeof(PlaceholderAnim));
+        // Store the placeholder anim (Zero Initialization)
+        BO3XAnim PlaceholderAnim = {};
 
         // Parse the XAnim pool
         CoDXPoolParser<uint64_t, BO3XAnim>(CoDAssets::GameOffsetInfos[0], CoDAssets::GamePoolSizes[0], [&PlaceholderAnim](BO3XAnim& Asset, uint64_t& AssetOffset)
@@ -274,10 +272,8 @@ bool GameBlackOps3::LoadAssets()
 
     if (NeedsModels)
     {
-        // Store the placeholder model
-        BO3XModel PlaceholderModel;
-        // Clear it out
-        std::memset(&PlaceholderModel, 0, sizeof(PlaceholderModel));
+        // Store the placeholder model (Zero Initialization)
+        BO3XModel PlaceholderModel = {};
 
         // Parse the XModel pool
         CoDXPoolParser<uint64_t, BO3XModel>(CoDAssets::GameOffsetInfos[1], CoDAssets::GamePoolSizes[1], [&PlaceholderModel](BO3XModel& Asset, uint64_t& AssetOffset)
