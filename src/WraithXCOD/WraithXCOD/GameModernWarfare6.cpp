@@ -102,7 +102,7 @@ bool GameModernWarfare6::LoadAssets()
     bool NeedsModels    = (SettingsManager::GetSetting("showxmodel", "true") == "true");
     bool NeedsImages    = (SettingsManager::GetSetting("showximage", "false") == "true");
     bool NeedsSounds    = (SettingsManager::GetSetting("showxsounds", "false") == "true");
-    bool NeedsRawFiles  = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
+    // bool NeedsRawFiles  = (SettingsManager::GetSetting("showxrawfiles", "false") == "true");
     bool NeedsMaterials = (SettingsManager::GetSetting("showxmtl", "false") == "true");
 
     if (NeedsModels)
@@ -117,9 +117,19 @@ bool GameModernWarfare6::LoadAssets()
 
             // Check if the asset actually has a name.
             if (ModelResult.NamePtr > 0)
-                ModelName = FileSystems::GetFileName(Strings::Replace(CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr), "::", "_"));
+            {
+                ModelName = CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr);
+                const size_t DoubleColonPos = ModelName.find("::");
+                if (DoubleColonPos != std::string::npos)
+                {
+                    ModelName = ModelName.substr(0, DoubleColonPos);
+                }
+                ModelName = FileSystems::GetFileName(ModelName);
+            }
             else
+            {
                 ModelName = CoDAssets::GetHashedName("xmodel", ModelResult.Hash);
+            }
 
             // Make and add
             auto LoadedModel = new CoDModel_t();
