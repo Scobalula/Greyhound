@@ -1,14 +1,14 @@
 [![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/RyqyThu)
 
-Greyhound is an asset extractor various titles running on the IW Engine (primarily Call of Duty games), and is based off the famous [Wraith Archon](https://github.com/dtzxporter/WraithXArchon/) that was originally developed by DTZxPorter. Greyhound's aim is to provide people access to assets from the games for various purposes including working mods such custom zombie maps or weapon mods, 3D Art, and thumbnails for content creation.
+Greyhound is an asset extractor various titles running on the IW Engine (primarily Call of Duty games), and is based off the famous [Wraith Archon](https://github.com/dtzxporter/WraithXArchon/) that was originally developed by DTZxPorter.
 
-For detailed information such as game support, settings, FAQs, etc. please refer to the wiki: [Wiki](https://scobalula.github.io/Greyhound/) Work is being done to populate the wiki with information and tutorials so stay tuned!
+Greyhound's aim is to provide people access to assets from the games for various purposes including working mods such custom zombie maps or weapon mods, 3D Art, and thumbnails for content creation.
+
+For detailed information such as game support, settings, FAQs, etc. please refer to the [wiki](https://scobalula.github.io/Greyhound/). Work is being done to populate the wiki with information and tutorials so stay tuned!
 
 ## Ricochet Info
 
-For titles using Ricochet, Cordycep must be used to extract assets, see below for a link to Cordycep:
-
-[https://github.com/Scobalula/Cordycep](https://github.com/Scobalula/Cordycep)
+For titles using Ricochet, [Cordycep](https://github.com/Scobalula/Cordycep) must be used to extract assets.
 
 ## Requirements
 
@@ -27,9 +27,10 @@ The following tools/plugins are required/recommended for some assets/games:
 * [DarkIris](https://aviacreations.com/modme/index.php?view=topic&tid=831) by DTZxPorter (Texture Utils) (Paint .NET)
 
 ## Links:
-* Github Repo: [https://github.com/Scobalula/Greyhound](https://github.com/Scobalula/Greyhound)
-* Change Log: [https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md](https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md)
-* Latest Release: [ttps://github.com/Scobalula/Greyhound/releases](https://github.com/Scobalula/Greyhound/releases)
+
+* Github Repo: [Link](https://github.com/Scobalula/Greyhound)
+* Change Log: [Link](https://github.com/Scobalula/Greyhound/blob/master/CHANGELOG.md)
+* Latest Release: [Link](https://github.com/Scobalula/Greyhound/releases)
 
 ## License/Disclaimer
 

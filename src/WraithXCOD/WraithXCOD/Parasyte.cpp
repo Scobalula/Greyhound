@@ -23,6 +23,12 @@ bool ps::State::Load(const std::string& path)
 		return false;
 	if (!s.read((char*)&StringsAddress, sizeof(StringsAddress)))
 		return false;
+
+#if _DEBUG
+    printf("PoolsAddress: 0x%llx\n", PoolsAddress);
+	printf("StringsAddress: 0x%llx\n", StringsAddress);
+#endif // _DEBUG
+
 	if (!s.read((char*)&stringSize, sizeof(stringSize)))
 		return false;
 	if (stringSize == 0)
