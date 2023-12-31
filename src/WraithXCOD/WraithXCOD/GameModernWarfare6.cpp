@@ -1415,6 +1415,8 @@ void GameModernWarfare6::PerformInitialSetup()
 
     CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_xsounds_MW2022_Weapon.wni"));
 
+    CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "package_index\\fnv1a_ximages_mw5.wni"));
+
     // For hashes testing
     CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "pkg_test\\fnv1a_xanims.wni"));
     CoDAssets::AssetNameCache.LoadIndex(FileSystems::CombinePath(FileSystems::GetApplicationPath(), "pkg_test\\fnv1a_ximages.wni"));
