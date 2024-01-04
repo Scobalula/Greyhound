@@ -1,4 +1,4 @@
-[![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/RyqyThu)
+[![Releases](https://img.shields.io/github/downloads/Scobalula/Greyhound/total.svg)](https://github.com/Scobalula/Greyhound/releases) [![License](https://img.shields.io/github/license/Scobalula/Greyhound.svg)](https://github.com/Scobalula/Greyhound/blob/master/LICENSE) [![Discord](https://img.shields.io/badge/chat-Discord-blue.svg)](https://discord.gg/eY2Y5p2PEp)
 
 Greyhound is an asset extractor various titles running on the IW Engine (primarily Call of Duty games), and is based off the famous [Wraith Archon](https://github.com/dtzxporter/WraithXArchon/) that was originally developed by DTZxPorter.
 
