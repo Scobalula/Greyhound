@@ -420,14 +420,14 @@ std::unique_ptr<XAnim_t> GameModernWarfare6::ReadXAnim(const CoDAnim_t* Animatio
         // Consume bones
         for (size_t b = 0; b < AnimData.TotalBoneCount; b++)
         {
-            Anim->Reader->BoneNames.push_back(CoDAssets::GetHashedString("bone", (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4)));
-            uint32_t boneid = CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4);
+            const uint32_t boneID = CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4);
+            Anim->Reader->BoneNames.push_back(CoDAssets::GetHashedString("bone", (uint64_t)boneID));
         }
 
         // Consume notetracks
         for (size_t n = 0; n < AnimData.NotetrackCount; n++)
         {
-            auto noteTrack = CoDAssets::GameInstance->Read<MW6XAnimNotetrack>(AnimData.NotificationsPtr + n * sizeof(MW6XAnimNotetrack));
+            const auto noteTrack = CoDAssets::GameInstance->Read<MW6XAnimNotetrack>(AnimData.NotificationsPtr + n * sizeof(MW6XAnimNotetrack));
             Anim->Reader->Notetracks.push_back({ CoDAssets::GameStringHandler(noteTrack.Name), (size_t)(noteTrack.Time * (float)Anim->FrameCount) });
         }
 
@@ -921,7 +921,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare6::LoadXImage(const XImage_t& Image)
 void GameModernWarfare6::LoadXModel(const std::unique_ptr<XModel_t>& Model, const XModelLod_t& ModelLOD, const std::unique_ptr<WraithModel>& ResultModel)
 {
     // Scale to use
-    auto ScaleConstant = (1.0f / 0x1FFFFF) * 2.0f;
+    // auto ScaleConstant = (1.0f / 0x1FFFFF) * 2.0f;
     // Check if we want Vertex Colors
     bool ExportColors = (SettingsManager::GetSetting("exportvtxcolor", "true") == "true");
     // Read the mesh information

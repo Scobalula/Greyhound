@@ -991,21 +991,31 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
     // Result
     auto Result = ExportGameResult::Success;
 
-    // Send to specific export handler
-    switch (Asset->AssetType)
+    try
     {
-    // Export an animation
-    case WraithAssetType::Animation: Result = ExportAnimationAsset((CoDAnim_t*)Asset, ExportPath); break;
-    // Export a model, combine the name of the model with the export path!
-    case WraithAssetType::Model: Result = ExportModelAsset((CoDModel_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;
-    // Export an image
-    case WraithAssetType::Image: Result = ExportImageAsset((CoDImage_t*)Asset, ExportPath, ImageExtension); break;
-    // Export a sound
-    case WraithAssetType::Sound: Result = ExportSoundAsset((CoDSound_t*)Asset, ExportPath, CoDAssets::GameID == SupportedGames::WorldAtWar ? ".wav" : SoundExtension); break;
-    // Export a rawfile
-    case WraithAssetType::RawFile: Result = ExportRawfileAsset((CoDRawFile_t*)Asset, ExportPath); break;
-    // Export a material
-    case WraithAssetType::Material: Result = ExportMaterialAsset((CoDMaterial_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;
+        // Send to specific export handler
+        switch (Asset->AssetType)
+        {
+            // Export an animation
+            case WraithAssetType::Animation: {Result = ExportAnimationAsset((CoDAnim_t*)Asset, ExportPath); break;}
+            // Export a model, combine the name of the model with the export path!
+            case WraithAssetType::Model: {Result = ExportModelAsset((CoDModel_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;}
+            // Export an image
+            case WraithAssetType::Image: {Result = ExportImageAsset((CoDImage_t*)Asset, ExportPath, ImageExtension); break;}
+            // Export a sound
+            case WraithAssetType::Sound: {Result = ExportSoundAsset((CoDSound_t*)Asset, ExportPath, CoDAssets::GameID == SupportedGames::WorldAtWar ? ".wav" : SoundExtension); break;}
+            // Export a rawfile
+            case WraithAssetType::RawFile: {Result = ExportRawfileAsset((CoDRawFile_t*)Asset, ExportPath); break;}
+            // Export a material
+            case WraithAssetType::Material: {Result = ExportMaterialAsset((CoDMaterial_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;}
+        }
+    }
+    catch (...)
+    {
+        Result = ExportGameResult::UnknownError;
+#if _DEBUG
+		std::cout << Asset->AssetName.c_str() << ": error: An exception occurred during export" << "\n";
+#endif // _DEBUG
     }
 
     // Success, unless specific error
@@ -1648,19 +1658,28 @@ ExportGameResult CoDAssets::ExportModelAsset(const CoDModel_t* Model, const std:
         else
         {
             // We should export the biggest we can find
-            auto BiggestLodIndex = CoDXModelTranslator::CalculateBiggestLodIndex(GenericModel);
+            const auto BiggestLodIndex = CoDXModelTranslator::CalculateBiggestLodIndex(GenericModel);
 
             // If the biggest > -1 translate
             if (BiggestLodIndex > -1)
             {
+                // Default lod index suffix using 0
+                std::string LodIndexSuffix = "_LOD0";
+
+                // If we are using the "match game lod index" setting
+                if (SettingsManager::GetSetting("match_game_lod_index") == "true")
+                {
+                    LodIndexSuffix = Strings::Format("_LOD%d", BiggestLodIndex);
+                }
+
                 // Check if we should not export this model (files already exist)
-                if (ShouldExportModel(FileSystems::CombinePath(ExportPath, Model->AssetName + "_LOD0")))
+                if (ShouldExportModel(FileSystems::CombinePath(ExportPath, Model->AssetName + LodIndexSuffix)))
                 {
                     // Translate generic model to a WraithModel, then export
-                    auto Result = CoDXModelTranslator::TranslateXModel(GenericModel, BiggestLodIndex);
+                    const auto Result = CoDXModelTranslator::TranslateXModel(GenericModel, BiggestLodIndex);
 
-                    // Apply lod name (_LOD0)
-                    Result->AssetName += "_LOD0";
+                    // Apply lod name (_LODx)
+                    Result->AssetName += LodIndexSuffix;
 
                     // Check result and export
                     if (Result != nullptr)

@@ -5,9 +5,9 @@
 
 // We need the following classes
 #include "FileSystems.h"
-#include "Strings.h"
+// #include "Strings.h"
 #include "Compression.h"
-#include "BinaryReader.h"
+// #include "BinaryReader.h"
 #include "MemoryReader.h"
 #include "Siren.h"
 
@@ -110,9 +110,9 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
     if (CacheObjects.find(CacheID) != CacheObjects.end())
     {
         // Take cache data, and extract from the XPAK (Uncompressed size = offset of data segment!)
-        auto& CacheInfo = CacheObjects[CacheID];
+        const auto& CacheInfo = CacheObjects[CacheID];
         // Get the XPAK name
-        auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
+        const auto& XPAKFileName = PackageFilePaths[CacheInfo.PackageFileIndex];
         // Open File
         auto Reader = CoDFileHandle(FileSystem->OpenFile(XPAKFileName, "r"), FileSystem.get());
 
@@ -126,17 +126,13 @@ std::unique_ptr<uint8_t[]> XPAKCache::ExtractPackageObject(uint64_t CacheID, int
         // Hop to the beginning offset
         Reader.Seek(CacheInfo.Offset, SEEK_SET);
 
-        // A buffer for data read
-        uint64_t DataRead = 0;
-        // A buffer for total size
-        uint64_t TotalDataSize = 0;
         // Decompressed Size
-        uint64_t DecompressedSize = Size == -1 ? CacheInfo.UncompressedSize : Size;
+        const uint64_t DecompressedSize = Size == -1 ? CacheInfo.UncompressedSize : Size;
         // Output Size
         size_t ResultSizeSizeT = 0;
 
-        auto payload = Reader.Read(CacheInfo.CompressedSize);
-        auto outputBuffer = DecompressPackageObject(CacheID, payload.get(), CacheInfo.CompressedSize, Size, ResultSizeSizeT);
+        const auto payload = Reader.Read(CacheInfo.CompressedSize);
+        auto outputBuffer = DecompressPackageObject(CacheID, payload.get(), CacheInfo.CompressedSize, DecompressedSize, ResultSizeSizeT);
 
         // TODO: Switch to size_t in package class
         ResultSize = (uint32_t)ResultSizeSizeT;
@@ -167,19 +163,20 @@ std::unique_ptr<uint8_t[]> XPAKCache::DecompressPackageObject(uint64_t cacheID, 
     while (reader.GetPosition() < reader.GetLength())
     {
         // Read the block header
-        auto blockHeader = reader.Read<BO3XPakDataHeader>();
+        const auto blockHeader = reader.Read<BO3XPakDataHeader>();
 
         // Loop for block count
         for (uint32_t i = 0; i < blockHeader.Count; i++)
         {
             // Unpack the command information
-            size_t blockSize = (blockHeader.Commands[i] & 0xFFFFFF);
-            size_t flag = (blockHeader.Commands[i] >> 24);
-            size_t decompressedSize = 0;
-            size_t decompressedResult = 0;
+            const size_t blockSize = (blockHeader.Commands[i] & 0xFFFFFF);
+            const size_t flag = (blockHeader.Commands[i] >> 24);
+
+            // The block decompressed size passed to the decompression method
+            size_t blockDecompressedSize = 0;
 
             // Get the current stream, avoids constant allocations as we know we have a memory pointer.
-            auto dataBlock = reader.GetCurrentStream(blockSize);
+            const auto dataBlock = reader.GetCurrentStream(blockSize);
 
             // If we hit EOF on this, we can't verify this stream is valid or something is wrong.
             if (dataBlock == nullptr)
@@ -188,35 +185,45 @@ std::unique_ptr<uint8_t[]> XPAKCache::DecompressPackageObject(uint64_t cacheID, 
                 return nullptr;
             }
 
+            // TODO: Need to be migrate more comments from the old code here
+            // Check the block type (anything else = skip over!)
             switch (flag)
             {
-            case 0x3:
-                decompressedSize = remaining;
-                decompressedResult = Compression::DecompressLZ4Block((const int8_t*)dataBlock, (int8_t*)result.get() + resultSize, blockSize, decompressedSize);
-                resultSize += decompressedSize;
-                remaining -= decompressedResult;
-                break;
-            case 0x6:
-                decompressedSize = std::min<size_t>(remaining, 262112);
-                decompressedResult = Siren::Decompress((const uint8_t*)dataBlock, blockSize, result.get() + resultSize, decompressedSize);
-                resultSize += decompressedSize;
-                remaining -= decompressedSize;
-                break;
-            case 0x8:
-                decompressedSize = *(uint32_t*)(dataBlock);
-                decompressedResult = Siren::Decompress((const uint8_t*)(dataBlock + 4), blockSize - 4, result.get() + resultSize, decompressedSize);
-                resultSize += decompressedSize;
-                remaining -= decompressedSize;
-                break;
-            case 0x0:
-                std::memcpy(result.get() + resultSize, dataBlock, blockSize);
-                decompressedResult = blockSize;
-                resultSize += blockSize;
-                remaining -= blockSize;
-                break;
-            default:
-                decompressedResult = blockSize;
-                break;
+                case 0x3: // compressed (lz4)
+                {
+                    blockDecompressedSize = remaining;
+                    const size_t decompressedResult = Compression::DecompressLZ4Block(dataBlock, (int8_t*)result.get() + resultSize, blockSize, (int32_t)(blockDecompressedSize));
+                    resultSize += decompressedResult;
+                    remaining -= decompressedResult;
+                    break;
+                }
+                case 0x6:
+                {
+                    blockDecompressedSize = std::min<size_t>(remaining, 262112);
+                    Siren::Decompress((const uint8_t*)dataBlock, blockSize, result.get() + resultSize, blockDecompressedSize);
+                    resultSize += blockDecompressedSize;
+                    remaining -= blockDecompressedSize;
+                    break;
+                }
+                case 0x8: // compressed (oodle)
+                {
+                    blockDecompressedSize = *(uint32_t*)(dataBlock);
+                    Siren::Decompress((const uint8_t*)(dataBlock + 4), blockSize - 4, result.get() + resultSize, blockDecompressedSize);
+                    resultSize += blockDecompressedSize;
+                    remaining -= blockDecompressedSize;
+                    break;
+                }
+                case 0x0: // raw data
+                {
+                    std::memcpy(result.get() + resultSize, dataBlock, blockSize);
+                    resultSize += blockSize;
+                    remaining -= blockSize;
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
             }
 
             // TODO: Don't like depending on game for this, maybe use XPAK version and pass in flag?
