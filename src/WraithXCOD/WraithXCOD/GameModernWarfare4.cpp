@@ -121,7 +121,7 @@ uint32_t MW4HashSoundString(const std::string& Value)
     return Result;
 }
 
-// Verify that our pool data is exactly 0x20
+// Verify that our pool data size
 static_assert(sizeof(MW4XAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
 
 bool GameModernWarfare4::LoadOffsets()
@@ -189,8 +189,8 @@ bool GameModernWarfare4::LoadAssets()
             // Set
             LoadedImage->AssetName = ImageName;
             LoadedImage->AssetPointer = Asset.Header;
-            LoadedImage->Width = (uint16_t)ImageResult.LoadedMipWidth;
-            LoadedImage->Height = (uint16_t)ImageResult.LoadedMipHeight;
+            LoadedImage->Width = ImageResult.LoadedMipWidth;
+            LoadedImage->Height = ImageResult.LoadedMipHeight;
             LoadedImage->Format = ImageResult.ImageFormat;
             LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
             // Add
@@ -798,7 +798,7 @@ std::unique_ptr<XImageDDS> GameModernWarfare4::LoadXImage(const XImage_t& Image)
         // An initial loop to find the fallback to use in case of CDN not being
         // a viable option.
         size_t Fallback = 0;
-        size_t HighestIndex = (size_t)4;
+        size_t HighestIndex = 4;
 
         for (size_t i = 0; i < 4; i++)
         {
