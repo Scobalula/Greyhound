@@ -991,10 +991,10 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
     // Result
     auto Result = ExportGameResult::Success;
 
-//#ifndef _DEBUG
+// #ifndef _DEBUG
     try
     {
-//#endif
+// #endif
         // Send to specific export handler
         switch (Asset->AssetType)
         {
@@ -1011,7 +1011,7 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
             // Export a material
             case WraithAssetType::Material: {Result = ExportMaterialAsset((CoDMaterial_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;}
         }
-//#ifndef _DEBUG
+// #ifndef _DEBUG
     }
     catch (...)
     {
@@ -1021,7 +1021,7 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
 		std::cout << "Error: An exception occurred while exporting asset:" << Asset->AssetName.c_str() << "\n";
 #endif // _DEBUG
     }
-//#endif
+// #endif
 
     // Success, unless specific error
     return Result;

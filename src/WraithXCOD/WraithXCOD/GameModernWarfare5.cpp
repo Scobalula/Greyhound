@@ -203,7 +203,6 @@ bool GameModernWarfare5::LoadAssets()
 
             // Make and add
             auto LoadedAnim = new CoDAnim_t();
-
             // Set
             LoadedAnim->AssetName = AnimName;
             LoadedAnim->AssetPointer = Asset.Header;
@@ -391,7 +390,7 @@ void XAnimCalculateBufferIndex(XAnimBufferState* animState, const size_t tableSi
     {
         // If we're at 0, we're definitely within the initial buffer, otherwise, we need to search
         // for our buffer.
-        if (keyFrameIndex >= 0)
+        // if (keyFrameIndex >= 0) // TODO: The judgment conditions here are meaningless and will be reserved for now.
         {
             for (size_t i = 0; i < animState->OffsetCount; i++)
             {
@@ -432,30 +431,16 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->FrameCount = AnimData.FrameCount;
         Anim->FrameRate = AnimData.Framerate;
 
-        // Check for viewmodel animations
-        //if ((_strnicmp(Animation->AssetName.c_str(), "viewmodel_", 10) == 0) || (_strnicmp(Animation->AssetName.c_str(), "vm_", 3) == 0))
-        //{
-        //    // This is a viewmodel animation
-        //    Anim->ViewModelAnimation = true;
-        //}
-
-        // Check for additive animations
-        // No point, breaks it in SETools, wait for Cast to implement full Additive support
-        //if (AnimData.AssetType == 0x6)
-        //{
-        //    // This is a additive animation
-        //    Anim->AdditiveAnimation = true;
-        //}
         // Check for looping
-        Anim->LoopingAnimation = false /*(AnimData.Flags & 1)*/;
+        Anim->LoopingAnimation = (AnimData.Padding2[4] & 1) != 0;
+        // Check for additive
+        Anim->AdditiveAnimation = AnimData.AssetType == 0x6;
+
+        // std::cout<< "LoopingAnimation: " << Anim->LoopingAnimation << "\n";
+        // std::cout<< "AdditiveAnimation: " << Anim->AdditiveAnimation << "\n";
 
         // Read the delta data
         const auto AnimDeltaData = CoDAssets::GameInstance->Read<MW5XAnimDeltaParts>(AnimData.DeltaPartsPtr);
-
-        std::unique_ptr<uint8_t[]> AnimBuffer = nullptr;
-        size_t AnimBufferSize = 0;
-        size_t AnimIndicesSize = 0;
-        size_t AnimBufferOffset = 0;
 
         // Bone ID index size
         Anim->BoneIndexSize = 4;
@@ -479,16 +464,16 @@ std::unique_ptr<XAnim_t> GameModernWarfare5::ReadXAnim(const CoDAnim_t* Animatio
         Anim->Reader = std::make_unique<CoDXAnimReader>();
 
         // Consume bones
-        for (size_t b = 0; b < AnimData.TotalBoneCount; b++)
+        for (size_t b = 0; b < AnimData.TotalBoneCount; ++b)
         {
-            Anim->Reader->BoneNames.push_back(CoDAssets::GetHashedString("bone", (uint64_t)CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4)));
-            uint32_t boneid = CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4);
+            const uint32_t boneID = CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4);
+            Anim->Reader->BoneNames.push_back(CoDAssets::GetHashedString("bone", (uint64_t)boneID));
         }
 
         // Consume notetracks
-        for (size_t n = 0; n < AnimData.NotetrackCount; n++)
+        for (size_t n = 0; n < AnimData.NotetrackCount; ++n)
         {
-            auto noteTrack = CoDAssets::GameInstance->Read<MW5XAnimNotetrack>(AnimData.NotificationsPtr + n * sizeof(MW5XAnimNotetrack));
+            const auto noteTrack = CoDAssets::GameInstance->Read<MW5XAnimNotetrack>(AnimData.NotificationsPtr + n * sizeof(MW5XAnimNotetrack));
             Anim->Reader->Notetracks.push_back({ CoDAssets::GameStringHandler(noteTrack.Name), (size_t)(noteTrack.Time * (float)Anim->FrameCount) });
         }
 
@@ -1241,18 +1226,18 @@ void GameModernWarfare5::LoadXModel(const std::unique_ptr<XModel_t>& Model, cons
                 // Add normal
                 Vertex.Normal = QTangent.Unpack(nullptr, nullptr);
 
-                // Apply Color (some models don't store colors, so we need to check ptr below)
-                Vertex.Color[0] = 255;
-                Vertex.Color[1] = 255;
-                Vertex.Color[2] = 255;
-                Vertex.Color[3] = 255;
-
                 // Read and set UVs
                 auto UVU = HalfFloats::ToFloat(VertexUVReader.Read<uint16_t>());
                 auto UVV = HalfFloats::ToFloat(VertexUVReader.Read<uint16_t>());
 
                 // Set it
                 Vertex.AddUVLayer(UVU, UVV);
+
+                // Apply Color (some models don't store colors, so we need to check ptr below)
+                Vertex.Color[0] = 255;
+                Vertex.Color[1] = 255;
+                Vertex.Color[2] = 255;
+                Vertex.Color[3] = 255;
 
                 // Assign weights
                 auto& WeightValue = VertexWeights[i];
@@ -1362,8 +1347,8 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
     state.PackedPerFrameInfo = animPackedInfo.get();
 
     // Calculate the size of frames and inline bone indicies
-    uint32_t FrameSize = (Anim->FrameCount > 255) ? 2 : 1;
-    uint32_t BoneTypeSize = (Anim->TotalBoneCount > 255) ? 2 : 1;
+    // uint32_t FrameSize = (Anim->FrameCount > 255) ? 2 : 1;
+    // uint32_t BoneTypeSize = (Anim->TotalBoneCount > 255) ? 2 : 1;
 
     size_t currentBoneIndex = 0;
     size_t currentSize = Anim->NoneRotatedBoneCount;
@@ -1406,7 +1391,7 @@ void GameModernWarfare5::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
             auto randomDataShort = randomDataShorts[state.BufferIndex] + 2 * state.BufferOffset;
 
             float RZ = (float)randomDataShort[0] * 0.000030518509f;
-            float RW = (float)randomDataShort[2] * 0.000030518509f;
+            float RW = (float)randomDataShort[1] * 0.000030518509f;
 
             ResultAnim->AddRotationKey(Anim->Reader->BoneNames[currentBoneIndex], frame, 0, 0, RZ, RW);
         }
