@@ -178,8 +178,8 @@ bool GameModernWarfare6::LoadAssets()
             // Set
             LoadedImage->AssetName = ImageName;
             LoadedImage->AssetPointer = Asset.Header;
-            LoadedImage->Width = (uint16_t)ImageResult.Width;
-            LoadedImage->Height = (uint16_t)ImageResult.Height;
+            LoadedImage->Width = ImageResult.Width;
+            LoadedImage->Height = ImageResult.Height;
             LoadedImage->Format = ImageResult.ImageFormat;
             LoadedImage->AssetStatus = WraithAssetStatus::Loaded;
             LoadedImage->Streamed = ImageResult.LoadedImagePtr == 0;
@@ -358,7 +358,7 @@ void MW6XAnimCalculateBufferIndex(MW6XAnimBufferState* animState, const size_t t
     {
         // If we're at 0, we're definitely within the initial buffer, otherwise, we need to search
         // for our buffer.
-        if (keyFrameIndex >= 0)
+        // if (keyFrameIndex >= 0) // TODO: The judgment conditions here are meaningless and will be reserved for now.
         {
             for (size_t i = 0; i < animState->OffsetCount; i++)
             {
@@ -401,6 +401,7 @@ std::unique_ptr<XAnim_t> GameModernWarfare6::ReadXAnim(const CoDAnim_t* Animatio
 
         // Check for looping
         Anim->LoopingAnimation = (AnimData.Padding2[4] & 1) != 0;
+        // Check for additive
         Anim->AdditiveAnimation = AnimData.AssetType == 0x6;
 
         // Read the delta data
@@ -428,14 +429,14 @@ std::unique_ptr<XAnim_t> GameModernWarfare6::ReadXAnim(const CoDAnim_t* Animatio
         Anim->Reader = std::make_unique<CoDXAnimReader>();
 
         // Consume bones
-        for (size_t b = 0; b < AnimData.TotalBoneCount; b++)
+        for (size_t b = 0; b < AnimData.TotalBoneCount; ++b)
         {
             const uint32_t boneID = CoDAssets::GameInstance->Read<uint32_t>(AnimData.BoneIDsPtr + b * 4);
             Anim->Reader->BoneNames.push_back(CoDAssets::GetHashedString("bone", (uint64_t)boneID));
         }
 
         // Consume notetracks
-        for (size_t n = 0; n < AnimData.NotetrackCount; n++)
+        for (size_t n = 0; n < AnimData.NotetrackCount; ++n)
         {
             const auto noteTrack = CoDAssets::GameInstance->Read<MW6XAnimNotetrack>(AnimData.NotificationsPtr + n * sizeof(MW6XAnimNotetrack));
             Anim->Reader->Notetracks.push_back({ CoDAssets::GameStringHandler(noteTrack.Name), (size_t)(noteTrack.Time * (float)Anim->FrameCount) });
@@ -450,7 +451,7 @@ std::unique_ptr<XAnim_t> GameModernWarfare6::ReadXAnim(const CoDAnim_t* Animatio
         Anim->RotationType = AnimationKeyTypes::DivideBySize;
         Anim->TranslationType = AnimationKeyTypes::MinSizeTable;
 
-        // Modern Warfare 5 supports inline indicies
+        // Modern Warfare 6 supports inline indicies
         Anim->SupportsInlineIndicies = true;
 
         // Return it
@@ -548,7 +549,6 @@ std::unique_ptr<XModel_t> GameModernWarfare6::ReadXModel(const CoDModel_t* Model
                 SubmeshReference.VertexUVsPtr                 = SurfaceInfo.Offsets[1];
                 SubmeshReference.VertexNormalsPtr             = SurfaceInfo.Offsets[2];
                 SubmeshReference.FacesPtr                     = SurfaceInfo.Offsets[3];
-                SubmeshReference.VertexColorPtr               = SurfaceInfo.Offsets[6];
                 SubmeshReference.PackedIndexTablePtr          = SurfaceInfo.Offsets[4];
                 SubmeshReference.PackedIndexBufferPtr         = SurfaceInfo.Offsets[5];
                 SubmeshReference.VertexColorPtr               = SurfaceInfo.Offsets[6];
@@ -1177,8 +1177,8 @@ void GameModernWarfare6::LoadXAnim(const std::unique_ptr<XAnim_t>& Anim, std::un
     state.PackedPerFrameInfo = animPackedInfo.get();
 
     // Calculate the size of frames and inline bone indicies
-    uint32_t FrameSize = (Anim->FrameCount > 255) ? 2 : 1;
-    uint32_t BoneTypeSize = (Anim->TotalBoneCount > 255) ? 2 : 1;
+    // uint32_t FrameSize = (Anim->FrameCount > 255) ? 2 : 1;
+    // uint32_t BoneTypeSize = (Anim->TotalBoneCount > 255) ? 2 : 1;
 
     size_t currentBoneIndex = 0;
     size_t currentSize = Anim->NoneRotatedBoneCount;
