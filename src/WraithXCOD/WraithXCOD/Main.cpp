@@ -211,7 +211,8 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
             { "cleargdt_exit", "true" },
             { "overwrite_gdt", "true" },
             { "cdn_downloader", "true" },
-            { "match_game_lod_index", "false" }
+            { "match_game_lod_index", "false" },
+            { "remove_mdl_basename", "false" }
         });
 
 #ifndef _DEBUG

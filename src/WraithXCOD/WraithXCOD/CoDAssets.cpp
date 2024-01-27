@@ -991,8 +991,10 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
     // Result
     auto Result = ExportGameResult::Success;
 
+//#ifndef _DEBUG
     try
     {
+//#endif
         // Send to specific export handler
         switch (Asset->AssetType)
         {
@@ -1009,14 +1011,17 @@ ExportGameResult CoDAssets::ExportAsset(const CoDAsset_t* Asset)
             // Export a material
             case WraithAssetType::Material: {Result = ExportMaterialAsset((CoDMaterial_t*)Asset, ExportPath, ImagesPath, ImageRelativePath, ImageExtension); break;}
         }
+//#ifndef _DEBUG
     }
     catch (...)
     {
         Result = ExportGameResult::UnknownError;
+        CoDAssets::Log->error("An exception occurred while exporting asset: {0}", Asset->AssetName);
 #if _DEBUG
-		std::cout << Asset->AssetName.c_str() << ": error: An exception occurred during export" << "\n";
+		std::cout << "Error: An exception occurred while exporting asset:" << Asset->AssetName.c_str() << "\n";
 #endif // _DEBUG
     }
+//#endif
 
     // Success, unless specific error
     return Result;
@@ -1667,7 +1672,7 @@ ExportGameResult CoDAssets::ExportModelAsset(const CoDModel_t* Model, const std:
                 std::string LodIndexSuffix = "_LOD0";
 
                 // If we are using the "match game lod index" setting
-                if (SettingsManager::GetSetting("match_game_lod_index") == "true")
+                if (SettingsManager::GetSetting("match_game_lod_index", "false") == "true")
                 {
                     LodIndexSuffix = Strings::Format("_LOD%d", BiggestLodIndex);
                 }

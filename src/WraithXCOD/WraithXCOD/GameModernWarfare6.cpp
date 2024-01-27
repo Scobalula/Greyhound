@@ -86,7 +86,7 @@ uint32_t MW6HashSoundString(const std::string& Value)
     return Result;
 }
 
-// Verify that our pool data is exactly 0x20
+// Verify that our pool data size
 static_assert(sizeof(MW6XAssetPoolData) == 0x18, "Invalid Pool Data Size (Expected 0x18)");
 
 bool GameModernWarfare6::LoadOffsets()
@@ -107,8 +107,9 @@ bool GameModernWarfare6::LoadAssets()
 
     if (NeedsModels)
     {
+        auto RemoveMdlBasename = SettingsManager::GetSetting("remove_mdl_basename", "false") == "true";
         auto Pool = CoDAssets::GameInstance->Read<ps::XAssetPool64>(ps::state->PoolsAddress + 9 * sizeof(ps::XAssetPool64));
-        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [](ps::XAsset64& Asset)
+        ps::PoolParser64(Pool.Root, CoDAssets::ParasyteRequest, [&RemoveMdlBasename](ps::XAsset64& Asset)
         {
             // Read
             auto ModelResult = CoDAssets::GameInstance->Read<MW6XModel>(Asset.Header);
@@ -119,11 +120,20 @@ bool GameModernWarfare6::LoadAssets()
             if (ModelResult.NamePtr > 0)
             {
                 ModelName = CoDAssets::GameInstance->ReadNullTerminatedString(ModelResult.NamePtr);
-                const size_t DoubleColonPos = ModelName.find("::");
-                if (DoubleColonPos != std::string::npos)
+
+                if (RemoveMdlBasename)
                 {
-                    ModelName = ModelName.substr(0, DoubleColonPos);
+                    const size_t DoubleColonPos = ModelName.find("::");
+                    if (DoubleColonPos != std::string::npos)
+                    {
+                        ModelName = ModelName.substr(0, DoubleColonPos);
+                    }
                 }
+                else
+                {
+                    ModelName = Strings::Replace(ModelName, "::", "_");
+                }
+
                 ModelName = FileSystems::GetFileName(ModelName);
             }
             else
