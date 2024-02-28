@@ -513,7 +513,7 @@ const XMaterial_t GameModernWarfare3::ReadXMaterial(uint64_t MaterialPointer)
         }
 
         // Assign the new image
-        Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.ImagePtr, ImageName);
+        Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.NameStart, ImageInfo.NameEnd, ImageInfo.ImagePtr, ImageName);
 
         // Advance
         MaterialData.ImageTablePtr += sizeof(MW3XMaterialImage);
