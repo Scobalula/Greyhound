@@ -684,86 +684,59 @@ void GameModernWarfare6::TranslateRawfile(const CoDRawFile_t * Rawfile, const st
 
 const XMaterial_t GameModernWarfare6::ReadXMaterial(uint64_t MaterialPointer)
 {
-    //// Check for SP Files
-    //if (CoDAssets::GameFlags == SupportedGameFlags::SP)
-    //{
-    //    // Prepare to parse the material
-    //    auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterialSP>(MaterialPointer);
+    // Prepare to parse the material
+    uint64_t Hash;
+    uint32_t ImageCount;
+    uint64_t ImageTablePtr;
 
-    //    // Allocate a new material with the given image count
-    //    XMaterial_t Result(MaterialData.ImageCount);
-    //    // Clean the name, then apply it
-    //    if (MaterialData.NamePtr > 0)
-    //        Result.MaterialName = Strings::Replace(FileSystems::GetFileName(CoDAssets::GameInstance->ReadNullTerminatedString(MaterialData.NamePtr)), "*", "");
-    //    else
-    //        Result.MaterialName = CoDAssets::GetHashedName("xmaterial", MaterialData.Hash);
-
-    //    // Iterate over material images, assign proper references if available
-    //    for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
-    //    {
-    //        // Read the image info
-    //        auto ImageInfo = CoDAssets::GameInstance->Read<MW6XMaterialImage>(MaterialData.ImageTablePtr);
-    //        // Read the image name (End of image - 8)
-    //        auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
-
-    //        // Default type
-    //        auto DefaultUsage = ImageUsageType::Unknown;
-    //        // Check 
-    //        switch (ImageInfo.Type)
-    //        {
-    //        case 0:
-    //            DefaultUsage = ImageUsageType::DiffuseMap;
-    //            break;
-    //        }
-
-    //        // Assign the new image
-    //        Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
-
-    //        // Advance
-    //        MaterialData.ImageTablePtr += sizeof(MW6XMaterialImage);
-    //    }
-
-    //    // Return it
-    //    return Result;
-    //}
-    //else
+    // Check for SP Files
+    if (CoDAssets::GameFlags == SupportedGameFlags::SP)
     {
-        // Prepare to parse the material
-        auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterial>(MaterialPointer);
+        const auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterialSP>(MaterialPointer);
+        Hash = MaterialData.Hash;
+        ImageCount = MaterialData.ImageCount;
+        ImageTablePtr = MaterialData.ImageTablePtr;
+    }
+    else
+    {
+        const auto MaterialData = CoDAssets::GameInstance->Read<MW6XMaterial>(MaterialPointer);
+        Hash = MaterialData.Hash;
+        ImageCount = MaterialData.ImageCount;
+        ImageTablePtr = MaterialData.ImageTablePtr;
+    }
 
-        // Allocate a new material with the given image count
-        XMaterial_t Result(MaterialData.ImageCount);
-        // Clean the name, then apply it
-        Result.MaterialName = CoDAssets::GetHashedName("xmaterial", MaterialData.Hash);
+    // Allocate a new material with the given image count
+    XMaterial_t Result(ImageCount);
+    // Clean the name, then apply it
+    Result.MaterialName = CoDAssets::GetHashedName("xmaterial", Hash);
 
-        // Iterate over material images, assign proper references if available
-        for (uint32_t m = 0; m < MaterialData.ImageCount; m++)
+    // Iterate over material images, assign proper references if available
+    for (uint32_t m = 0; m < ImageCount; m++)
+    {
+        // Read the image info
+        auto ImageInfo = CoDAssets::GameInstance->Read<MW6XMaterialImage>(ImageTablePtr);
+        // Read the image name (End of image - 8)
+        auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
+
+        // Default type
+        auto DefaultUsage = ImageUsageType::Unknown;
+        // Check 
+        switch (ImageInfo.Type)
         {
-            // Read the image info
-            auto ImageInfo = CoDAssets::GameInstance->Read<MW6XMaterialImage>(MaterialData.ImageTablePtr);
-            // Read the image name (End of image - 8)
-            auto ImageName = CoDAssets::GetHashedName("ximage", CoDAssets::GameInstance->Read<uint64_t>(ImageInfo.ImagePtr));
-
-            // Default type
-            auto DefaultUsage = ImageUsageType::Unknown;
-            // Check 
-            switch (ImageInfo.Type)
-            {
             case 0:
                 DefaultUsage = ImageUsageType::DiffuseMap;
-                break;
-            }
-
-            // Assign the new image
-            Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
-
-            // Advance
-            MaterialData.ImageTablePtr += sizeof(MW6XMaterialImage);
+            break;
         }
 
-        // Return it
-        return Result;
+        // Assign the new image
+        Result.Images.emplace_back(DefaultUsage, ImageInfo.Type, ImageInfo.ImagePtr, ImageName);
+
+        // Advance
+        ImageTablePtr += sizeof(MW6XMaterialImage);
     }
+
+    // Return it
+    return Result;
 }
 
 void GameModernWarfare6::PrepareVertexWeights(MemoryReader& ComplexReader, std::vector<WeightsData>& Weights, const XModelSubmesh_t & Submesh)
