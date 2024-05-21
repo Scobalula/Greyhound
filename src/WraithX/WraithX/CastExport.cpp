@@ -217,12 +217,7 @@ void Cast::ExportCastAnim(const WraithAnim& Anim, const std::string& FileName, b
 		YCurve->SetProperty("kp", "ty");
 		ZCurve->SetProperty("kp", "tz");
 
-		auto Modifier = Anim.AnimationBoneModifiers.find(Positions.first);
-		auto Type = Anim.AnimType;
-		if (Modifier != Anim.AnimationBoneModifiers.end())
-			Type = Modifier->second;
-
-		switch (Type)
+		switch (Anim.AnimType)
 		{
 		case WraithAnimationType::Absolute:
 			XCurve->SetProperty("m", "absolute");
@@ -287,12 +282,7 @@ void Cast::ExportCastAnim(const WraithAnim& Anim, const std::string& FileName, b
 		Curve->SetProperty("nn", Rotations.first);
 		Curve->SetProperty("kp", "rq");
 
-		auto Modifier = Anim.AnimationBoneModifiers.find(Rotations.first);
-		auto Type = Anim.AnimType;
-		if (Modifier != Anim.AnimationBoneModifiers.end())
-			Type = Modifier->second;
-
-		switch (Type)
+		switch (Anim.AnimType)
 		{
 		case WraithAnimationType::Absolute:
 			Curve->SetProperty("m", "absolute"); break;
@@ -326,6 +316,23 @@ void Cast::ExportCastAnim(const WraithAnim& Anim, const std::string& FileName, b
 			case CastPropertyId::Integer32:
 				KeyFrameBuffer->Write((uint32_t)Rotation.Frame); break;
 			}
+		}
+	}
+
+	for (auto& BoneModifier : Anim.AnimationBoneModifiers)
+	{
+		auto CastOverride = CastAnim->AddNode(CastNodeId::CurveModeOverride);
+		CastOverride->SetProperty("nn", BoneModifier.first);
+		CastOverride->SetProperty("ot", CastPropertyId::Byte, (uint8_t)1);
+
+		switch (BoneModifier.second)
+		{
+		case WraithAnimationType::Absolute:
+			CastOverride->SetProperty("m", "absolute"); break;
+		case WraithAnimationType::Additive:
+			CastOverride->SetProperty("m", "additive"); break;
+		default:
+			CastOverride->SetProperty("m", "relative"); break;
 		}
 	}
 
