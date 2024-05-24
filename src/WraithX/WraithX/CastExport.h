@@ -28,6 +28,7 @@ enum class CastNodeId : uint32_t
 	Animation         = 0x6D696E61,
 	Curve             = 0x76727563,
 	NotificationTrack = 0x6669746E,
+	CurveModeOverride = 0x564F4D43,
 	Material          = 0x6C74616D,
 	File              = 0x656C6966,
 };
