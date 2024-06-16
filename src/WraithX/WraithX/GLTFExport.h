@@ -12,7 +12,7 @@ class GLTF
 {
 public:
     // Export a WraithModel to a GLTF file
-    static void ExportGLTF(const WraithModel& Model, const std::string& FileName, bool SupportsScale = false, bool binary = false);
+    static void ExportGLTF(const WraithModel& Model, const std::string& FileName, bool SupportsScale = false, bool writeBinary = false);
     // Export a WraithAnim to a GLTF file
     static void ExportGLTF(const WraithAnim& Model, const std::string& FileName, bool SupportsScale = false);
 };

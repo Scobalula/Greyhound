@@ -111,7 +111,7 @@ int CreateAccessor(tinygltf::Model& GltfModel, int View, size_t Offset, size_t L
 	return Index;
 }
 
-void GLTF::ExportGLTF(const WraithModel& Model, const std::string& FileName, bool SupportsScale, bool binary)
+void GLTF::ExportGLTF(const WraithModel& Model, const std::string& FileName, bool SupportsScale, bool writeBinary)
 {
 	// TODO: Adjust types based off counts, so we're not writing 4 bytes per face
 	// or joint when it isn't necessary.
@@ -459,5 +459,5 @@ void GLTF::ExportGLTF(const WraithModel& Model, const std::string& FileName, boo
 	GltfModel.buffers.push_back(GltfBuffer);
 	GltfModel.skins.push_back(GltfSkin);
 	GltfModel.scenes.push_back(Scene);
-	loader.WriteGltfSceneToFile(&GltfModel, FileName, false, false, true, binary);
+	loader.WriteGltfSceneToFile(&GltfModel, FileName, false, false, true, writeBinary);
 }
