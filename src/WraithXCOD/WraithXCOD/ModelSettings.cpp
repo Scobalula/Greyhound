@@ -172,10 +172,10 @@ void ModelSettings::OnExportGLTF()
 
 void ModelSettings::OnExportGLB()
 {
-	// Whether or not we are checked
-	bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTGLB))->GetState() & BST_CHECKED) == BST_CHECKED);
+    // Whether or not we are checked
+    bool CheckboxChecked = ((((CButton*)GetDlgItem(IDC_EXPORTGLB))->GetState() & BST_CHECKED) == BST_CHECKED);
 	// Set it
-	SettingsManager::SetSetting("export_glb", (CheckboxChecked) ? "true" : "false");
+    SettingsManager::SetSetting("export_glb", (CheckboxChecked) ? "true" : "false");
 }
 
 void ModelSettings::OnExportCast()
