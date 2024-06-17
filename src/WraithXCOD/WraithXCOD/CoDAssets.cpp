@@ -2111,13 +2111,13 @@ void CoDAssets::ExportWraithModel(const std::unique_ptr<WraithModel>& Model, con
     // Check for GLTF format
     if (SettingsManager::GetSetting("export_gltf") == "true")
     {
-        // Export a SEModel file
+        // Export a GLTF file
         GLTF::ExportGLTF(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".gltf"));
     }
     // Check for GLB format
     if (SettingsManager::GetSetting("export_glb") == "true")
     {
-        // Export a SEModel file
+        // Export a GLB file
         GLTF::ExportGLTF(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".glb"), false, true);
     }
     // Check for SEModel format
