@@ -1538,6 +1538,9 @@ bool CoDAssets::ShouldExportModel(std::string ExportPath)
     if (SettingsManager::GetSetting("export_gltf") == "true" && !FileSystems::FileExists(ExportPath + ".gltf"))
         Result = true;
     // Check it
+    if (SettingsManager::GetSetting("export_glb") == "true" && !FileSystems::FileExists(ExportPath + ".glb"))
+        Result = true;
+    // Check it
     if (SettingsManager::GetSetting("export_castmdl") == "true" && !FileSystems::FileExists(ExportPath + ".cast"))
         Result = true;
     //// Check it
@@ -2108,8 +2111,14 @@ void CoDAssets::ExportWraithModel(const std::unique_ptr<WraithModel>& Model, con
     // Check for GLTF format
     if (SettingsManager::GetSetting("export_gltf") == "true")
     {
-        // Export a SEModel file
+        // Export a GLTF file
         GLTF::ExportGLTF(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".gltf"));
+    }
+    // Check for GLB format
+    if (SettingsManager::GetSetting("export_glb") == "true")
+    {
+        // Export a GLB file
+        GLTF::ExportGLTF(*Model.get(), FileSystems::CombinePath(ExportPath, Model->AssetName + ".glb"), false, true);
     }
     // Check for SEModel format
     if (SettingsManager::GetSetting("export_semodel") == "true")
