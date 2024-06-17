@@ -1538,7 +1538,7 @@ bool CoDAssets::ShouldExportModel(std::string ExportPath)
     if (SettingsManager::GetSetting("export_gltf") == "true" && !FileSystems::FileExists(ExportPath + ".gltf"))
         Result = true;
 	// Check it
-	if (SettingsManager::GetSetting("export_glb") == "true" && !FileSystems::FileExists(ExportPath + ".glb"))
+    if (SettingsManager::GetSetting("export_glb") == "true" && !FileSystems::FileExists(ExportPath + ".glb"))
         Result = true;
     // Check it
     if (SettingsManager::GetSetting("export_castmdl") == "true" && !FileSystems::FileExists(ExportPath + ".cast"))
