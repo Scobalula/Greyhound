@@ -199,21 +199,13 @@ void Cast::ExportCastModel(const WraithModel& Model, const std::string& FileName
 							blend->SetProperty("n", Model.BlendShapes[BlendDeltaPosition.first]);
 							blend->SetProperty("b", CastPropertyId::Integer64, CastMesh->Hash);
 							blend->SetProperty("ts", CastPropertyId::Float, 1.0f);
+							blend->AddProperty("vp", CastPropertyId::Vector3, Vertex.BlendShapeDeltas.size() * sizeof(Vector3));
+							blend->AddProperty("vi", FaceIndexType, Vertex.BlendShapeDeltas.size() * sizeof(uint32_t));
 							blendMap[BlendDeltaPosition.first] = blend;
 						}
-
 						auto& blend = blendMap[BlendDeltaPosition.first];
 
-						if (blend->Properties.count("vp") == 0)
-						{
-							blend->AddProperty("vp", CastPropertyId::Vector3, Vertex.BlendShapeDeltas.size() * sizeof(Vector3));
-						}
 						blend->Properties["vp"]->Write(Vertex.Position + BlendDeltaPosition.second);
-
-						if (blend->Properties.count("vi") == 0)
-						{
-							blend->AddProperty("vi", FaceIndexType, Vertex.BlendShapeDeltas.size() * sizeof(uint32_t));
-						}
 						switch (FaceIndexType)
 						{
 						case CastPropertyId::Byte:
