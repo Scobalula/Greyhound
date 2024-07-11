@@ -100,9 +100,12 @@ void Cast::ExportCastModel(const WraithModel& Model, const std::string& FileName
 		CastMaterial->SetProperty("specular", CastPropertyId::Integer64, CastSpec->Hash);
 	}
 
+	int MeshIndex = 0;
 	for (auto& Mesh : Model.Submeshes)
 	{
-		auto CastMesh = CastModel->AddNode(CastNodeId::Mesh);
+		auto MeshHash = Hashing::HashXXHashString(MeshIndex == 0 ? "CastMesh" : "CastMesh" + std::to_string(MeshIndex));
+		auto CastMesh = CastModel->AddNode(CastNodeId::Mesh, MeshHash);
+		MeshIndex++;
 
 		auto VertCount = Mesh.VertexCount();
 		auto FaceIndexType = VertCount <= 0xFFFF ? VertCount <= 0xFF ? CastPropertyId::Byte : CastPropertyId::Short : CastPropertyId::Integer32;
@@ -180,6 +183,42 @@ void Cast::ExportCastModel(const WraithModel& Model, const std::string& FileName
 			}
 		}
 
+		if (Model.BlendShapes.size() > 0)
+		{
+			std::unordered_map<size_t, CastNode*> blendMap;
+			for (int i = 0; i < Mesh.VertexCount(); i++)
+			{
+				auto& Vertex = Mesh.Verticies[i];
+				for (auto& BlendDeltaPosition : Vertex.BlendShapeDeltas)
+				{
+					if (BlendDeltaPosition.second != Vector3(0, 0, 0))
+					{
+						if (blendMap.find(BlendDeltaPosition.first) == blendMap.end())
+						{
+							auto blend = CastModel->AddNode(CastNodeId::BlendShape);
+							blend->SetProperty("n", Model.BlendShapes[BlendDeltaPosition.first]);
+							blend->SetProperty("b", CastPropertyId::Integer64, CastMesh->Hash);
+							blend->SetProperty("ts", CastPropertyId::Float, 1.0f);
+							blend->AddProperty("vp", CastPropertyId::Vector3, Vertex.BlendShapeDeltas.size() * sizeof(Vector3));
+							blend->AddProperty("vi", FaceIndexType, Vertex.BlendShapeDeltas.size() * sizeof(uint32_t));
+							blendMap[BlendDeltaPosition.first] = blend;
+						}
+						auto& blend = blendMap[BlendDeltaPosition.first];
+
+						blend->Properties["vp"]->Write(Vertex.Position + BlendDeltaPosition.second);
+						switch (FaceIndexType)
+						{
+						case CastPropertyId::Byte:
+							blend->Properties["vi"]->Write((uint8_t)i); break;
+						case CastPropertyId::Short:
+							blend->Properties["vi"]->Write((uint16_t)i); break;
+						case CastPropertyId::Integer32:
+							blend->Properties["vi"]->Write((uint32_t)i); break;
+						}
+					}
+				}
+			}
+		}
 		Materials->Write(MaterialHashes[Mesh.MaterialIndicies[0]]);
 	}
 
@@ -343,6 +382,39 @@ void Cast::ExportCastAnim(const WraithAnim& Anim, const std::string& FileName, b
 		auto KeyFrameBuffer = CastNote->AddProperty("kb", CastPropertyId::Integer32);
 		for (auto& Key : Note.second)
 			KeyFrameBuffer->Write(Key);
+	}
+
+	for (auto& Blend : Anim.AnimationBlendShapeWeightKeys)
+	{
+		auto Curve = CastAnim->AddNode(CastNodeId::Curve);
+		Curve->SetProperty("nn", Blend.first);
+		Curve->SetProperty("kp", "bs");
+		Curve->SetProperty("m", "absolute");
+
+		uint32_t LargestFrame = 0;
+
+		for (auto& BlendValue : Blend.second)
+			if (BlendValue.Frame > LargestFrame)
+				LargestFrame = BlendValue.Frame;
+
+		auto KeyFrameBufferType = LargestFrame <= 0xFFFF ? LargestFrame <= 0xFF ? CastPropertyId::Byte : CastPropertyId::Short : CastPropertyId::Integer32;
+		auto KeyFrameBuffer = Curve->AddProperty("kb", KeyFrameBufferType);
+		auto KeyValueBuffer = Curve->AddProperty("kv", CastPropertyId::Float);
+
+		for (auto& BlendValue : Blend.second)
+		{
+			KeyValueBuffer->Write(BlendValue.Value.X);
+
+			switch (KeyFrameBufferType)
+			{
+			case CastPropertyId::Byte:
+				KeyFrameBuffer->Write((uint8_t)BlendValue.Frame); break;
+			case CastPropertyId::Short:
+				KeyFrameBuffer->Write((uint16_t)BlendValue.Frame); break;
+			case CastPropertyId::Integer32:
+				KeyFrameBuffer->Write((uint32_t)BlendValue.Frame); break;
+			}
+		}
 	}
 
 	WriteCastFile(Writer, CastRoot);

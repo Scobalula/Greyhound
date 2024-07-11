@@ -1531,6 +1531,16 @@ void CoDXAnimTranslator::BlendShapesBO4(const std::unique_ptr<WraithAnim>& Anim,
         {
             // Look up the next shape index by frame
             size_t FrameIndex = 0;
+            //https://github.com/Scobalula/Greyhound/commit/4c92e978a9d87a3b867ade9e8b3cc98521c928f5#diff-b3246cb1d3566246b2329f38c3bca00cf25806fb9ba32b06f0c1b1cb34c63fd6L956
+            //Removing this in the above commit seems to have broken the blendshapes for BO4/CW
+            for (size_t j = 0; j < BlendShapeFrames.FrameCount; j++)
+            {
+                if (i < Frames[j])
+                {
+                    FrameIndex = j - 1;
+                    break;
+                }
+            }
 
             // Now we need this frame, and the next frame
             auto CurrentFrame  = (float)Frames[FrameIndex];
