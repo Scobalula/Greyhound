@@ -19,6 +19,7 @@
 
 // We need the file system classes.
 #include "CoDFileHandle.h"
+#include "WinFileSystem.h"
 
 XPAKCache::XPAKCache()
 {
@@ -54,6 +55,9 @@ bool XPAKCache::LoadPackage(const std::string& FilePath)
 
     // Add to package files
     auto PackageIndex = (uint32_t)PackageFilePaths.size();
+
+	if (FileSystem == nullptr)
+		FileSystem = std::make_unique<WinFileSystem>(FileSystems::GetDirectoryName(FilePath));
 
     // Open the file
     auto Reader = CoDFileHandle(FileSystem->OpenFile(FilePath, "r"), FileSystem.get());
