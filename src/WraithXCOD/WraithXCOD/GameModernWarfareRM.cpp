@@ -1010,9 +1010,9 @@ std::unique_ptr<XImageDDS> GameModernWarfareRM::ReadXImage(const CoDImage_t* Ima
     }
     // Proxy off
     if(ps::state != nullptr)
-        return LoadXImagePS(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
+        return LoadXImagePS(XImage_t(Usage, 0, 0, 0, Image->AssetPointer, Image->AssetName));
     else
-        return LoadXImage(XImage_t(Usage, 0, Image->AssetPointer, Image->AssetName));
+        return LoadXImage(XImage_t(Usage, 0, 0, 0, Image->AssetPointer, Image->AssetName));
 }
 
 XMaterial_t GameModernWarfareRM::ReadXMaterial(uint64_t MaterialPointer)
@@ -1051,7 +1051,7 @@ XMaterial_t GameModernWarfareRM::ReadXMaterial(uint64_t MaterialPointer)
         }
 
         // Assign the new image
-        Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.ImagePtr, ImageName);
+        Result.Images.emplace_back(DefaultUsage, ImageInfo.SemanticHash, ImageInfo.NameStart, ImageInfo.NameEnd, ImageInfo.ImagePtr, ImageName);
 
         // Advance
         MaterialData.ImageTablePtr += sizeof(MWRXMaterialImage);

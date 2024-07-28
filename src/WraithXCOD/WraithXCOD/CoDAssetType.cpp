@@ -117,13 +117,15 @@ XMaterial_t::XMaterial_t(uint32_t ImageCount)
     Images.reserve(ImageCount);
 }
 
-XImage_t::XImage_t(ImageUsageType Usage, uint32_t Hash, uint64_t Pointer, const std::string& Name)
+XImage_t::XImage_t(ImageUsageType Usage, uint32_t Hash, uint32_t First, uint32_t Last, uint64_t Pointer, const std::string& Name)
 {
     // Defaults
     ImageUsage = Usage;
     ImagePtr = Pointer;
     ImageName = Name;
     SemanticHash = Hash;
+    FirstCharacter = First;
+    LastCharacter = Last;
 }
 
 XModelSubmesh_t::XModelSubmesh_t()
